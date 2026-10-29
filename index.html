@@ -12,8 +12,9 @@
 
         /* Pantalla de Acceso / Login y Registro */
         .auth-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
-        .auth-logo { width: 60px; height: 60px; background: #f59e0b; color: #0f172a; border-radius: 16px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; }
+        .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
+        .auth-logo { width: 70px; height: 70px; background: #f59e0b; color: #0f172a; border-radius: 16px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; overflow: hidden; }
+        .auth-logo img { width: 100%; height: 100%; object-fit: cover; }
 
         /* Navbar */
         header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
@@ -54,6 +55,10 @@
 
         .link-btn { background: none; border: none; color: #4f46e5; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-decoration: underline; padding: 0; }
         .nav-admin-btn { background: #4f46e5; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem; }
+
+        /* Modal Formato Oficial */
+        .modal-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
+        .modal-card { background: white; border-radius: 20px; padding: 2rem; width: 100%; max-width: 600px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
     </style>
 </head>
 <body>
@@ -61,11 +66,9 @@
     <!-- PANTALLA DE ACCESO / LOGIN Y REGISTRO -->
     <div id="auth-screen" class="auth-overlay">
         <div class="auth-card">
-            <div style="text-align: center; margin-bottom: 1.5rem;">
-                <div class="auth-logo"><i class="fa-solid fa-graduation-cap"></i></div>
-                <h2 id="login-school-title" style="font-size: 1.35rem; font-weight: 800; color: #0f172a;">I.E. ANTONIA SANTOS</h2>
-                <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">Control de Permisos y Gestión Institucional</p>
-            </div>
+            <div class="auth-logo" id="login-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h2 id="login-school-title" style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem;">I.E. ANTONIA SANTOS</h2>
+            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 1.5rem;">Control de Permisos y Gestión Institucional</p>
 
             <!-- Formulario Login -->
             <form id="form-login" onsubmit="handleLogin(event)">
@@ -120,7 +123,7 @@
                 </div>
             </form>
 
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem; margin-top: 1.5rem; font-size: 0.75rem; color: #475569;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem; margin-top: 1.5rem; font-size: 0.75rem; color: #475569; text-align: left;">
                 <strong>Credenciales Directivas:</strong><br>
                 • Rector (ALGC): <code>rector</code> / <code>RectorAntonia2026*</code><br>
                 • Coord. Mañana: <code>coord.manana</code> / <code>MananaAntonia2026*</code>
@@ -215,7 +218,7 @@
             <section id="view-config" class="card hidden">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración de Datos del Colegio</h2>
-                    <p>Actualice la información institucional y el logotipo oficial.</p>
+                    <p>Actualice la información institucional y cargue el logotipo oficial desde su equipo.</p>
                 </div>
 
                 <form onsubmit="saveSchoolConfig(event)">
@@ -233,22 +236,22 @@
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Dirección</label>
-                            <input type="text" id="cfg_direccion" required placeholder="Calle Principal # 12-34">
+                            <input type="text" id="cfg_direccion" required placeholder="Montería, Córdoba">
                         </div>
                         <div class="form-group">
                             <label>Teléfono</label>
-                            <input type="tel" id="cfg_telefono" required placeholder="3001234567">
+                            <input type="tel" id="cfg_telefono" required placeholder="3000000000">
                         </div>
                     </div>
 
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Correo Institucional</label>
-                            <input type="email" id="cfg_correo" required placeholder="contacto@colegio.edu.co">
+                            <input type="email" id="cfg_correo" required placeholder="correo@colegio.edu.co">
                         </div>
                         <div class="form-group">
-                            <label>URL del Logo (Imagen)</label>
-                            <input type="url" id="cfg_logo" placeholder="https://ejemplo.com/logo.png">
+                            <label>Logotipo del Colegio (Seleccionar Archivo)</label>
+                            <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.5rem; background: white;">
                         </div>
                     </div>
 
@@ -256,6 +259,26 @@
                 </form>
             </section>
         </main>
+    </div>
+
+    <!-- MODAL FORMATO OFICIAL / REPORTE -->
+    <div id="permitModal" class="modal-bg hidden">
+        <div class="modal-card">
+            <div style="display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1rem;">
+                <div id="modal-logo-box" style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold;">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h3 id="modal-school-title" style="font-size: 1.1rem; font-weight: 800; color: #1e1b4b;">I.E. ANTONIA SANTOS</h3>
+                    <p id="modal-school-nit" style="font-size: 0.75rem; color: #64748b;">NIT: 800000000-1 | Montería, Córdoba</p>
+                </div>
+            </div>
+            <div id="permit-modal-content" style="font-size: 0.9rem; color: #334155; line-height: 1.6; background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;"></div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir Formato</button>
+                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cerrar</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -276,13 +299,22 @@
         };
 
         function applySchoolConfig() {
+            // Actualizar Login
             document.getElementById('login-school-title').textContent = schoolConfig.nombre;
-            document.getElementById('header-school-name').textContent = schoolConfig.nombre;
-            let logoContainer = document.getElementById('header-logo-container');
-            if(schoolConfig.logo && schoolConfig.logo.trim() !== "") {
-                logoContainer.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo">`;
+            let loginLogo = document.getElementById('login-logo-container');
+            if(schoolConfig.logo) {
+                loginLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo">`;
             } else {
-                logoContainer.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+                loginLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+            }
+
+            // Actualizar Header Principal
+            document.getElementById('header-school-name').textContent = schoolConfig.nombre;
+            let headerLogo = document.getElementById('header-logo-container');
+            if(schoolConfig.logo) {
+                headerLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo">`;
+            } else {
+                headerLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
             }
         }
 
@@ -393,24 +425,36 @@
                 document.getElementById('cfg_direccion').value = schoolConfig.direccion;
                 document.getElementById('cfg_telefono').value = schoolConfig.telefono;
                 document.getElementById('cfg_correo').value = schoolConfig.correo;
-                document.getElementById('cfg_logo').value = schoolConfig.logo;
             }
         }
 
         function saveSchoolConfig(e) {
             e.preventDefault();
-            schoolConfig = {
-                nombre: document.getElementById('cfg_nombre').value.trim(),
-                nit: document.getElementById('cfg_nit').value.trim(),
-                direccion: document.getElementById('cfg_direccion').value.trim(),
-                telefono: document.getElementById('cfg_telefono').value.trim(),
-                correo: document.getElementById('cfg_correo').value.trim(),
-                logo: document.getElementById('cfg_logo').value.trim()
+            let fileInput = document.getElementById('cfg_logo_file');
+
+            let updateData = () => {
+                schoolConfig.nombre = document.getElementById('cfg_nombre').value.trim();
+                schoolConfig.nit = document.getElementById('cfg_nit').value.trim();
+                schoolConfig.direccion = document.getElementById('cfg_direccion').value.trim();
+                schoolConfig.telefono = document.getElementById('cfg_telefono').value.trim();
+                schoolConfig.correo = document.getElementById('cfg_correo').value.trim();
+
+                localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
+                applySchoolConfig();
+                alert("¡Datos institucionales y logotipo actualizados con éxito!");
+                switchView('admin');
             };
-            localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
-            applySchoolConfig();
-            alert("¡Datos del colegio actualizados con éxito!");
-            switchView('admin');
+
+            if(fileInput.files && fileInput.files[0]) {
+                let reader = new FileReader();
+                reader.onload = function(uploadEvent) {
+                    schoolConfig.logo = uploadEvent.target.result;
+                    updateData();
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                updateData();
+            }
         }
 
         function logout() {
@@ -485,6 +529,7 @@
                     <td style="text-align:center;">
                         <button onclick="changeStatus(${p.id}, 'Aprobado')" style="background:#059669; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Aprobar</button>
                         <button onclick="changeStatus(${p.id}, 'Rechazado')" style="background:#e11d48; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Rechazar</button>
+                        ${p.estado === 'Aprobado' ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-top:0.25rem;">Formato</button>` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -499,6 +544,35 @@
                 renderTable();
             }
         }
+
+        function openModal(id) {
+            let p = permissions.find(x => x.id === id);
+            if(!p) return;
+
+            document.getElementById('modal-school-title').textContent = schoolConfig.nombre;
+            document.getElementById('modal-school-nit').textContent = `NIT: ${schoolConfig.nit} | ${schoolConfig.direccion} | Tel: ${schoolConfig.telefono}`;
+            
+            let modalLogo = document.getElementById('modal-logo-box');
+            if(schoolConfig.logo) {
+                modalLogo.innerHTML = `<img src="${schoolConfig.logo}" style="width:100%; height:100%; object-fit:cover;">`;
+            } else {
+                modalLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+            }
+
+            document.getElementById('permit-modal-content').innerHTML = `
+                <p><strong>Solicitante:</strong> ${p.nombre}</p>
+                <p><strong>Jornada Requerida:</strong> ${p.jornada}</p>
+                <p><strong>Fecha del Permiso:</strong> ${p.fecha}</p>
+                <p><strong>Motivo:</strong> ${p.motivo}</p>
+                <hr style="margin: 1rem 0; border:0; border-top:1px solid #cbd5e1;">
+                <p style="color: #065f46; font-weight: bold; background: #d1fae5; padding: 0.5rem; border-radius: 6px;">✓ CONCEDIDO Y APROBADO por Rectoría y Coordinación bajo los lineamientos institucionales.</p>
+            `;
+            document.getElementById('permitModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('permitModal').classList.add('hidden');
+        }
     </script>
 </body>
-</html>
+</html> 

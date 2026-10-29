@@ -3,222 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>I.E. Antonia Santos - Gestión de Permisos</title>
+    <title>I.E. Antonia Santos - Sistema de Permisos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
         .hidden { display: none !important; }
 
-        /* Navbar Superior */
+        /* Pantalla de Autenticación / Login */
+        .auth-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .auth-logo { width: 60px; height: 60px; background: #f59e0b; color: #0f172a; border-radius: 16px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; }
+
+        /* Navbar */
         header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
         .brand { display: flex; align-items: center; gap: 1rem; }
-        .brand-icon { background: #f59e0b; color: #0f172a; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; box-shadow: 0 4px 10px rgba(245,158,11,0.3); }
-        .brand-text h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px; }
-        .brand-text p { font-size: 0.75rem; color: #cbd5e1; font-weight: 500; }
-
-        .nav-actions { display: flex; gap: 0.75rem; }
-        .nav-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 0.6rem 1.2rem; border-radius: 10px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
-        .nav-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px); }
-        .nav-btn.active { background: #4f46e5; border-color: #6366f1; box-shadow: 0 4px 12px rgba(79,70,229,0.4); }
+        .brand-icon { background: #f59e0b; color: #0f172a; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; }
+        .brand-text h1 { font-size: 1.15rem; font-weight: 800; }
+        .brand-text p { font-size: 0.75rem; color: #cbd5e1; }
 
         /* Contenedor Principal */
         main { max-width: 1000px; width: 100%; margin: 2.5rem auto; padding: 0 1.5rem; flex-grow: 1; }
-        .card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
+        .card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
         
-        .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; }
+        .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.75rem; }
         .card-header h2 { font-size: 1.35rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.75rem; }
         .card-header p { font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; }
 
-        /* Formularios */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
         .form-group { margin-bottom: 1.25rem; }
         label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.85rem; color: #334155; }
-        input, select, textarea { width: 100%; padding: 0.85rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 12px; font-size: 0.9rem; background: #f8fafc; color: #1e293b; transition: all 0.2s; }
+        input, select, textarea { width: 100%; padding: 0.85rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 12px; font-size: 0.9rem; background: #f8fafc; color: #1e293b; }
         input:focus, select:focus, textarea:focus { outline: none; border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 4px rgba(79,70,229,0.1); }
 
         .banner-info { background: #eef2ff; border: 1.5px solid #c7d2fe; border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
         .badge-slot { background: white; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; color: #4338ca; border: 1px solid #c7d2fe; }
 
-        .btn-submit { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; border: none; padding: 1rem 2rem; font-size: 0.95rem; font-weight: 700; border-radius: 12px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(79,70,229,0.35); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .btn-submit:hover { opacity: 0.95; transform: translateY(-1px); }
+        .btn-submit { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; border: none; padding: 1rem 2rem; font-size: 0.95rem; font-weight: 700; border-radius: 12px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(79,70,229,0.35); }
+        .btn-submit:hover { opacity: 0.95; }
 
-        /* Panel de Control y Tablas */
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
-        th { background: #f8fafc; color: #475569; text-transform: uppercase; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.05em; }
+        th { background: #f8fafc; color: #475569; text-transform: uppercase; font-size: 0.75rem; font-weight: 800; }
         
         .status-badge { padding: 0.35rem 0.85rem; border-radius: 99px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
         .status-pending { background: #fef3c7; color: #92400e; }
         .status-approved { background: #d1fae5; color: #065f46; }
         .status-rejected { background: #ffe4e6; color: #9f1239; }
 
-        .credential-box { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1.5px dashed #cbd5e1; border-radius: 14px; padding: 1.5rem; margin-top: 2rem; }
-        .credential-box h4 { font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
-        .cred-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; font-size: 0.85rem; color: #475569; }
-        .cred-item { background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0; }
-        code { background: #e2e8f0; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 700; color: #0f172a; }
-
-        @media(max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } header { flex-direction: column; gap: 1rem; text-align: center; } }
+        .link-btn { background: none; border: none; color: #4f46e5; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-decoration: underline; padding: 0; }
     </style>
 </head>
 <body>
 
-    <!-- Header Renovado -->
-    <header>
-        <div class="brand">
-            <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-            <div class="brand-text">
-                <h1>I.E. ANTONIA SANTOS</h1>
-                <p>Sistema Integral de Permisos (ALGC)</p>
-            </div>
-        </div>
-        <div class="nav-actions">
-            <button onclick="switchTab('solicitud')" id="tab-sol-btn" class="nav-btn active"><i class="fa-solid fa-pen-to-square"></i> Nueva Solicitud</button>
-            <button onclick="switchTab('admin')" id="tab-adm-btn" class="nav-btn"><i class="fa-solid fa-shield-halved"></i> Panel Directivo</button>
-        </div>
-    </header>
-
-    <main>
-        <!-- VISTA 1: NUEVA SOLICITUD -->
-        <section id="view-solicitud" class="card">
-            <div class="card-header">
-                <div>
-                    <h2><i class="fa-solid fa-clipboard-user text-amber-500" style="color:#f59e0b;"></i> Solicitud de Permiso Laboral</h2>
-                    <p>Complete el formato institucional para revisión de rectoría y coordinación.</p>
-                </div>
+    <!-- PANTALLA DE ACCESO / LOGIN Y REGISTRO -->
+    <div id="auth-screen" class="auth-overlay">
+        <div class="auth-card">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <div class="auth-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a;">I.E. ANTONIA SANTOS</h2>
+                <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">Control de Permisos y Gestión Institucional</p>
             </div>
 
-            <form onsubmit="handleFormSubmit(event)">
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label>Nombre Completo del Solicitante</label>
-                        <input type="text" id="sol_nombre" required placeholder="Ej. Ana Milena Gómez">
-                    </div>
-                    <div class="form-group">
-                        <label>Cargo Institucional</label>
-                        <select id="sol_cargo" required>
-                            <option value="">Seleccione su cargo...</option>
-                            <option value="Docente Preescolar">Docente Preescolar</option>
-                            <option value="Docente Primaria">Docente Básica Primaria</option>
-                            <option value="Docente Secundaria">Docente Básica Secundaria</option>
-                            <option value="Administrativo">Personal Administrativo</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="banner-info">
-                    <div>
-                        <label style="margin-bottom:0.2rem; color:#312e81;">Jornada y Fecha Requerida</label>
-                        <span style="font-size:0.8rem; color:#4f46e5;">Seleccione fecha para verificar cupos diarios.</span>
-                    </div>
-                    <div style="display:flex; gap:1rem; align-items:center;">
-                        <select id="sol_jornada" onchange="checkSlots()" required style="width:140px; padding:0.5rem; background:white;">
-                            <option value="">Jornada...</option>
-                            <option value="Mañana">Mañana</option>
-                            <option value="Tarde">Tarde</option>
-                        </select>
-                        <input type="date" id="sol_fecha" onchange="checkSlots()" required style="width:160px; padding:0.5rem; background:white;">
-                        <div id="slot-badge" class="badge-slot">Cupos: --</div>
-                    </div>
-                </div>
-
+            <!-- Formulario Login -->
+            <form id="form-login" onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label>Motivo Institucional de la Ausencia</label>
-                    <textarea id="sol_motivo" rows="3" required placeholder="Describa brevemente la razón del permiso..."></textarea>
+                    <label>Correo / Usuario</label>
+                    <input type="text" id="login_user" required placeholder="rector o correo del docente">
                 </div>
-
-                <button type="submit" class="btn-submit">
-                    <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud Oficial
-                </button>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="login_pass" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-submit">Ingresar al Sistema</button>
+                <div style="text-align: center; margin-top: 1.25rem;">
+                    <button type="button" class="link-btn" onclick="toggleRegister(true)">¿No tienes cuenta? Regístrate aquí</button>
+                </div>
             </form>
 
-            <!-- Credenciales integradas para acceso rápido -->
-            <div class="credential-box">
-                <h4><i class="fa-solid fa-key text-amber-500"></i> Accesos Institucionales Autorizados (ALGC)</h4>
-                <div class="cred-grid">
-                    <div class="cred-item"><strong>Rectoría:</strong> <code>rector</code> / <code>RectorAntonia2026*</code></div>
-                    <div class="cred-item"><strong>Coord. Mañana:</strong> <code>coord.manana</code> / <code>MananaAntonia2026*</code></div>
-                    <div class="cred-item"><strong>Coord. Tarde:</strong> <code>coord.tarde</code> / <code>TardeAntonia2026*</code></div>
+            <!-- Formulario Registro Docente en Línea -->
+            <form id="form-register" onsubmit="handleRegister(event)" class="hidden">
+                <h3 style="font-size: 1rem; font-weight: 800; color: #1e1b4b; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">Registro de Docente</h3>
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Nombres</label>
+                    <input type="text" id="reg_nombres" required placeholder="Ana Milena">
+                </div>
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Apellidos</label>
+                    <input type="text" id="reg_apellidos" required placeholder="Gómez Pérez">
+                </div>
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Correo Institucional</label>
+                    <input type="email" id="reg_correo" required placeholder="correo@antoniasantos.edu.co">
+                </div>
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Teléfono</label>
+                    <input type="tel" id="reg_tel" required placeholder="3001234567">
+                </div>
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Jornada Asignada</label>
+                    <select id="reg_jornada" required>
+                        <option value="">Seleccione jornada...</option>
+                        <option value="Mañana">Mañana</option>
+                        <option value="Tarde">Tarde</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:1rem;">
+                    <label>Contraseña</label>
+                    <input type="password" id="reg_pass" required placeholder="Mínimo 6 caracteres">
+                </div>
+                <button type="submit" class="btn-submit" style="background:#059669;">Completar Registro</button>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button type="button" class="link-btn" style="color:#64748b;" onclick="toggleRegister(false)">← Volver al inicio de sesión</button>
+                </div>
+            </form>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem; margin-top: 1.5rem; font-size: 0.75rem; color: #475569;">
+                <strong>Credenciales Directivas:</strong><br>
+                • Rector (ALGC): <code>rector</code> / <code>RectorAntonia2026*</code><br>
+                • Coord. Mañana: <code>coord.manana</code> / <code>MananaAntonia2026*</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- APLICACIÓN PRINCIPAL -->
+    <div id="main-app" style="display:flex; flex-direction:column; flex-grow:1;">
+        <header>
+            <div class="brand">
+                <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div class="brand-text">
+                    <h1>I.E. ANTONIA SANTOS</h1>
+                    <p id="user-session-info">Sistema Integral de Permisos (ALGC)</p>
                 </div>
             </div>
-        </section>
+            <div>
+                <button onclick="logout()" style="background:#e11d48; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.85rem;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+            </div>
+        </header>
 
-        <!-- VISTA 2: PANEL DIRECTIVO -->
-        <section id="view-admin" class="card hidden">
-            <div class="card-header">
-                <div>
+        <main>
+            <!-- VISTA SOLICITUD DOCENTE -->
+            <section id="view-solicitud" class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-clipboard-user" style="color:#f59e0b;"></i> Solicitud de Permiso Laboral</h2>
+                    <p>Sus datos institucionales ya se encuentran precargados en el sistema.</p>
+                </div>
+
+                <form onsubmit="handleFormSubmit(event)">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre Completo del Solicitante (Precargado)</label>
+                            <input type="text" id="sol_nombre" readonly style="background:#e2e8f0; font-weight:bold;">
+                        </div>
+                        <div class="form-group">
+                            <label>Cargo / Jornada Registrada</label>
+                            <input type="text" id="sol_info_jornada" readonly style="background:#e2e8f0; font-weight:bold;">
+                        </div>
+                    </div>
+
+                    <div class="banner-info">
+                        <div>
+                            <label style="margin-bottom:0.2rem; color:#312e81;">Seleccione Fecha y Cupos</label>
+                            <span style="font-size:0.8rem; color:#4f46e5;">Verifique la disponibilidad del día.</span>
+                        </div>
+                        <div style="display:flex; gap:1rem; align-items:center;">
+                            <input type="date" id="sol_fecha" onchange="checkSlots()" required style="width:180px; padding:0.5rem; background:white;">
+                            <div id="slot-badge" class="badge-slot">Cupos: --</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Motivo Institucional de la Ausencia</label>
+                        <textarea id="sol_motivo" rows="3" required placeholder="Describa brevemente la razón del permiso..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud Oficial
+                    </button>
+                </form>
+            </section>
+
+            <!-- VISTA PANEL DIRECTIVO -->
+            <section id="view-admin" class="card hidden">
+                <div class="card-header">
                     <h2 id="admin-title">Panel de Control Directivo</h2>
-                    <p id="admin-subtitle">Gestión y aprobación de solicitudes institucionales</p>
+                    <p>Gestión y aprobación de solicitudes institucionales</p>
                 </div>
-                <button onclick="logoutAdmin()" class="nav-btn" style="background:#e11d48; border-color:#be123c;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
-            </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Solicitante</th>
-                        <th>Cargo</th>
-                        <th>Fecha / Jornada</th>
-                        <th>Motivo</th>
-                        <th>Estado</th>
-                        <th style="text-align:center;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="admin-table-body">
-                    <!-- Dinámico -->
-                </tbody>
-            </table>
-        </section>
-    </main>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Solicitante</th>
+                            <th>Jornada</th>
+                            <th>Fecha</th>
+                            <th>Motivo</th>
+                            <th>Estado</th>
+                            <th style="text-align:center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
 
     <script>
         let permissions = JSON.parse(localStorage.getItem('antonia_santos_perms')) || [];
-        let currentRole = null;
+        let teachers = JSON.parse(localStorage.getItem('antonia_santos_teachers')) || [];
+        let currentUser = null;
 
-        function switchTab(tab) {
-            if(tab === 'admin' && !currentRole) {
-                let user = prompt("Ingrese usuario directivo (Ej. rector):");
-                let pass = prompt("Ingrese contraseña:");
-                
-                const admins = {
-                    "rector": "RectorAntonia2026*",
-                    "coord.manana": "MananaAntonia2026*",
-                    "coord.tarde": "TardeAntonia2026*"
-                };
+        function toggleRegister(show) {
+            if(show) {
+                document.getElementById('form-login').classList.add('hidden');
+                document.getElementById('form-register').classList.remove('hidden');
+            } else {
+                document.getElementById('form-register').classList.add('hidden');
+                document.getElementById('form-login').classList.remove('hidden');
+            }
+        }
 
-                if(admins[user] && admins[user] === pass) {
-                    currentRole = user;
-                    alert("¡Acceso autorizado!");
-                } else {
-                    alert("Credenciales incorrectas.");
-                    return;
-                }
+        function handleRegister(e) {
+            e.preventDefault();
+            let newDocente = {
+                nombres: document.getElementById('reg_nombres').value.trim(),
+                apellidos: document.getElementById('reg_apellidos').value.trim(),
+                correo: document.getElementById('reg_correo').value.trim(),
+                telefono: document.getElementById('reg_tel').value.trim(),
+                jornada: document.getElementById('reg_jornada').value,
+                pass: document.getElementById('reg_pass').value.trim()
+            };
+
+            if(teachers.some(t => t.correo === newDocente.correo)) {
+                alert("Este correo ya se encuentra registrado.");
+                return;
             }
 
-            if(tab === 'solicitud') {
+            teachers.push(newDocente);
+            localStorage.setItem('antonia_santos_teachers', JSON.stringify(teachers));
+            alert("¡Registro exitoso! Ya puede iniciar sesión con su correo y contraseña.");
+            toggleRegister(false);
+            document.getElementById('form-register').reset();
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            let user = document.getElementById('login_user').value.trim();
+            let pass = document.getElementById('login_pass').value.trim();
+
+            const admins = {
+                "rector": { pass: "RectorAntonia2026*", name: "Alvaro Gonzalez Contreras (ALGC - Rector)", role: "Rector", jornada: "Todas" },
+                "coord.manana": { pass: "MananaAntonia2026*", name: "Coordinación Jornada Mañana", role: "Coordinador", jornada: "Mañana" },
+                "coord.tarde": { pass: "TardeAntonia2026*", name: "Coordinación Jornada Tarde", role: "Coordinador", jornada: "Tarde" }
+            };
+
+            if(admins[user] && admins[user].pass === pass) {
+                currentUser = admins[user];
+                startApp('admin');
+                return;
+            }
+
+            let docente = teachers.find(t => t.correo === user && t.pass === pass);
+            if(docente) {
+                currentUser = {
+                    name: `${docente.nombres} ${docente.apellidos}`,
+                    role: "Docente",
+                    jornada: docente.jornada,
+                    correo: docente.correo
+                };
+                startApp('docente');
+                return;
+            }
+
+            alert("Usuario o contraseña incorrectos.");
+        }
+
+        function startApp(type) {
+            document.getElementById('auth-screen').style.display = 'none';
+            if(type === 'docente') {
                 document.getElementById('view-solicitud').classList.remove('hidden');
                 document.getElementById('view-admin').classList.add('hidden');
-                document.getElementById('tab-sol-btn').classList.add('active');
-                document.getElementById('tab-adm-btn').classList.remove('active');
+                document.getElementById('sol_nombre').value = currentUser.name;
+                document.getElementById('sol_info_jornada').value = `Docente - Jornada ${currentUser.jornada}`;
+                document.getElementById('user-session-info').textContent = `Docente: ${currentUser.name} (${currentUser.jornada})`;
             } else {
                 document.getElementById('view-solicitud').classList.add('hidden');
                 document.getElementById('view-admin').classList.remove('hidden');
-                document.getElementById('tab-sol-btn').classList.remove('active');
-                document.getElementById('tab-adm-btn').classList.add('active');
+                document.getElementById('admin-title').textContent = `Panel Directivo - ${currentUser.name}`;
+                document.getElementById('user-session-info').textContent = `Rol: ${currentUser.role}`;
                 renderTable();
             }
         }
 
-        function logoutAdmin() {
-            currentRole = null;
-            switchTab('solicitud');
+        function logout() {
+            currentUser = null;
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('form-login').reset();
         }
 
         function checkSlots() {
             let fecha = document.getElementById('sol_fecha').value;
-            let jornada = document.getElementById('sol_jornada').value;
-            if(!fecha || !jornada) return;
+            let jornada = currentUser.jornada;
+            if(!fecha) return;
 
             let count = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
             let disponibles = 2 - count;
@@ -230,8 +315,8 @@
         function handleFormSubmit(e) {
             e.preventDefault();
             let fecha = document.getElementById('sol_fecha').value;
-            let jornada = document.getElementById('sol_jornada').value;
-            
+            let jornada = currentUser.jornada;
+
             let count = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
             if(count >= 2) {
                 alert("Límite de 2 permisos alcanzado para esta jornada.");
@@ -240,8 +325,7 @@
 
             let newP = {
                 id: Date.now(),
-                nombre: document.getElementById('sol_nombre').value,
-                cargo: document.getElementById('sol_cargo').value,
+                nombre: currentUser.name,
                 jornada: jornada,
                 fecha: fecha,
                 motivo: document.getElementById('sol_motivo').value,
@@ -251,7 +335,8 @@
             permissions.push(newP);
             localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
             alert("¡Solicitud enviada con éxito!");
-            e.target.reset();
+            document.getElementById('sol_motivo').value = '';
+            document.getElementById('sol_fecha').value = '';
             document.getElementById('slot-badge').textContent = "Cupos: --";
         }
 
@@ -260,8 +345,7 @@
             tbody.innerHTML = '';
 
             let filtered = permissions.filter(p => {
-                if(currentRole === 'coord.manana' && p.jornada !== 'Mañana') return false;
-                if(currentRole === 'coord.tarde' && p.jornada !== 'Tarde') return false;
+                if(currentUser.jornada !== 'Todas' && p.jornada !== currentUser.jornada) return false;
                 return true;
             });
 
@@ -275,8 +359,8 @@
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-weight:700;">${p.nombre}</td>
-                    <td>${p.cargo}</td>
-                    <td>${p.fecha} <br><span style="color:#4f46e5; font-weight:700; font-size:0.75rem;">${p.jornada}</span></td>
+                    <td><span style="color:#4f46e5; font-weight:700;">${p.jornada}</span></td>
+                    <td>${p.fecha}</td>
                     <td style="font-size:0.85rem; color:#64748b;">${p.motivo}</td>
                     <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
                     <td style="text-align:center;">

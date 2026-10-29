@@ -99,7 +99,7 @@
                 </div>
                 <div class="form-group" style="margin-bottom:0.75rem;">
                     <label>Correo Institucional</label>
-                    <input type="email" id="reg_correo" required placeholder="correo@antoniasantos.edu.co">
+                    <input type="text" id="reg_correo" required placeholder="correo@antoniasantos.edu.co">
                 </div>
                 <div class="form-group" style="margin-bottom:0.75rem;">
                     <label>Teléfono</label>
@@ -247,7 +247,7 @@
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Correo Institucional</label>
-                            <input type="email" id="cfg_correo" required placeholder="correo@colegio.edu.co">
+                            <input type="text" id="cfg_correo" required placeholder="correo@colegio.edu.co">
                         </div>
                         <div class="form-group">
                             <label>Logotipo del Colegio (Seleccionar Archivo)</label>
@@ -299,7 +299,6 @@
         };
 
         function applySchoolConfig() {
-            // Actualizar Login
             document.getElementById('login-school-title').textContent = schoolConfig.nombre;
             let loginLogo = document.getElementById('login-logo-container');
             if(schoolConfig.logo) {
@@ -308,7 +307,6 @@
                 loginLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
             }
 
-            // Actualizar Header Principal
             document.getElementById('header-school-name').textContent = schoolConfig.nombre;
             let headerLogo = document.getElementById('header-logo-container');
             if(schoolConfig.logo) {
@@ -575,4 +573,4 @@
         }
     </script>
 </body>
-</html> 
+</html>

@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>I.E. Antonia Santos - Sistema de Permisos</title>
+    <title>Sistema de Permisos - I.E. Antonia Santos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
         .hidden { display: none !important; }
 
-        /* Pantalla de Autenticación / Login */
+        /* Pantalla de Acceso / Login y Registro */
         .auth-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
         .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
         .auth-logo { width: 60px; height: 60px; background: #f59e0b; color: #0f172a; border-radius: 16px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; }
@@ -18,7 +18,8 @@
         /* Navbar */
         header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
         .brand { display: flex; align-items: center; gap: 1rem; }
-        .brand-icon { background: #f59e0b; color: #0f172a; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; }
+        .brand-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; overflow: hidden; background: #f59e0b; color: #0f172a; }
+        .brand-icon img { width: 100%; height: 100%; object-fit: cover; }
         .brand-text h1 { font-size: 1.15rem; font-weight: 800; }
         .brand-text p { font-size: 0.75rem; color: #cbd5e1; }
 
@@ -26,7 +27,7 @@
         main { max-width: 1000px; width: 100%; margin: 2.5rem auto; padding: 0 1.5rem; flex-grow: 1; }
         .card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
         
-        .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.75rem; }
+        .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; }
         .card-header h2 { font-size: 1.35rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.75rem; }
         .card-header p { font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; }
 
@@ -52,6 +53,7 @@
         .status-rejected { background: #ffe4e6; color: #9f1239; }
 
         .link-btn { background: none; border: none; color: #4f46e5; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-decoration: underline; padding: 0; }
+        .nav-admin-btn { background: #4f46e5; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem; }
     </style>
 </head>
 <body>
@@ -61,7 +63,7 @@
         <div class="auth-card">
             <div style="text-align: center; margin-bottom: 1.5rem;">
                 <div class="auth-logo"><i class="fa-solid fa-graduation-cap"></i></div>
-                <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a;">I.E. ANTONIA SANTOS</h2>
+                <h2 id="login-school-title" style="font-size: 1.35rem; font-weight: 800; color: #0f172a;">I.E. ANTONIA SANTOS</h2>
                 <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">Control de Permisos y Gestión Institucional</p>
             </div>
 
@@ -130,13 +132,17 @@
     <div id="main-app" style="display:flex; flex-direction:column; flex-grow:1;">
         <header>
             <div class="brand">
-                <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div class="brand-icon" id="header-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
                 <div class="brand-text">
-                    <h1>I.E. ANTONIA SANTOS</h1>
+                    <h1 id="header-school-name">I.E. ANTONIA SANTOS</h1>
                     <p id="user-session-info">Sistema Integral de Permisos (ALGC)</p>
                 </div>
             </div>
-            <div>
+            <div style="display:flex; align-items:center;">
+                <div id="rector-extra-nav" class="hidden">
+                    <button onclick="switchView('config')" class="nav-admin-btn"><i class="fa-solid fa-gear"></i> Configurar Colegio</button>
+                    <button onclick="switchView('admin')" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
+                </div>
                 <button onclick="logout()" style="background:#e11d48; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.85rem;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
             </div>
         </header>
@@ -204,13 +210,81 @@
                     <tbody id="admin-table-body"></tbody>
                 </table>
             </section>
+
+            <!-- VISTA CONFIGURACIÓN DEL COLEGIO (EXCLUSIVO RECTOR) -->
+            <section id="view-config" class="card hidden">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración de Datos del Colegio</h2>
+                    <p>Actualice la información institucional y el logotipo oficial.</p>
+                </div>
+
+                <form onsubmit="saveSchoolConfig(event)">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre de la Institución</label>
+                            <input type="text" id="cfg_nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>NIT</label>
+                            <input type="text" id="cfg_nit" required placeholder="Ej. 800123456-1">
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Dirección</label>
+                            <input type="text" id="cfg_direccion" required placeholder="Calle Principal # 12-34">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" id="cfg_telefono" required placeholder="3001234567">
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Correo Institucional</label>
+                            <input type="email" id="cfg_correo" required placeholder="contacto@colegio.edu.co">
+                        </div>
+                        <div class="form-group">
+                            <label>URL del Logo (Imagen)</label>
+                            <input type="url" id="cfg_logo" placeholder="https://ejemplo.com/logo.png">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios Institucionales</button>
+                </form>
+            </section>
         </main>
     </div>
 
     <script>
         let permissions = JSON.parse(localStorage.getItem('antonia_santos_perms')) || [];
         let teachers = JSON.parse(localStorage.getItem('antonia_santos_teachers')) || [];
+        let schoolConfig = JSON.parse(localStorage.getItem('antonia_santos_school')) || {
+            nombre: "I.E. ANTONIA SANTOS",
+            nit: "800000000-1",
+            direccion: "Montería, Córdoba",
+            telefono: "3000000000",
+            correo: "contacto@antoniasantos.edu.co",
+            logo: ""
+        };
         let currentUser = null;
+
+        window.onload = function() {
+            applySchoolConfig();
+        };
+
+        function applySchoolConfig() {
+            document.getElementById('login-school-title').textContent = schoolConfig.nombre;
+            document.getElementById('header-school-name').textContent = schoolConfig.nombre;
+            let logoContainer = document.getElementById('header-logo-container');
+            if(schoolConfig.logo && schoolConfig.logo.trim() !== "") {
+                logoContainer.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo">`;
+            } else {
+                logoContainer.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+            }
+        }
 
         function toggleRegister(show) {
             if(show) {
@@ -251,9 +325,9 @@
             let pass = document.getElementById('login_pass').value.trim();
 
             const admins = {
-                "rector": { pass: "RectorAntonia2026*", name: "Alvaro Gonzalez Contreras (ALGC - Rector)", role: "Rector", jornada: "Todas" },
-                "coord.manana": { pass: "MananaAntonia2026*", name: "Coordinación Jornada Mañana", role: "Coordinador", jornada: "Mañana" },
-                "coord.tarde": { pass: "TardeAntonia2026*", name: "Coordinación Jornada Tarde", role: "Coordinador", jornada: "Tarde" }
+                "rector": { pass: "RectorAntonia2026*", name: "Alvaro Gonzalez Contreras (ALGC - Rector)", role: "Rector", jornada: "Todas", isRector: true },
+                "coord.manana": { pass: "MananaAntonia2026*", name: "Coordinación Jornada Mañana", role: "Coordinador", jornada: "Mañana", isRector: false },
+                "coord.tarde": { pass: "TardeAntonia2026*", name: "Coordinación Jornada Tarde", role: "Coordinador", jornada: "Tarde", isRector: false }
             };
 
             if(admins[user] && admins[user].pass === pass) {
@@ -268,7 +342,8 @@
                     name: `${docente.nombres} ${docente.apellidos}`,
                     role: "Docente",
                     jornada: docente.jornada,
-                    correo: docente.correo
+                    correo: docente.correo,
+                    isRector: false
                 };
                 startApp('docente');
                 return;
@@ -282,16 +357,60 @@
             if(type === 'docente') {
                 document.getElementById('view-solicitud').classList.remove('hidden');
                 document.getElementById('view-admin').classList.add('hidden');
+                document.getElementById('view-config').classList.add('hidden');
+                document.getElementById('rector-extra-nav').classList.add('hidden');
                 document.getElementById('sol_nombre').value = currentUser.name;
                 document.getElementById('sol_info_jornada').value = `Docente - Jornada ${currentUser.jornada}`;
                 document.getElementById('user-session-info').textContent = `Docente: ${currentUser.name} (${currentUser.jornada})`;
             } else {
                 document.getElementById('view-solicitud').classList.add('hidden');
                 document.getElementById('view-admin').classList.remove('hidden');
+                document.getElementById('view-config').classList.add('hidden');
                 document.getElementById('admin-title').textContent = `Panel Directivo - ${currentUser.name}`;
                 document.getElementById('user-session-info').textContent = `Rol: ${currentUser.role}`;
+                
+                if(currentUser.isRector) {
+                    document.getElementById('rector-extra-nav').classList.remove('hidden');
+                } else {
+                    document.getElementById('rector-extra-nav').classList.add('hidden');
+                }
                 renderTable();
             }
+        }
+
+        function switchView(view) {
+            document.getElementById('view-solicitud').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-config').classList.add('hidden');
+
+            if(view === 'admin') {
+                document.getElementById('view-admin').classList.remove('hidden');
+                renderTable();
+            } else if(view === 'config') {
+                document.getElementById('view-config').classList.remove('hidden');
+                document.getElementById('cfg_nombre').value = schoolConfig.nombre;
+                document.getElementById('cfg_nit').value = schoolConfig.nit;
+                document.getElementById('cfg_direccion').value = schoolConfig.direccion;
+                document.getElementById('cfg_telefono').value = schoolConfig.telefono;
+                document.getElementById('cfg_correo').value = schoolConfig.correo;
+                document.getElementById('cfg_logo').value = schoolConfig.logo;
+            }
+        }
+
+        function saveSchoolConfig(e) {
+            e.preventDefault();
+            schoolConfig = {
+                nombre: document.getElementById('cfg_nombre').value.trim(),
+                nit: document.getElementById('cfg_nit').value.trim(),
+                direccion: document.getElementById('cfg_direccion').value.trim(),
+                telefono: document.getElementById('cfg_telefono').value.trim(),
+                correo: document.getElementById('cfg_correo').value.trim(),
+                logo: document.getElementById('cfg_logo').value.trim()
+            };
+            localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
+            applySchoolConfig();
+            alert("¡Datos del colegio actualizados con éxito!");
+            switchView('admin');
         }
 
         function logout() {

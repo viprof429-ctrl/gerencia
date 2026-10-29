@@ -672,11 +672,6 @@
             permissions.push(newP);
             localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
 
-            // Buscar coordinador de la jornada para enlace de WhatsApp
-            let coordAsignado = coordinators.find(c => c.jornada === jornada) || { whatsapp: "3001112233" };
-            let msgWa = encodeURIComponent(`Hola, inicio proceso de permiso radicado ${radicadoNum} para la fecha ${fecha}. Docente: ${currentUser.name}`);
-            let waLink = `https://wa.me/57${coordAsignado.whatsapp}?text=${msgWa}`;
-
             alert(`✅ [Solicitud Registrada con Éxito]\nRadicado: ${radicadoNum}\n\n📨 Notificación enviada por Correo y WhatsApp al Coordinador de la jornada ${jornada} y al Rector.`);
 
             document.getElementById('sol_motivo').value = '';
@@ -715,8 +710,10 @@
                     <td style="text-align:center;">
                         ${(currentUser.role === 'Coordinador' && p.estado === 'Pendiente') ? `<button onclick="updateStatus(${p.id}, 'Preaprobado')" style="background:#0284c7; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Preaprobar</button>` : ''}
                         
-                        ${(currentUser.isRector && (p.estado === 'Pendiente' || p.estado === 'Preaprobado')) ? `<button onclick="updateStatus(${p.id}, 'Aprobado')" style="background:#059669; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Aprobar Definitivo</button>` : ''}
+                        ${(currentUser.isRector && p.estado === 'Preaprobado') ? `<button onclick="updateStatus(${p.id}, 'Aprobado')" style="background:#059669; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Aprobar Definitivo</button>` : ''}
                         
+                        ${(currentUser.isRector && p.estado === 'Pendiente') ? `<span style="font-size:0.7rem; color:#d97706; font-weight:bold; display:block; margin-bottom:2px;">Pendiente Preaprobación</span>` : ''}
+
                         <button onclick="updateStatus(${p.id}, 'Rechazado')" style="background:#e11d48; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-top:2px;">Negar</button>
 
                         ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; display:block; margin:4px auto 0 auto;">Ver Soporte</button>` : ''}
@@ -729,15 +726,21 @@
         function updateStatus(id, newStatus) {
             let p = permissions.find(x => x.id === id);
             if(p) {
+                // Validación de seguridad para el Rector: Exigir Preaprobación del Coordinador
+                if(currentUser.isRector && newStatus === 'Aprobado' && p.estado !== 'Preaprobado') {
+                    alert("⚠️ [Acción No Permitida]\nEl Rector no puede aprobar definitivamente un permiso si el Coordinador de la jornada aún no lo ha preaprobado.");
+                    return;
+                }
+
                 p.estado = newStatus;
                 localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
                 
                 if(newStatus === 'Preaprobado') {
                     alert("🔔 [Preaprobación Registrada]\nSe ha notificado al Rector vía Correo y WhatsApp que la solicitud radicado " + p.radicado + " cuenta con el visto bueno de Coordinación.");
                 } else if(newStatus === 'Aprobado') {
-                    alert("📄 [Aprobación Definitiva & Notificación por Correo]\nEl permiso ha sido autorizado por Rectoría. Se ha enviado formalmente el formato oficial de aprobación al correo del docente: " + p.correo);
+                    alert("📄 [Aprobación Definitiva & Correo Enviado]\nEl permiso ha sido autorizado por Rectoría. Se ha generado el soporte oficial y se ha enviado la notificación por correo al docente (" + p.correo + ").");
                 } else if(newStatus === 'Rechazado') {
-                    alert("❌ [Permiso Negado & Notificación por Correo]\nSe ha generado el soporte de denegación y se ha enviado la notificación por correo al solicitante: " + p.correo);
+                    alert("❌ [Permiso Negado & Correo Enviado]\nSe ha generado el soporte de denegación y se ha notificado por correo electrónico al solicitante (" + p.correo + ").");
                 }
 
                 renderTable();
@@ -777,7 +780,6 @@
                 <p style="color: ${estadoColor}; font-weight: bold; background: ${estadoBg}; padding: 0.75rem; border-radius: 6px; text-align:center;">${textoResolucion}</p>
             `;
             
-            // Añadir botón de WhatsApp para notificar al docente directamente
             let actionsContainer = document.getElementById('modal-actions-container');
             actionsContainer.innerHTML = `
                 <a href="${linkWaDocente}" target="_blank" class="btn-submit" style="background:#25d366; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;"><i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp</a>

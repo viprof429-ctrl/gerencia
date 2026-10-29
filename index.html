@@ -672,7 +672,14 @@
             permissions.push(newP);
             localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
 
-            alert(`✅ [Solicitud Registrada con Éxito]\nRadicado: ${radicadoNum}\n\n📨 Notificación enviada por Correo y WhatsApp al Coordinador de la jornada ${jornada} y al Rector.`);
+            // Enlace interactivo de WhatsApp para notificar al coordinador de la jornada
+            let coordAsignado = coordinators.find(c => c.jornada === jornada) || { whatsapp: "3001112233" };
+            let msgWa = encodeURIComponent(`Hola, se ha iniciado el proceso de permiso radicado ${radicadoNum} para la fecha ${fecha} por el docente ${currentUser.name}. Por favor revise el panel.`);
+            let waUrl = `https://wa.me/57${coordAsignado.whatsapp}?text=${msgWa}`;
+
+            if(confirm(`✅ [Solicitud Registrada]\nRadicado: ${radicadoNum}\n\n¿Desea enviar la notificación inmediata por WhatsApp al Coordinador de la jornada ${jornada}?`)) {
+                window.open(waUrl, '_blank');
+            }
 
             document.getElementById('sol_motivo').value = '';
             document.getElementById('sol_fecha').value = '';
@@ -726,7 +733,7 @@
         function updateStatus(id, newStatus) {
             let p = permissions.find(x => x.id === id);
             if(p) {
-                // Validación de seguridad para el Rector: Exigir Preaprobación del Coordinador
+                // Validación estricta: Rector no puede aprobar si no está preaprobado
                 if(currentUser.isRector && newStatus === 'Aprobado' && p.estado !== 'Preaprobado') {
                     alert("⚠️ [Acción No Permitida]\nEl Rector no puede aprobar definitivamente un permiso si el Coordinador de la jornada aún no lo ha preaprobado.");
                     return;
@@ -736,9 +743,9 @@
                 localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
                 
                 if(newStatus === 'Preaprobado') {
-                    alert("🔔 [Preaprobación Registrada]\nSe ha notificado al Rector vía Correo y WhatsApp que la solicitud radicado " + p.radicado + " cuenta con el visto bueno de Coordinación.");
+                    alert("🔔 [Preaprobación Registrada]\nSe ha actualizado el estado. Ya puede notificar al Rector para su autorización definitiva.");
                 } else if(newStatus === 'Aprobado') {
-                    alert("📄 [Aprobación Definitiva & Correo Enviado]\nEl permiso ha sido autorizado por Rectoría. Se ha generado el soporte oficial y se ha enviado la notificación por correo al docente (" + p.correo + ").");
+                    alert("📄 [Aprobación Definitiva & Correo Enviado]\nEl permiso ha sido autorizado por Rectoría. Se ha remitido el soporte oficial por correo al docente (" + p.correo + ").");
                 } else if(newStatus === 'Rechazado') {
                     alert("❌ [Permiso Negado & Correo Enviado]\nSe ha generado el soporte de denegación y se ha notificado por correo electrónico al solicitante (" + p.correo + ").");
                 }

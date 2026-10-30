@@ -126,8 +126,8 @@
             </form>
 
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem; margin-top: 1.5rem; font-size: 0.75rem; color: #475569; text-align: left;">
-                <strong>Credencial Rector (ALGC):</strong><br>
-                • Usuario: <code>rector</code> | Clave: <code>RectorAntonia2026*</code>
+                <strong>Credencial Rector Inicial:</strong><br>
+                • Usuario: <code id="login-hint-user">rector</code> | Clave: <code id="login-hint-pass">RectorAntonia2026*</code>
             </div>
         </div>
     </div>
@@ -139,7 +139,7 @@
                 <div class="brand-icon" id="header-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
                 <div class="brand-text">
                     <h1 id="header-school-name">I.E. ANTONIA SANTOS</h1>
-                    <p id="user-session-info">Sistema Integral de Permisos (ALGC)</p>
+                    <p id="user-session-info">Sistema Integral de Permisos</p>
                 </div>
             </div>
             <div style="display:flex; align-items:center;">
@@ -375,14 +375,16 @@
                 </table>
             </section>
 
-            <!-- VISTA CONFIGURACIÓN DEL COLEGIO (EXCLUSIVO RECTOR) -->
+            <!-- VISTA CONFIGURACIÓN DEL COLEGIO Y DATOS DEL RECTOR -->
             <section id="view-config" class="card hidden">
                 <div class="card-header">
-                    <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración de Datos del Colegio</h2>
-                    <p>Actualice la información institucional, cargue el logotipo y la firma digital del Rector.</p>
+                    <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración General y Datos del Rector</h2>
+                    <p>Actualice la información institucional, configure las credenciales del Rector y defina qué datos se muestran en los documentos.</p>
                 </div>
 
                 <form onsubmit="saveSchoolConfig(event)">
+                    <!-- DATOS INSTITUCIONALES -->
+                    <h3 style="font-size:0.95rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem; border-bottom:1px solid #e2e8f0; padding-bottom:0.5rem;">Datos Institucionales</h3>
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Nombre de la Institución</label>
@@ -400,19 +402,73 @@
                             <input type="text" id="cfg_direccion" required placeholder="Montería, Córdoba">
                         </div>
                         <div class="form-group">
-                            <label>Teléfono</label>
+                            <label>Teléfono Institucional</label>
                             <input type="tel" id="cfg_telefono" required placeholder="3000000000">
                         </div>
                     </div>
 
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Correo Institucional</label>
+                            <label>Correo del Colegio</label>
                             <input type="text" id="cfg_correo" required placeholder="correo@colegio.edu.co">
                         </div>
                         <div class="form-group">
                             <label>Logotipo del Colegio (Imagen)</label>
                             <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.5rem; background: white;">
+                        </div>
+                    </div>
+
+                    <!-- DATOS Y CREDENCIALES DEL RECTOR -->
+                    <div style="background:#eef2ff; padding:1.25rem; border:1.5px solid #c7d2fe; border-radius:12px; margin-bottom:1.5rem; margin-top:1.5rem;">
+                        <h3 style="font-size:0.95rem; font-weight:800; color:#312e81; margin-bottom:1rem;"><i class="fa-solid fa-user-shield"></i> Datos y Credenciales de Acceso del Rector</h3>
+                        
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Nombres del Rector</label>
+                                <input type="text" id="cfg_rector_nombres" required placeholder="Ej. Álvaro">
+                            </div>
+                            <div class="form-group">
+                                <label>Apellidos del Rector</label>
+                                <input type="text" id="cfg_rector_apellidos" required placeholder="Ej. González Contreras">
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Teléfono / Celular del Rector</label>
+                                <input type="tel" id="cfg_rector_tel" required placeholder="3001234567">
+                            </div>
+                            <div class="form-group">
+                                <label>Correo de Contacto del Rector</label>
+                                <input type="email" id="cfg_rector_email" required placeholder="rector@colegio.edu.co">
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Usuario de Inicio de Sesión</label>
+                                <input type="text" id="cfg_rector_user" required placeholder="Ej. rector">
+                            </div>
+                            <div class="form-group">
+                                <label>Contraseña de Acceso</label>
+                                <input type="text" id="cfg_rector_pass" required placeholder="Nueva contraseña">
+                            </div>
+                        </div>
+
+                        <!-- CHECKBOXES PARA CHULIAR QUE APARECE EN LOS DOCUMENTOS -->
+                        <div style="background:white; padding:1rem; border-radius:8px; border:1px solid #c7d2fe; margin-top:1rem;">
+                            <label style="font-weight:800; color:#312e81; margin-bottom:0.75rem;"><i class="fa-solid fa-check-to-slot"></i> Seleccione qué datos del Rector aparecen en los documentos y resoluciones:</label>
+                            <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                                    <input type="checkbox" id="chk_show_nombre" style="width:auto;"> Mostrar Nombre Completo
+                                </label>
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                                    <input type="checkbox" id="chk_show_tel" style="width:auto;"> Mostrar Teléfono
+                                </label>
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                                    <input type="checkbox" id="chk_show_email" style="width:auto;"> Mostrar Correo
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -423,7 +479,7 @@
                         <input type="file" id="cfg_firma_file" accept="image/*" style="padding: 0.5rem; background: white; border:none;">
                     </div>
 
-                    <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios Institucionales</button>
+                    <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios Institucionales y Credenciales</button>
                 </form>
             </section>
         </main>
@@ -474,7 +530,7 @@
             emailjs.init("Fj3QdUv-Z9qIxjmnV");
         })();
 
-        // Protección de datos persistentes en localStorage (nunca se borran las pruebas)
+        // Blindaje absoluto de datos en localStorage (persistencia garantizada sin borrados)
         let permissions = JSON.parse(localStorage.getItem('antonia_santos_perms')) || [];
         let teachers = JSON.parse(localStorage.getItem('antonia_santos_teachers')) || [];
         
@@ -494,12 +550,30 @@
             telefono: "3000000000",
             correo: "contacto@antoniasantos.edu.co",
             logo: "",
-            firma: ""
+            firma: "",
+            rectorUser: "rector",
+            rectorPass: "RectorAntonia2026*",
+            rectorNombres: "Álvaro",
+            rectorApellidos: "González Contreras (ALGC)",
+            rectorTel: "3000000000",
+            rectorEmail: "rector@antoniasantos.edu.co",
+            showNombre: true,
+            showTel: false,
+            showEmail: false
         };
 
+        // Retrocompatibilidad por si faltan campos
+        if(!schoolConfig.rectorUser) schoolConfig.rectorUser = "rector";
+        if(!schoolConfig.rectorPass) schoolConfig.rectorPass = "RectorAntonia2026*";
+        if(!schoolConfig.rectorNombres) schoolConfig.rectorNombres = "Álvaro";
+        if(!schoolConfig.rectorApellidos) schoolConfig.rectorApellidos = "González Contreras (ALGC)";
+        if(!schoolConfig.rectorTel) schoolConfig.rectorTel = "3000000000";
+        if(!schoolConfig.rectorEmail) schoolConfig.rectorEmail = "rector@antoniasantos.edu.co";
+        if(schoolConfig.showNombre === undefined) schoolConfig.showNombre = true;
+        if(schoolConfig.showTel === undefined) schoolConfig.showTel = false;
+        if(schoolConfig.showEmail === undefined) schoolConfig.showEmail = false;
+
         let currentUser = null;
-        let tempFilePermisoBase64 = "";
-        let tempFileActividadesBase64 = "";
         let pendingRejectId = null;
 
         window.onload = function() {
@@ -522,8 +596,9 @@
 
         function applySchoolConfig() {
             document.getElementById('login-school-title').textContent = schoolConfig.nombre;
+            document.getElementById('login-hint-user').textContent = schoolConfig.rectorUser;
+            document.getElementById('login-hint-pass').textContent = schoolConfig.rectorPass;
             
-            // Logotipo en la pantalla de inicio (login)
             let loginLogo = document.getElementById('login-logo-container');
             if(schoolConfig.logo) {
                 loginLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
@@ -533,7 +608,6 @@
 
             document.getElementById('header-school-name').textContent = schoolConfig.nombre;
             
-            // Logotipo en el encabezado superior interno
             let headerLogo = document.getElementById('header-logo-container');
             if(schoolConfig.logo) {
                 headerLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
@@ -580,8 +654,9 @@
             let user = document.getElementById('login_user').value.trim();
             let pass = document.getElementById('login_pass').value.trim();
 
-            if(user === "rector" && pass === "RectorAntonia2026*") {
-                currentUser = { name: "Alvaro Gonzalez Contreras (ALGC - Rector)", role: "Rector", jornada: "Todas", isRector: true, correo: "rector@antoniasantos.edu.co" };
+            // Validación con credenciales actualizadas del Rector
+            if(user === schoolConfig.rectorUser && pass === schoolConfig.rectorPass) {
+                currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", jornada: "Todas", isRector: true, correo: schoolConfig.rectorUser };
                 startApp('admin');
                 return;
             }
@@ -669,6 +744,15 @@
                 document.getElementById('cfg_direccion').value = schoolConfig.direccion;
                 document.getElementById('cfg_telefono').value = schoolConfig.telefono;
                 document.getElementById('cfg_correo').value = schoolConfig.correo;
+                document.getElementById('cfg_rector_nombres').value = schoolConfig.rectorNombres;
+                document.getElementById('cfg_rector_apellidos').value = schoolConfig.rectorApellidos;
+                document.getElementById('cfg_rector_tel').value = schoolConfig.rectorTel;
+                document.getElementById('cfg_rector_email').value = schoolConfig.rectorEmail;
+                document.getElementById('cfg_rector_user').value = schoolConfig.rectorUser;
+                document.getElementById('cfg_rector_pass').value = schoolConfig.rectorPass;
+                document.getElementById('chk_show_nombre').checked = schoolConfig.showNombre;
+                document.getElementById('chk_show_tel').checked = schoolConfig.showTel;
+                document.getElementById('chk_show_email').checked = schoolConfig.showEmail;
             } else if(view === 'coords') {
                 document.getElementById('view-coords').classList.remove('hidden');
                 renderCoordsTable();
@@ -781,6 +865,15 @@
             schoolConfig.direccion = document.getElementById('cfg_direccion').value.trim();
             schoolConfig.telefono = document.getElementById('cfg_telefono').value.trim();
             schoolConfig.correo = document.getElementById('cfg_correo').value.trim();
+            schoolConfig.rectorNombres = document.getElementById('cfg_rector_nombres').value.trim();
+            schoolConfig.rectorApellidos = document.getElementById('cfg_rector_apellidos').value.trim();
+            schoolConfig.rectorTel = document.getElementById('cfg_rector_tel').value.trim();
+            schoolConfig.rectorEmail = document.getElementById('cfg_rector_email').value.trim();
+            schoolConfig.rectorUser = document.getElementById('cfg_rector_user').value.trim();
+            schoolConfig.rectorPass = document.getElementById('cfg_rector_pass').value.trim();
+            schoolConfig.showNombre = document.getElementById('chk_show_nombre').checked;
+            schoolConfig.showTel = document.getElementById('chk_show_tel').checked;
+            schoolConfig.showEmail = document.getElementById('chk_show_email').checked;
 
             let pendingSaves = 0;
             let checkDone = () => {
@@ -788,7 +881,7 @@
                 if(pendingSaves <= 0) {
                     localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
                     applySchoolConfig();
-                    alert("¡Datos institucionales, logotipo y firma digital actualizados con éxito!");
+                    alert("¡Configuración institucional y credenciales del Rector actualizadas con éxito!");
                     switchView('admin');
                 }
             };
@@ -816,7 +909,7 @@
             if(pendingSaves === 0) {
                 localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
                 applySchoolConfig();
-                alert("¡Datos institucionales actualizados con éxito!");
+                alert("¡Configuración institucional y credenciales del Rector actualizadas con éxito!");
                 switchView('admin');
             }
         }
@@ -1170,6 +1263,11 @@
                 `<div style="margin-top: 15px;"><img src="${schoolConfig.firma}" style="max-height: 70px; max-width: 180px; object-fit: contain; display: block; margin: 0 auto 5px auto;"></div>` : 
                 `<div style="height: 40px;"></div>`;
 
+            let nombreRectorStr = schoolConfig.showNombre ? `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos}` : "ÁLVARO GONZÁLEZ CONTRERAS (ALGC)";
+            let infoExtraRector = "";
+            if(schoolConfig.showTel) infoExtraRector += `<br>Tel: ${schoolConfig.rectorTel}`;
+            if(schoolConfig.showEmail) infoExtraRector += `<br>Correo: ${schoolConfig.rectorEmail}`;
+
             let msgWaDocente = encodeURIComponent(`Hola ${p.nombre}, su solicitud con radicado ${p.radicado} ha sido: ${p.estado.toUpperCase()}. Revise su formato institucional de resolución.`);
             let linkWaDocente = `https://wa.me/57${p.whatsapp || '3000000000'}?text=${msgWaDocente}`;
 
@@ -1190,8 +1288,8 @@
                     </div>
                     <div style="text-align: center;">
                         ${firmaRectorHtml}
-                        <p style="font-weight: bold; color: #0f172a; border-top: 1px solid #475569; display: inline-block; padding-top: 4px; min-width: 180px;">ÁLVARO GONZÁLEZ CONTRERAS (ALGC)</p>
-                        <p style="color: #64748b;">Rector - ${schoolConfig.nombre}</p>
+                        <p style="font-weight: bold; color: #0f172a; border-top: 1px solid #475569; display: inline-block; padding-top: 4px; min-width: 180px;">${nombreRectorStr}</p>
+                        <p style="color: #64748b; margin-top:2px;">Rector - ${schoolConfig.nombre} ${infoExtraRector}</p>
                     </div>
                 </div>
             `;
@@ -1211,5 +1309,4 @@
         }
     </script>
 </body>
-</html>  
- 
+</html>

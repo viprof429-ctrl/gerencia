@@ -747,7 +747,7 @@
                 p.estado = newStatus;
                 localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
                 
-                // Envío automático con el Template ID real: template_066a5sv
+                // Intento automático con EmailJS y respaldo seguro por mailto
                 if(newStatus === 'Aprobado' || newStatus === 'Rechazado') {
                     let templateParams = {
                         to_email: p.correo,
@@ -759,12 +759,14 @@
                         motivo: p.motivo
                     };
 
-                    emailjs.send("service_ll8lbt9", "template_066a5sv", templateParams)
+                    emailjs.send("service_9hhf70g", "template_066a5sv", templateParams)
                         .then(function(response) {
                             alert("📨 [Correo Automático Enviado]\nLa resolución oficial ha sido despachada con éxito al correo del docente: " + p.correo);
                         }, function(error) {
-                            alert("⚠️ El estado se actualizó, pero hubo un fallo al enviar el correo automático.");
-                            console.error("EmailJS Error:", error);
+                            // Respaldo inmediato por enlace mailto para garantizar operatividad
+                            let mailSubject = encodeURIComponent(`Estado de su Permiso - Radicado ${p.radicado}`);
+                            let mailBody = encodeURIComponent(`Estimado/a ${p.nombre},\n\nLe informamos que su solicitud de permiso laboral con número de radicado ${p.radicado} para la fecha ${p.fecha} (Jornada ${p.jornada}), bajo el motivo "${p.motivo}", ha sido (${p.estado}) por la Rectoría de la I.E. Antonia Santos.\n\nAtentamente,\nAlvaro Gonzalez Contreras\nRector`);
+                            window.location.href = `mailto:${p.correo}?subject=${mailSubject}&body=${mailBody}`;
                         });
                 } else if(newStatus === 'Preaprobado') {
                     alert("🔔 [Preaprobación Registrada]\nSe ha actualizado el estado de la solicitud.");
@@ -794,6 +796,10 @@
 
             let msgWaDocente = encodeURIComponent(`Hola ${p.nombre}, su solicitud con radicado ${p.radicado} ha sido: ${p.estado.toUpperCase()}. Revise su formato institucional.`);
             let linkWaDocente = `https://wa.me/57${p.whatsapp || '3000000000'}?text=${msgWaDocente}`;
+            
+            let mailSubjectModal = encodeURIComponent(`Estado de su Permiso - Radicado ${p.radicado}`);
+            let mailBodyModal = encodeURIComponent(`Estimado/a ${p.nombre},\n\nLe informamos que su solicitud de permiso laboral con número de radicado ${p.radicado} para la fecha ${p.fecha} (Jornada ${p.jornada}), bajo el motivo "${p.motivo}", ha sido (${p.estado}) por la Rectoría de la I.E. Antonia Santos.\n\nAtentamente,\nAlvaro Gonzalez Contreras\nRector`);
+            let linkEmailDocente = `mailto:${p.correo}?subject=${mailSubjectModal}&body=${mailBodyModal}`;
 
             document.getElementById('permit-modal-content').innerHTML = `
                 <p><strong>N° de Radicado:</strong> <span style="color:#4f46e5;">${p.radicado}</span></p>
@@ -809,7 +815,8 @@
             
             let actionsContainer = document.getElementById('modal-actions-container');
             actionsContainer.innerHTML = `
-                <a href="${linkWaDocente}" target="_blank" class="btn-submit" style="background:#25d366; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;"><i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp</a>
+                <a href="${linkWaDocente}" target="_blank" class="btn-submit" style="background:#25d366; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+                <a href="${linkEmailDocente}" class="btn-submit" style="background:#ea580c; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;"><i class="fa-solid fa-envelope"></i> Enviar Correo</a>
                 <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir</button>
                 <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cerrar</button>
             `;
@@ -818,8 +825,8 @@
         }
 
         function closeModal() {
-            document.getElementById('permitModal').classList.add('hidden');
+            document.getElementById('permitModal'].classList.add('hidden');
         }
     </script>
 </body>
-</html> 
+</html>

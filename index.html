@@ -278,15 +278,63 @@
                 </div>
             </section>
 
-            <!-- VISTA CONFIGURACIÓN -->
+            <!-- VISTA CONFIGURACIÓN (CON RECTOR RESTAURADO) -->
             <section id="view-config" class="card hidden">
-                <div class="card-header"><h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración</h2><p>Datos institucionales</p></div>
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración General y Rector</h2>
+                    <p>Actualice datos del colegio, credenciales del rector y visualización.</p>
+                </div>
+
                 <form onsubmit="saveSchoolConfig(event)">
-                    <div class="grid-2"><div class="form-group"><label>Nombre</label><input type="text" id="cfg_nombre" required></div><div class="form-group"><label>NIT</label><input type="text" id="cfg_nit" required></div></div>
-                    <div class="grid-2"><div class="form-group"><label>Dirección</label><input type="text" id="cfg_direccion" required></div><div class="form-group"><label>Teléfono</label><input type="tel" id="cfg_telefono" required></div></div>
-                    <div class="form-group"><label>Correo</label><input type="text" id="cfg_correo" required></div>
-                    <div class="grid-2"><div class="form-group"><label>Logotipo</label><input type="file" id="cfg_logo_file" accept="image/*"></div><div class="form-group"><label>Firma Rector</label><input type="file" id="cfg_firma_file" accept="image/*"></div></div>
-                    <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios</button>
+                    <h3 style="font-size:0.85rem; font-weight:800; color:#1e1b4b; margin-bottom:0.6rem; border-bottom:1px solid #e2e8f0; padding-bottom:0.25rem;">Datos Institucionales</h3>
+                    <div class="grid-2">
+                        <div class="form-group"><label>Nombre de la Institución</label><input type="text" id="cfg_nombre" required></div>
+                        <div class="form-group"><label>NIT</label><input type="text" id="cfg_nit" required></div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group"><label>Dirección</label><input type="text" id="cfg_direccion" required></div>
+                        <div class="form-group"><label>Teléfono</label><input type="tel" id="cfg_telefono" required></div>
+                    </div>
+                    <div class="form-group"><label>Correo Institucional</label><input type="text" id="cfg_correo" required></div>
+
+                    <div style="background:#eef2ff; padding:0.75rem; border:1px solid #c7d2fe; border-radius:6px; margin-bottom:0.75rem; margin-top:0.75rem;">
+                        <h3 style="font-size:0.8rem; font-weight:800; color:#312e81; margin-bottom:0.5rem;"><i class="fa-solid fa-user-shield"></i> Credenciales y Datos del Rector</h3>
+                        
+                        <div class="grid-2">
+                            <div class="form-group"><label>Nombres</label><input type="text" id="cfg_rector_nombres" required></div>
+                            <div class="form-group"><label>Apellidos</label><input type="text" id="cfg_rector_apellidos" required></div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group"><label>Teléfono</label><input type="tel" id="cfg_rector_tel" required></div>
+                            <div class="form-group"><label>Correo</label><input type="email" id="cfg_rector_email" required></div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group"><label>Usuario de Login</label><input type="text" id="cfg_rector_user" required></div>
+                            <div class="form-group"><label>Contraseña</label><input type="text" id="cfg_rector_pass" required></div>
+                        </div>
+
+                        <div style="background:white; padding:0.5rem; border-radius:6px; border:1px solid #c7d2fe; margin-top:0.5rem;">
+                            <label style="font-weight:800; color:#312e81; margin-bottom:0.3rem; font-size:0.65rem;"><i class="fa-solid fa-check-to-slot"></i> Mostrar en documentos:</label>
+                            <div style="display:flex; gap:0.6rem; flex-wrap:wrap; font-size:0.7rem;">
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.2rem; cursor:pointer;"><input type="checkbox" id="chk_show_nombre" style="width:auto;"> Nombre</label>
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.2rem; cursor:pointer;"><input type="checkbox" id="chk_show_tel" style="width:auto;"> Teléfono</label>
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.2rem; cursor:pointer;"><input type="checkbox" id="chk_show_email" style="width:auto;"> Correo</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid-2" style="margin-bottom:0.75rem;">
+                        <div style="background:#f8fafc; padding:0.5rem; border:2px dashed #cbd5e1; border-radius:6px;">
+                            <label style="font-size:0.7rem; font-weight:bold;"><i class="fa-solid fa-image" style="color:#f59e0b;"></i> Logotipo</label>
+                            <input type="file" id="cfg_logo_file" accept="image/*" style="font-size:0.65rem; border:none; padding:0; background:transparent;">
+                        </div>
+                        <div style="background:#f8fafc; padding:0.5rem; border:2px dashed #cbd5e1; border-radius:6px;">
+                            <label style="font-size:0.7rem; font-weight:bold;"><i class="fa-solid fa-signature" style="color:#4f46e5;"></i> Firma Digital (PNG)</label>
+                            <input type="file" id="cfg_firma_file" accept="image/*" style="font-size:0.65rem; border:none; padding:0; background:transparent;">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios Institucionales</button>
                 </form>
             </section>
         </main>
@@ -303,9 +351,9 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE SUPABASE (CONECTADO A LA NUBE)
+        // CONFIGURACIÓN DE SUPABASE
         const SUPABASE_URL = "https://ftrlvaxtgrgxvxodtqfl.supabase.co";
-        const SUPABASE_ANON_KEY = "TU_PUBLISHABLE_KEY_AQUI"; // <-- Pega aquí tu Publishable key de Supabase
+        const SUPABASE_ANON_KEY = "sb_publishable_BevO5oiQAphvZeVKzIQH8Q_tj0-8hBz"; 
         
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -332,6 +380,8 @@
             rectorPass: "RectorAntonia2026*",
             rectorNombres: "Álvaro",
             rectorApellidos: "González Contreras (ALGC)",
+            rectorTel: "3000000000",
+            rectorEmail: "rector@antoniasantos.edu.co",
             showNombre: true,
             showTel: false,
             showEmail: false
@@ -339,11 +389,12 @@
 
         let currentUser = null;
 
-        // CARGAR DATOS DESDE SUPABASE AL INICIAR
         async function loadCloudData() {
             try {
                 let { data: configData } = await supabaseClient.from('school_config').select('*').single();
-                if(configData && configData.data) schoolConfig = configData.data;
+                if(configData && configData.data) {
+                    schoolConfig = { ...schoolConfig, ...configData.data };
+                }
 
                 let { data: teachersData } = await supabaseClient.from('teachers').select('*');
                 if(teachersData) teachers = teachersData;
@@ -398,10 +449,7 @@
             };
 
             let { error } = await supabaseClient.from('teachers').insert([newDocente]);
-            if(error) {
-                alert("Error al registrar: " + error.message);
-                return;
-            }
+            if(error) { alert("Error al registrar: " + error.message); return; }
 
             teachers.push(newDocente);
             alert("¡Registro exitoso en la nube!");
@@ -460,9 +508,54 @@
         function switchView(view) {
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
             if(view === 'admin') { document.getElementById('view-admin').classList.remove('hidden'); renderTable(); }
-            else if(view === 'config') document.getElementById('view-config').classList.remove('hidden');
+            else if(view === 'config') {
+                document.getElementById('view-config').classList.remove('hidden');
+                document.getElementById('cfg_nombre').value = schoolConfig.nombre || "";
+                document.getElementById('cfg_nit').value = schoolConfig.nit || "";
+                document.getElementById('cfg_direccion').value = schoolConfig.direccion || "";
+                document.getElementById('cfg_telefono').value = schoolConfig.telefono || "";
+                document.getElementById('cfg_correo').value = schoolConfig.correo || "";
+                document.getElementById('cfg_rector_nombres').value = schoolConfig.rectorNombres || "";
+                document.getElementById('cfg_rector_apellidos').value = schoolConfig.rectorApellidos || "";
+                document.getElementById('cfg_rector_tel').value = schoolConfig.rectorTel || "";
+                document.getElementById('cfg_rector_email').value = schoolConfig.rectorEmail || "";
+                document.getElementById('cfg_rector_user').value = schoolConfig.rectorUser || "";
+                document.getElementById('cfg_rector_pass').value = schoolConfig.rectorPass || "";
+                document.getElementById('chk_show_nombre').checked = !!schoolConfig.showNombre;
+                document.getElementById('chk_show_tel').checked = !!schoolConfig.showTel;
+                document.getElementById('chk_show_email').checked = !!schoolConfig.showEmail;
+            }
             else if(view === 'coords') { document.getElementById('view-coords').classList.remove('hidden'); renderCoordsTable(); }
             else if(view === 'reports') { document.getElementById('view-reports').classList.remove('hidden'); renderReports(); }
+        }
+
+        async function saveSchoolConfig(e) {
+            e.preventDefault();
+            schoolConfig.nombre = document.getElementById('cfg_nombre').value.trim();
+            schoolConfig.nit = document.getElementById('cfg_nit').value.trim();
+            schoolConfig.direccion = document.getElementById('cfg_direccion').value.trim();
+            schoolConfig.telefono = document.getElementById('cfg_telefono').value.trim();
+            schoolConfig.correo = document.getElementById('cfg_correo').value.trim();
+            schoolConfig.rectorNombres = document.getElementById('cfg_rector_nombres').value.trim();
+            schoolConfig.rectorApellidos = document.getElementById('cfg_rector_apellidos').value.trim();
+            schoolConfig.rectorTel = document.getElementById('cfg_rector_tel').value.trim();
+            schoolConfig.rectorEmail = document.getElementById('cfg_rector_email').value.trim();
+            schoolConfig.rectorUser = document.getElementById('cfg_rector_user').value.trim();
+            schoolConfig.rectorPass = document.getElementById('cfg_rector_pass').value.trim();
+            schoolConfig.showNombre = document.getElementById('chk_show_nombre').checked;
+            schoolConfig.showTel = document.getElementById('chk_show_tel').checked;
+            schoolConfig.showEmail = document.getElementById('chk_show_email').checked;
+
+            // Guardar en la nube (Supabase)
+            let { error } = await supabaseClient.from('school_config').upsert({ id: 1, data: schoolConfig });
+            if(error) {
+                alert("Error al guardar en la nube: " + error.message);
+                return;
+            }
+
+            applySchoolConfig();
+            alert("¡Configuración institucional y del rector guardada con éxito en la nube!");
+            switchView('admin');
         }
 
         async function handleFormSubmit(e) {

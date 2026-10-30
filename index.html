@@ -266,7 +266,7 @@
                     <p>Agregue, edite o elimine coordinadores institucionales.</p>
                 </div>
 
-                <form onsubmit="saveCoordinator(event)" style="background:#f8fafc; padding:0.75rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:1rem;">
+                <form id="form-coordinator" onsubmit="saveCoordinator(event)" style="background:#f8fafc; padding:0.75rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:1rem;">
                     <h3 id="coord-form-title" style="font-size:0.8rem; font-weight:800; color:#1e1b4b; margin-bottom:0.5rem;">Nuevo Coordinador</h3>
                     <input type="hidden" id="coord_edit_id" value="">
                     <div class="grid-2">
@@ -422,7 +422,6 @@
 
                 applySchoolConfig();
 
-                // Recuperar sesión persistente si existe
                 let savedUser = sessionStorage.getItem('antonia_current_user');
                 if(savedUser) {
                     currentUser = JSON.parse(savedUser);
@@ -581,12 +580,12 @@
 
             if(!editId) {
                 let { data, error } = await supabaseClient.from('coordinators').insert([newC]).select();
-                if(error) { alert("Error: " + error.message); return; }
+                if(error) { alert("Error al crear: " + error.message); return; }
                 if(data) coordinators.push(data[0]);
                 alert("¡Coordinador creado en la nube!");
             } else {
                 let { error } = await supabaseClient.from('coordinators').update(newC).eq('id', editId);
-                if(error) { alert("Error: " + error.message); return; }
+                if(error) { alert("Error al actualizar: " + error.message); return; }
                 let idx = coordinators.findIndex(c => c.id == editId);
                 if(idx !== -1) coordinators[idx] = { id: editId, ...newC };
                 alert("¡Coordinador actualizado en la nube!");
@@ -595,7 +594,7 @@
                 document.getElementById('coord_btn_submit').textContent = "Guardar Coordinador";
             }
 
-            e.target.reset();
+            document.getElementById('form-coordinator').reset();
             renderCoordsTable();
         }
 
@@ -637,8 +636,8 @@
                     <td>📱 ${c.whatsapp}</td>
                     <td><span style="color:#4f46e5; font-weight:700;">${c.jornada}</span></td>
                     <td style="text-align:center;">
-                        <button onclick="editCoordinator(${c.id})" style="background:#0284c7; color:white; border:none; padding:0.2rem 0.4rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.65rem; margin-right:2px;">Editar</button>
-                        <button onclick="deleteCoordinator(${c.id})" style="background:#e11d48; color:white; border:none; padding:0.2rem 0.4rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.65rem;">Eliminar</button>
+                        <button type="button" onclick="editCoordinator(${c.id})" style="background:#0284c7; color:white; border:none; padding:0.2rem 0.4rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.65rem; margin-right:2px;">Editar</button>
+                        <button type="button" onclick="deleteCoordinator(${c.id})" style="background:#e11d48; color:white; border:none; padding:0.2rem 0.4rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.65rem;">Eliminar</button>
                     </td>
                 `;
                 tbody.appendChild(tr);

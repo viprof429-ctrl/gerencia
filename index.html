@@ -2,65 +2,90 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sistema de Permisos - I.E. Antonia Santos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SDK de EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-        body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+        body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         .hidden { display: none !important; }
 
         /* Pantalla de Acceso / Login y Registro */
         .auth-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
-        .auth-logo { width: 70px; height: 70px; background: #f59e0b; color: #0f172a; border-radius: 16px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; overflow: hidden; }
+        .auth-card { background: white; border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 380px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
+        .auth-logo { width: 60px; height: 60px; background: #f59e0b; color: #0f172a; border-radius: 12px; margin: 0 auto 0.5rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; overflow: hidden; }
         .auth-logo img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Navbar */
-        header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-        .brand { display: flex; align-items: center; gap: 1rem; }
-        .brand-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; overflow: hidden; background: #f59e0b; color: #0f172a; }
+        /* Navbar Responsivo Definitivo para Celulares */
+        header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: relative; width: 100%; z-index: 1000; }
+        .brand { display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex-grow: 1; }
+        .brand-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold; overflow: hidden; background: #f59e0b; color: #0f172a; flex-shrink: 0; }
         .brand-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .brand-text h1 { font-size: 1.15rem; font-weight: 800; }
-        .brand-text p { font-size: 0.75rem; color: #cbd5e1; }
+        .brand-text { min-width: 0; flex-grow: 1; }
+        .brand-text h1 { font-size: 0.85rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .brand-text p { font-size: 0.6rem; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Menú y Botones por Defecto (Escritorio) */
+        .nav-actions { display: flex; align-items: center; gap: 0.3rem; }
+        .nav-admin-btn { background: #4f46e5; color: white; border: none; padding: 0.4rem 0.6rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.2rem; }
+        .logout-btn { background: #e11d48; color: white; border: none; padding: 0.4rem 0.6rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 0.2rem; }
+        
+        .menu-toggle { display: none; background: none; border: none; color: white; font-size: 1.4rem; cursor: pointer; padding: 0.3rem; flex-shrink: 0; }
 
         /* Contenedor Principal */
-        main { max-width: 1050px; width: 100%; margin: 2.5rem auto; padding: 0 1.5rem; flex-grow: 1; }
-        .card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
+        main { max-width: 1000px; width: 100%; margin: 0.75rem auto; padding: 0 0.5rem; flex-grow: 1; }
+        .card { background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 4px 15px -3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 1rem; width: 100%; }
         
-        .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; }
-        .card-header h2 { font-size: 1.35rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.75rem; }
-        .card-header p { font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; }
+        .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 0.6rem; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.2rem; }
+        .card-header h2 { font-size: 0.95rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.3rem; word-break: break-word; }
+        .card-header p { font-size: 0.7rem; color: #64748b; word-break: break-word; }
 
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-        .form-group { margin-bottom: 1.25rem; }
-        label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.85rem; color: #334155; }
-        input, select, textarea { width: 100%; padding: 0.85rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 12px; font-size: 0.9rem; background: #f8fafc; color: #1e293b; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 4px rgba(79,70,229,0.1); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; width: 100%; }
+        .form-group { margin-bottom: 0.6rem; width: 100%; }
+        label { display: block; font-weight: 700; margin-bottom: 0.25rem; font-size: 0.7rem; color: #334155; }
+        input, select, textarea { width: 100%; padding: 0.55rem; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #f8fafc; color: #1e293b; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #4f46e5; background: #fff; }
 
-        .banner-info { background: #eef2ff; border: 1.5px solid #c7d2fe; border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-        .badge-slot { background: white; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; color: #4338ca; border: 1px solid #c7d2fe; }
+        .banner-info { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 0.6rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-direction: column; gap: 0.4rem; }
+        .badge-slot { background: white; padding: 0.3rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: #4338ca; border: 1px solid #c7d2fe; text-align: center; width: 100%; }
 
-        .btn-submit { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; border: none; padding: 1rem 2rem; font-size: 0.95rem; font-weight: 700; border-radius: 12px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(79,70,229,0.35); }
-        .btn-submit:hover { opacity: 0.95; }
+        .btn-submit { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; border: none; padding: 0.65rem 0.85rem; font-size: 0.8rem; font-weight: 700; border-radius: 6px; cursor: pointer; width: 100%; box-shadow: 0 2px 8px rgba(79,70,229,0.25); display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
-        th { background: #f8fafc; color: #475569; text-transform: uppercase; font-size: 0.75rem; font-weight: 800; }
+        /* Tablas Adaptadas */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 0.5rem; border-radius: 6px; border: 1px solid #f1f5f9; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid #f1f5f9; font-size: 0.75rem; }
+        th { background: #f8fafc; color: #475569; text-transform: uppercase; font-size: 0.6rem; font-weight: 800; }
         
-        .status-badge { padding: 0.35rem 0.85rem; border-radius: 99px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
+        .status-badge { padding: 0.2rem 0.5rem; border-radius: 99px; font-size: 0.6rem; font-weight: 800; display: inline-block; }
         .status-pending { background: #fef3c7; color: #92400e; }
         .status-preapproved { background: #e0f2fe; color: #0369a1; }
         .status-approved { background: #d1fae5; color: #065f46; }
         .status-rejected { background: #ffe4e6; color: #9f1239; }
 
-        .link-btn { background: none; border: none; color: #4f46e5; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-decoration: underline; padding: 0; }
-        .nav-admin-btn { background: #4f46e5; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem; }
+        .link-btn { background: none; border: none; color: #4f46e5; font-weight: 700; font-size: 0.7rem; cursor: pointer; text-decoration: underline; padding: 0; }
 
-        .modal-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
-        .modal-card { background: white; border-radius: 20px; padding: 2rem; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .modal-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 0.5rem; }
+        .modal-card { background: white; border-radius: 12px; padding: 1rem; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.25); }
+
+        /* REGLAS ESTRICTAS PARA CELULARES (MÁXIMO 768px) */
+        @media (max-width: 768px) {
+            header { padding: 0.6rem 0.75rem; }
+            .brand-text h1 { font-size: 0.75rem; max-width: 120px; }
+            .menu-toggle { display: block !important; }
+            
+            /* Ocultar barra horizontal de botones y convertirla en menú desplegable flotante */
+            .nav-actions { display: none !important; position: absolute; top: 100%; left: 0; right: 0; background: #0f172a; flex-direction: column; gap: 0.4rem; padding: 0.75rem; box-shadow: 0 15px 25px rgba(0,0,0,0.4); border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
+            .nav-actions.active { display: flex !important; }
+            
+            .nav-admin-btn, .logout-btn { width: 100% !important; justify-content: flex-start !important; padding: 0.6rem 0.8rem !important; font-size: 0.8rem !important; }
+            
+            main { margin: 0.4rem auto; padding: 0 0.25rem; }
+            .card { padding: 0.75rem; border-radius: 10px; }
+            .grid-2 { grid-template-columns: 1fr; gap: 0.4rem; }
+        }
     </style>
 </head>
 <body>
@@ -69,65 +94,62 @@
     <div id="auth-screen" class="auth-overlay">
         <div class="auth-card">
             <div class="auth-logo" id="login-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
-            <h2 id="login-school-title" style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem;">I.E. ANTONIA SANTOS</h2>
-            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 1.5rem;">Control de Permisos y Gestión Institucional</p>
+            <h2 id="login-school-title" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">I.E. ANTONIA SANTOS</h2>
+            <p style="font-size: 0.65rem; color: #64748b; margin-bottom: 0.75rem;">Control de Permisos Institucional</p>
 
-            <!-- Formulario Login -->
             <form id="form-login" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>Correo / Usuario</label>
-                    <input type="text" id="login_user" required placeholder="rector o correo del usuario">
+                    <input type="text" id="login_user" required placeholder="usuario o correo">
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
                     <input type="password" id="login_pass" required placeholder="••••••••">
                 </div>
-                <button type="submit" class="btn-submit">Ingresar al Sistema</button>
-                <div style="text-align: center; margin-top: 1.25rem;">
-                    <button type="button" class="link-btn" onclick="toggleRegister(true)">¿No tienes cuenta? Regístrate aquí</button>
+                <button type="submit" class="btn-submit">Ingresar</button>
+                <div style="text-align: center; margin-top: 0.6rem;">
+                    <button type="button" class="link-btn" onclick="toggleRegister(true)">¿No tienes cuenta? Regístrate</button>
                 </div>
             </form>
 
-            <!-- Formulario Registro Docente en Línea -->
             <form id="form-register" onsubmit="handleRegister(event)" class="hidden">
-                <h3 style="font-size: 1rem; font-weight: 800; color: #1e1b4b; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">Registro de Docente</h3>
-                <div class="form-group" style="margin-bottom:0.75rem;">
+                <h3 style="font-size: 0.85rem; font-weight: 800; color: #1e1b4b; margin-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25rem;">Registro Docente</h3>
+                <div class="form-group" style="margin-bottom:0.4rem;">
                     <label>Nombres</label>
-                    <input type="text" id="reg_nombres" required placeholder="Ana Milena">
+                    <input type="text" id="reg_nombres" required placeholder="Nombres">
                 </div>
-                <div class="form-group" style="margin-bottom:0.75rem;">
+                <div class="form-group" style="margin-bottom:0.4rem;">
                     <label>Apellidos</label>
-                    <input type="text" id="reg_apellidos" required placeholder="Gómez Pérez">
+                    <input type="text" id="reg_apellidos" required placeholder="Apellidos">
                 </div>
-                <div class="form-group" style="margin-bottom:0.75rem;">
+                <div class="form-group" style="margin-bottom:0.4rem;">
                     <label>Correo Institucional</label>
                     <input type="text" id="reg_correo" required placeholder="correo@colegio.edu.co">
                 </div>
-                <div class="form-group" style="margin-bottom:0.75rem;">
+                <div class="form-group" style="margin-bottom:0.4rem;">
                     <label>Teléfono / WhatsApp</label>
                     <input type="tel" id="reg_tel" required placeholder="3001234567">
                 </div>
-                <div class="form-group" style="margin-bottom:0.75rem;">
-                    <label>Jornada Asignada</label>
+                <div class="form-group" style="margin-bottom:0.4rem;">
+                    <label>Jornada</label>
                     <select id="reg_jornada" required>
-                        <option value="">Seleccione jornada...</option>
+                        <option value="">Seleccione...</option>
                         <option value="Mañana">Mañana</option>
                         <option value="Tarde">Tarde</option>
                     </select>
                 </div>
-                <div class="form-group" style="margin-bottom:1rem;">
+                <div class="form-group" style="margin-bottom:0.5rem;">
                     <label>Contraseña</label>
                     <input type="password" id="reg_pass" required placeholder="Mínimo 6 caracteres">
                 </div>
-                <button type="submit" class="btn-submit" style="background:#059669;">Completar Registro</button>
-                <div style="text-align: center; margin-top: 1rem;">
-                    <button type="button" class="link-btn" style="color:#64748b;" onclick="toggleRegister(false)">← Volver al inicio de sesión</button>
+                <button type="submit" class="btn-submit" style="background:#059669;">Completar</button>
+                <div style="text-align: center; margin-top: 0.5rem;">
+                    <button type="button" class="link-btn" style="color:#64748b;" onclick="toggleRegister(false)">← Volver</button>
                 </div>
             </form>
 
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem; margin-top: 1.5rem; font-size: 0.75rem; color: #475569; text-align: left;">
-                <strong>Credencial Rector Inicial:</strong><br>
-                • Usuario: <code id="login-hint-user">rector</code> | Clave: <code id="login-hint-pass">RectorAntonia2026*</code>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.4rem; margin-top: 0.75rem; font-size: 0.6rem; color: #475569; text-align: left;">
+                <strong>Rector:</strong> <code id="login-hint-user">rector</code> | <strong>Clave:</strong> <code id="login-hint-pass">RectorAntonia2026*</code>
             </div>
         </div>
     </div>
@@ -139,21 +161,24 @@
                 <div class="brand-icon" id="header-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
                 <div class="brand-text">
                     <h1 id="header-school-name">I.E. ANTONIA SANTOS</h1>
-                    <p id="user-session-info">Sistema Integral de Permisos</p>
+                    <p id="user-session-info">Sistema de Permisos</p>
                 </div>
             </div>
-            <div style="display:flex; align-items:center;">
-                <div id="rector-extra-nav" class="hidden">
-                    <button onclick="switchView('config')" class="nav-admin-btn"><i class="fa-solid fa-gear"></i> Configurar Colegio</button>
-                    <button onclick="switchView('coords')" class="nav-admin-btn" style="background:#0284c7;"><i class="fa-solid fa-user-tie"></i> Coordinadores</button>
-                    <button onclick="switchView('reports')" class="nav-admin-btn" style="background:#d97706;"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
-                    <button onclick="switchView('admin')" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
+            
+            <button class="menu-toggle" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></button>
+
+            <div class="nav-actions" id="nav-actions-menu">
+                <div id="rector-extra-nav" class="hidden" style="display:contents;">
+                    <button onclick="switchView('config'); toggleMobileMenu();" class="nav-admin-btn"><i class="fa-solid fa-gear"></i> Configuración</button>
+                    <button onclick="switchView('coords'); toggleMobileMenu();" class="nav-admin-btn" style="background:#0284c7;"><i class="fa-solid fa-user-tie"></i> Coordinadores</button>
+                    <button onclick="switchView('reports'); toggleMobileMenu();" class="nav-admin-btn" style="background:#d97706;"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
+                    <button onclick="switchView('admin'); toggleMobileMenu();" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
                 </div>
-                <div id="coord-extra-nav" class="hidden">
-                    <button onclick="switchView('reports')" class="nav-admin-btn" style="background:#d97706;"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
-                    <button onclick="switchView('admin')" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
+                <div id="coord-extra-nav" class="hidden" style="display:contents;">
+                    <button onclick="switchView('reports'); toggleMobileMenu();" class="nav-admin-btn" style="background:#d97706;"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
+                    <button onclick="switchView('admin'); toggleMobileMenu();" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
                 </div>
-                <button onclick="logout()" style="background:#e11d48; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.85rem;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+                <button onclick="logout()" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
             </div>
         </header>
 
@@ -161,45 +186,45 @@
             <!-- VISTA SOLICITUD DOCENTE -->
             <section id="view-solicitud" class="card">
                 <div class="card-header">
-                    <h2><i class="fa-solid fa-clipboard-user" style="color:#f59e0b;"></i> Solicitud de Permiso Laboral</h2>
-                    <p>Límite máximo permitido: <strong>3 días por mes</strong>. Mínimo 3 días hábiles de anticipación.</p>
+                    <h2><i class="fa-solid fa-clipboard-user" style="color:#f59e0b;"></i> Solicitud de Permiso</h2>
+                    <p>Límite: 3 días/mes. Mínimo 3 días hábiles de anticipación.</p>
                 </div>
 
                 <form onsubmit="handleFormSubmit(event)">
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Nombre Completo del Solicitante</label>
+                            <label>Solicitante</label>
                             <input type="text" id="sol_nombre" readonly style="background:#e2e8f0; font-weight:bold;">
                         </div>
                         <div class="form-group">
-                            <label>Cargo / Jornada Registrada</label>
+                            <label>Jornada</label>
                             <input type="text" id="sol_info_jornada" readonly style="background:#e2e8f0; font-weight:bold;">
                         </div>
                     </div>
 
                     <div class="banner-info">
                         <div>
-                            <label style="margin-bottom:0.2rem; color:#312e81;">Seleccione Fecha y Cupos</label>
-                            <span style="font-size:0.80rem; color:#4f46e5;">Verifique la disponibilidad del día.</span>
+                            <label style="margin-bottom:0.1rem; color:#312e81;">Seleccione Fecha y Cupos</label>
+                            <span style="font-size:0.65rem; color:#4f46e5;">Verifique la disponibilidad del día.</span>
                         </div>
-                        <div style="display:flex; gap:1rem; align-items:center;">
-                            <input type="date" id="sol_fecha" onchange="checkSlots()" required style="width:180px; padding:0.5rem; background:white;">
+                        <div style="display:flex; gap:0.3rem; align-items:center; flex-direction:column; width:100%;">
+                            <input type="date" id="sol_fecha" onchange="checkSlots()" required style="width:100%; padding:0.5rem; background:white;">
                             <div id="slot-badge" class="badge-slot">Cupos: --</div>
                         </div>
                     </div>
 
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Modalidad del Permiso</label>
+                            <label>Modalidad</label>
                             <select id="sol_modalidad" onchange="toggleModalidad()" required>
                                 <option value="Jornada Completa">Jornada Completa</option>
                                 <option value="Por Horas">Por Horas</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Motivo Institucional (Selección)</label>
+                            <label>Motivo</label>
                             <select id="sol_motivo_tipo" required>
-                                <option value="">Seleccione motivo...</option>
+                                <option value="">Seleccione...</option>
                                 <option value="Calamidad doméstica">Calamidad doméstica</option>
                                 <option value="Comisión de servicios">Comisión de servicios</option>
                                 <option value="Estudios / Capacitación">Estudios / Capacitación</option>
@@ -209,328 +234,326 @@
                         </div>
                     </div>
 
-                    <div id="section-horas" class="grid-2 hidden" style="background:#f8fafc; padding:1.25rem; border-radius:12px; border:1.5px dashed #cbd5e1; margin-bottom:1.25rem;">
+                    <div id="section-horas" class="grid-2 hidden" style="background:#f8fafc; padding:0.75rem; border-radius:6px; border:1.5px dashed #cbd5e1; margin-bottom:0.6rem;">
                         <div class="form-group" style="margin-bottom:0;">
-                            <label><i class="fa-solid fa-clock" style="color:#4f46e5;"></i> Hora de Inicio</label>
+                            <label>Hora Inicio</label>
                             <input type="time" id="sol_hora_inicio">
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
-                            <label><i class="fa-solid fa-clock" style="color:#4f46e5;"></i> Hora de Finalización</label>
+                            <label>Hora Fin</label>
                             <input type="time" id="sol_hora_fin">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>Descripción Adicional del Motivo</label>
-                        <input type="text" id="sol_motivo_detalle" required placeholder="Detalle breves razones...">
+                        <label>Descripción del Motivo</label>
+                        <input type="text" id="sol_motivo_detalle" required placeholder="Breve razón...">
                     </div>
 
-                    <div class="grid-2" style="margin-bottom: 1.5rem;">
-                        <div style="background:#f8fafc; padding:1rem; border:2px dashed #cbd5e1; border-radius:12px;">
-                            <label style="font-size: 0.8rem; font-weight: bold; color: #1e293b; margin-bottom: 0.5rem;">
-                                <i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> 1. Soporte del Permiso (PDF Obligatorio)
+                    <div class="grid-2" style="margin-bottom: 0.75rem;">
+                        <div style="background:#f8fafc; padding:0.5rem; border:2px dashed #cbd5e1; border-radius:6px;">
+                            <label style="font-size: 0.65rem; font-weight: bold; color: #1e293b; margin-bottom: 0.2rem;">
+                                <i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> 1. Soporte (PDF)
                             </label>
-                            <input type="file" id="file_permiso" accept=".pdf" required style="font-size:0.8rem; border:none; padding:0; background:transparent;" onchange="handleFileUpload(event, 'soportePermisoData')">
+                            <input type="file" id="file_permiso" accept=".pdf" required style="font-size:0.65rem; border:none; padding:0; background:transparent;" onchange="handleFileUpload(event, 'soportePermisoData')">
                         </div>
-                        <div style="background:#f8fafc; padding:1rem; border:2px dashed #cbd5e1; border-radius:12px;">
-                            <label style="font-size: 0.8rem; font-weight: bold; color: #1e293b; margin-bottom: 0.5rem;">
-                                <i class="fa-solid fa-file-lines" style="color:#d97706;"></i> 2. Material de Actividades (PDF Obligatorio)
+                        <div style="background:#f8fafc; padding:0.5rem; border:2px dashed #cbd5e1; border-radius:6px;">
+                            <label style="font-size: 0.65rem; font-weight: bold; color: #1e293b; margin-bottom: 0.2rem;">
+                                <i class="fa-solid fa-file-lines" style="color:#d97706;"></i> 2. Actividades (PDF)
                             </label>
-                            <input type="file" id="file_actividades" accept=".pdf" required style="font-size:0.8rem; border:none; padding:0; background:transparent;" onchange="handleFileUpload(event, 'soporteActividadesData')">
+                            <input type="file" id="file_actividades" accept=".pdf" required style="font-size:0.65rem; border:none; padding:0; background:transparent;" onchange="handleFileUpload(event, 'soporteActividadesData')">
                         </div>
                     </div>
 
                     <button type="submit" class="btn-submit">
-                        <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud Oficial
+                        <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud
                     </button>
                 </form>
 
-                <h3 style="font-size: 1.1rem; font-weight: 800; color: #1e1b4b; margin-top: 2.5rem; margin-bottom: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">Mi Historial de Solicitudes</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Radicado</th>
-                            <th>Fecha y Modalidad</th>
-                            <th>Motivo</th>
-                            <th>Estado</th>
-                            <th style="text-align:center;">Acciones / Resolución</th>
-                        </tr>
-                    </thead>
-                    <tbody id="teacher-history-body"></tbody>
-                </table>
+                <h3 style="font-size: 0.85rem; font-weight: 800; color: #1e1b4b; margin-top: 1.25rem; margin-bottom: 0.5rem; border-top: 1px solid #e2e8f0; padding-top: 0.75rem;">Mis Solicitudes</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Radicado</th>
+                                <th>Fecha/Mod</th>
+                                <th>Motivo</th>
+                                <th>Estado</th>
+                                <th style="text-align:center;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacher-history-body"></tbody>
+                    </table>
+                </div>
             </section>
 
             <!-- VISTA PANEL DIRECTIVO -->
             <section id="view-admin" class="card hidden">
                 <div class="card-header">
-                    <h2 id="admin-title">Panel de Control Directivo</h2>
-                    <p>Gestión y doble aprobación de solicitudes institucionales</p>
+                    <h2 id="admin-title">Panel Directivo</h2>
+                    <p>Aprobación de solicitudes</p>
                 </div>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Radicado</th>
-                            <th>Solicitante</th>
-                            <th>Jornada / Fecha</th>
-                            <th>Motivo / Soportes</th>
-                            <th>Estado</th>
-                            <th style="text-align:center;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-table-body"></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Radicado</th>
+                                <th>Solicitante</th>
+                                <th>Jornada/Fecha</th>
+                                <th>Motivo/Soportes</th>
+                                <th>Estado</th>
+                                <th style="text-align:center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body"></tbody>
+                    </table>
+                </div>
             </section>
 
-            <!-- VISTA REPORTES (RECTOR Y COORDINADOR) -->
+            <!-- VISTA REPORTES -->
             <section id="view-reports" class="card hidden">
                 <div class="card-header">
-                    <h2><i class="fa-solid fa-chart-pie" style="color:#d97706;"></i> Reportes de Permisos Institucionales</h2>
-                    <p>Filtre los permisos solicitados por rango de fechas para auditoría y control.</p>
+                    <h2><i class="fa-solid fa-chart-pie" style="color:#d97706;"></i> Reportes</h2>
+                    <p>Filtrar por fechas.</p>
                 </div>
 
-                <div style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;" class="grid-2">
+                <div style="background: #f8fafc; padding: 0.6rem; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 0.75rem;" class="grid-2">
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label>Fecha Desde</label>
+                        <label>Desde</label>
                         <input type="date" id="rep_desde" onchange="renderReports()">
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label>Fecha Hasta</label>
+                        <label>Hasta</label>
                         <input type="date" id="rep_hasta" onchange="renderReports()">
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
-                    <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; background: #0284c7;"><i class="fa-solid fa-print"></i> Imprimir / Exportar Reporte</button>
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 0.6rem;">
+                    <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.35rem 0.7rem; font-size: 0.7rem; background: #0284c7;"><i class="fa-solid fa-print"></i> Imprimir</button>
                 </div>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Radicado</th>
-                            <th>Solicitante</th>
-                            <th>Jornada</th>
-                            <th>Fecha</th>
-                            <th>Motivo</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reports-table-body"></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Radicado</th>
+                                <th>Solicitante</th>
+                                <th>Jornada</th>
+                                <th>Fecha</th>
+                                <th>Motivo</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reports-table-body"></tbody>
+                    </table>
+                </div>
             </section>
 
-            <!-- VISTA GESTIÓN DE COORDINADORES (EXCLUSIVO RECTOR) -->
+            <!-- VISTA COORDINADORES -->
             <section id="view-coords" class="card hidden">
                 <div class="card-header">
-                    <h2><i class="fa-solid fa-user-tie" style="color:#f59e0b;"></i> Crear y Gestionar Coordinadores</h2>
-                    <p>Agregue, edite o elimine coordinadores institucionales.</p>
+                    <h2><i class="fa-solid fa-user-tie" style="color:#f59e0b;"></i> Coordinadores</h2>
+                    <p>Gestión de coordinadores.</p>
                 </div>
 
-                <form onsubmit="saveCoordinator(event)" style="background:#f8fafc; padding:1.5rem; border-radius:14px; border:1px solid #e2e8f0; margin-bottom:2rem;">
-                    <h3 id="coord-form-title" style="font-size:0.95rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem;">Nuevo Coordinador</h3>
+                <form onsubmit="saveCoordinator(event)" style="background:#f8fafc; padding:0.75rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:1rem;">
+                    <h3 id="coord-form-title" style="font-size:0.8rem; font-weight:800; color:#1e1b4b; margin-bottom:0.5rem;">Nuevo Coordinador</h3>
                     <input type="hidden" id="coord_edit_index" value="-1">
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Nombre Completo</label>
-                            <input type="text" id="coord_nombre" required placeholder="Ej. Carlos Mendoza">
+                            <label>Nombre</label>
+                            <input type="text" id="coord_nombre" required placeholder="Nombre">
                         </div>
                         <div class="form-group">
-                            <label>Correo Institucional (Usuario)</label>
-                            <input type="text" id="coord_correo" required placeholder="carlos.mendoza@antoniasantos.edu.co">
+                            <label>Correo</label>
+                            <input type="text" id="coord_correo" required placeholder="Correo">
                         </div>
                     </div>
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Celular / WhatsApp (Para Notificaciones)</label>
+                            <label>WhatsApp</label>
                             <input type="tel" id="coord_whatsapp" required placeholder="3001234567">
                         </div>
                         <div class="form-group">
-                            <label>Jornada a Cargo</label>
+                            <label>Jornada</label>
                             <select id="coord_jornada" required>
-                                <option value="">Seleccione jornada...</option>
+                                <option value="">Seleccione...</option>
                                 <option value="Mañana">Mañana</option>
                                 <option value="Tarde">Tarde</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Contraseña de Acceso</label>
-                        <input type="password" id="coord_pass" required placeholder="Mínimo 6 caracteres">
+                        <label>Contraseña</label>
+                        <input type="password" id="coord_pass" required placeholder="Contraseña">
                     </div>
-                    <button type="submit" id="coord_btn_submit" class="btn-submit" style="background:#0284c7;">Guardar Coordinador</button>
+                    <button type="submit" id="coord_btn_submit" class="btn-submit" style="background:#0284c7;">Guardar</button>
                 </form>
 
-                <h3 style="font-size:1rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem;">Coordinadores Registrados</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Correo / Usuario</th>
-                            <th>WhatsApp</th>
-                            <th>Jornada</th>
-                            <th style="text-align:center;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="coords-table-body"></tbody>
-                </table>
+                <h3 style="font-size:0.8rem; font-weight:800; color:#1e1b4b; margin-bottom:0.5rem;">Registrados</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                                <th>WhatsApp</th>
+                                <th>Jornada</th>
+                                <th style="text-align:center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coords-table-body"></tbody>
+                    </table>
+                </div>
             </section>
 
-            <!-- VISTA CONFIGURACIÓN DEL COLEGIO Y DATOS DEL RECTOR -->
+            <!-- VISTA CONFIGURACIÓN -->
             <section id="view-config" class="card hidden">
                 <div class="card-header">
-                    <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración General y Datos del Rector</h2>
-                    <p>Actualice la información institucional, configure las credenciales del Rector y defina qué datos se muestran en los documentos.</p>
+                    <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración</h2>
+                    <p>Datos del colegio y rector.</p>
                 </div>
 
                 <form onsubmit="saveSchoolConfig(event)">
-                    <!-- DATOS INSTITUCIONALES -->
-                    <h3 style="font-size:0.95rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem; border-bottom:1px solid #e2e8f0; padding-bottom:0.5rem;">Datos Institucionales</h3>
+                    <h3 style="font-size:0.8rem; font-weight:800; color:#1e1b4b; margin-bottom:0.5rem; border-bottom:1px solid #e2e8f0; padding-bottom:0.25rem;">Institución</h3>
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Nombre de la Institución</label>
+                            <label>Nombre</label>
                             <input type="text" id="cfg_nombre" required>
                         </div>
                         <div class="form-group">
                             <label>NIT</label>
-                            <input type="text" id="cfg_nit" required placeholder="Ej. 800123456-1">
+                            <input type="text" id="cfg_nit" required placeholder="NIT">
                         </div>
                     </div>
 
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Dirección</label>
-                            <input type="text" id="cfg_direccion" required placeholder="Montería, Córdoba">
+                            <input type="text" id="cfg_direccion" required placeholder="Dirección">
                         </div>
                         <div class="form-group">
-                            <label>Teléfono Institucional</label>
-                            <input type="tel" id="cfg_telefono" required placeholder="3000000000">
+                            <label>Teléfono</label>
+                            <input type="tel" id="cfg_telefono" required placeholder="Teléfono">
                         </div>
                     </div>
 
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Correo del Colegio</label>
-                            <input type="text" id="cfg_correo" required placeholder="correo@colegio.edu.co">
+                            <label>Correo</label>
+                            <input type="text" id="cfg_correo" required placeholder="Correo">
                         </div>
                         <div class="form-group">
-                            <label>Logotipo del Colegio (Imagen)</label>
-                            <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.5rem; background: white;">
+                            <label>Logotipo</label>
+                            <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.25rem; background: white;">
                         </div>
                     </div>
 
-                    <!-- DATOS Y CREDENCIALES DEL RECTOR -->
-                    <div style="background:#eef2ff; padding:1.25rem; border:1.5px solid #c7d2fe; border-radius:12px; margin-bottom:1.5rem; margin-top:1.5rem;">
-                        <h3 style="font-size:0.95rem; font-weight:800; color:#312e81; margin-bottom:1rem;"><i class="fa-solid fa-user-shield"></i> Datos y Credenciales de Acceso del Rector</h3>
+                    <div style="background:#eef2ff; padding:0.75rem; border:1px solid #c7d2fe; border-radius:6px; margin-bottom:0.75rem; margin-top:0.75rem;">
+                        <h3 style="font-size:0.8rem; font-weight:800; color:#312e81; margin-bottom:0.5rem;"><i class="fa-solid fa-user-shield"></i> Credenciales Rector</h3>
                         
                         <div class="grid-2">
                             <div class="form-group">
-                                <label>Nombres del Rector</label>
-                                <input type="text" id="cfg_rector_nombres" required placeholder="Ej. Álvaro">
+                                <label>Nombres</label>
+                                <input type="text" id="cfg_rector_nombres" required>
                             </div>
                             <div class="form-group">
-                                <label>Apellidos del Rector</label>
-                                <input type="text" id="cfg_rector_apellidos" required placeholder="Ej. González Contreras">
+                                <label>Apellidos</label>
+                                <input type="text" id="cfg_rector_apellidos" required>
                             </div>
                         </div>
 
                         <div class="grid-2">
                             <div class="form-group">
-                                <label>Teléfono / Celular del Rector</label>
-                                <input type="tel" id="cfg_rector_tel" required placeholder="3001234567">
+                                <label>Teléfono</label>
+                                <input type="tel" id="cfg_rector_tel" required>
                             </div>
                             <div class="form-group">
-                                <label>Correo de Contacto del Rector</label>
-                                <input type="email" id="cfg_rector_email" required placeholder="rector@colegio.edu.co">
+                                <label>Correo</label>
+                                <input type="email" id="cfg_rector_email" required>
                             </div>
                         </div>
 
                         <div class="grid-2">
                             <div class="form-group">
-                                <label>Usuario de Inicio de Sesión</label>
-                                <input type="text" id="cfg_rector_user" required placeholder="Ej. rector">
+                                <label>Usuario Login</label>
+                                <input type="text" id="cfg_rector_user" required>
                             </div>
                             <div class="form-group">
-                                <label>Contraseña de Acceso</label>
-                                <input type="text" id="cfg_rector_pass" required placeholder="Nueva contraseña">
+                                <label>Contraseña</label>
+                                <input type="text" id="cfg_rector_pass" required>
                             </div>
                         </div>
 
-                        <!-- CHECKBOXES PARA CHULIAR QUE APARECE EN LOS DOCUMENTOS -->
-                        <div style="background:white; padding:1rem; border-radius:8px; border:1px solid #c7d2fe; margin-top:1rem;">
-                            <label style="font-weight:800; color:#312e81; margin-bottom:0.75rem;"><i class="fa-solid fa-check-to-slot"></i> Seleccione qué datos del Rector aparecen en los documentos y resoluciones:</label>
-                            <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
-                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
-                                    <input type="checkbox" id="chk_show_nombre" style="width:auto;"> Mostrar Nombre Completo
-                                </label>
-                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
-                                    <input type="checkbox" id="chk_show_tel" style="width:auto;"> Mostrar Teléfono
-                                </label>
-                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
-                                    <input type="checkbox" id="chk_show_email" style="width:auto;"> Mostrar Correo
-                                </label>
+                        <div style="background:white; padding:0.5rem; border-radius:6px; border:1px solid #c7d2fe; margin-top:0.5rem;">
+                            <label style="font-weight:800; color:#312e81; margin-bottom:0.3rem; font-size:0.65rem;"><i class="fa-solid fa-check-to-slot"></i> Mostrar en documentos:</label>
+                            <div style="display:flex; gap:0.6rem; flex-wrap:wrap; font-size:0.7rem;">
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.2rem; cursor:pointer;"><input type="checkbox" id="chk_show_nombre" style="width:auto;"> Nombre</label>
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.2rem; cursor:pointer;"><input type="checkbox" id="chk_show_tel" style="width:auto;"> Teléfono</label>
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.2rem; cursor:pointer;"><input type="checkbox" id="chk_show_email" style="width:auto;"> Correo</label>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-group" style="background:#f8fafc; padding:1.25rem; border:2px dashed #cbd5e1; border-radius:12px; margin-bottom:1.5rem;">
-                        <label style="color:#1e293b; font-weight:bold; margin-bottom:0.5rem;">
-                            <i class="fa-solid fa-signature" style="color:#4f46e5;"></i> Firma Digital del Rector (Imagen PNG transparente recomendada)
+                    <div class="form-group" style="background:#f8fafc; padding:0.6rem; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:0.75rem;">
+                        <label style="color:#1e293b; font-weight:bold; margin-bottom:0.25rem; font-size:0.7rem;">
+                            <i class="fa-solid fa-signature" style="color:#4f46e5;"></i> Firma Digital (PNG)
                         </label>
-                        <input type="file" id="cfg_firma_file" accept="image/*" style="padding: 0.5rem; background: white; border:none;">
+                        <input type="file" id="cfg_firma_file" accept="image/*" style="padding: 0.25rem; background: white; border:none;">
                     </div>
 
-                    <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios Institucionales y Credenciales</button>
+                    <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios</button>
                 </form>
             </section>
         </main>
     </div>
 
-    <!-- MODAL RESOLUCIÓN OFICIAL EN PDF / FORMATO LEGAL -->
+    <!-- MODAL RESOLUCIÓN -->
     <div id="permitModal" class="modal-bg hidden">
         <div class="modal-card">
-            <!-- Encabezado Institucional Dinámico -->
-            <div style="display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #0f172a; padding-bottom: 1rem; margin-bottom: 1.25rem;">
-                <div id="modal-logo-box" style="width: 65px; height: 65px; border-radius: 10px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1.5rem; flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 0.4rem; border-bottom: 2px solid #0f172a; padding-bottom: 0.5rem; margin-bottom: 0.6rem;">
+                <div id="modal-logo-box" style="width: 36px; height: 36px; border-radius: 6px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1rem; flex-shrink: 0;">
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
-                <div style="flex-grow: 1; text-align: center;">
-                    <h3 id="modal-school-title" style="font-size: 1.15rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">I.E. ANTONIA SANTOS</h3>
-                    <p id="modal-school-nit" style="font-size: 0.75rem; color: #475569; font-weight: 600;">NIT: 800000000-1 | Montería, Córdoba</p>
-                    <p style="font-size: 0.70rem; color: #64748b;">RECTORÍA - GESTIÓN DE TALENTO HUMANO Y PERMISOS LABORALES</p>
+                <div style="flex-grow: 1; text-align: center; min-width: 0;">
+                    <h3 id="modal-school-title" style="font-size: 0.8rem; font-weight: 800; color: #0f172a; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">I.E. ANTONIA SANTOS</h3>
+                    <p id="modal-school-nit" style="font-size: 0.6rem; color: #475569; font-weight: 600;">NIT: 800000000-1 | Montería</p>
                 </div>
             </div>
 
-            <!-- Contenido de la Resolución Legal -->
-            <div id="permit-modal-content" style="font-size: 0.85rem; color: #1e293b; line-height: 1.6; background: #ffffff; padding: 1.5rem; border-radius: 10px; border: 1px solid #cbd5e1; margin-bottom: 1.5rem;"></div>
+            <div id="permit-modal-content" style="font-size: 0.7rem; color: #1e293b; line-height: 1.35; background: #ffffff; padding: 0.6rem; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 0.75rem;"></div>
 
-            <!-- Acciones del Modal -->
-            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap;" id="modal-actions-container">
-                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
-                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cerrar</button>
+            <div style="display: flex; justify-content: flex-end; gap: 0.3rem; flex-wrap: wrap;" id="modal-actions-container">
+                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.35rem 0.7rem; font-size: 0.7rem;"><i class="fa-solid fa-print"></i> Imprimir</button>
+                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.35rem 0.7rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem;">Cerrar</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL MOTIVO DE NEGACIÓN -->
+    <!-- MODAL NEGACIÓN -->
     <div id="rejectModal" class="modal-bg hidden">
-        <div class="modal-card" style="max-width: 450px;">
-            <h3 style="font-size: 1.1rem; font-weight: 800; color: #9f1239; margin-bottom: 1rem;"><i class="fa-solid fa-triangle-exclamation"></i> Negar Permiso Laboral</h3>
-            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 1rem;">Por favor especifique la observación u motivo institucional por el cual se niega esta solicitud:</p>
-            <textarea id="reject_observacion" rows="4" style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 8px; margin-bottom: 1.25rem;" placeholder="Escriba la razón reglamentaria..."></textarea>
-            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
-                <button onclick="confirmReject()" class="btn-submit" style="background: #e11d48; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;">Confirmar Negación</button>
-                <button onclick="closeRejectModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cancelar</button>
+        <div class="modal-card" style="max-width: 340px;">
+            <h3 style="font-size: 0.85rem; font-weight: 800; color: #9f1239; margin-bottom: 0.5rem;"><i class="fa-solid fa-triangle-exclamation"></i> Negar Permiso</h3>
+            <p style="font-size: 0.7rem; color: #475569; margin-bottom: 0.5rem;">Especifique el motivo:</p>
+            <textarea id="reject_observacion" rows="3" style="width: 100%; padding: 0.4rem; border: 1.5px solid #cbd5e1; border-radius: 6px; margin-bottom: 0.6rem; font-size: 0.75rem;" placeholder="Razón..."></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 0.3rem;">
+                <button onclick="confirmReject()" class="btn-submit" style="background: #e11d48; width: auto; padding: 0.35rem 0.7rem; font-size: 0.7rem;">Confirmar</button>
+                <button onclick="closeRejectModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.35rem 0.7rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem;">Cancelar</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Inicialización de EmailJS con la llave pública
         (function(){
             emailjs.init("Fj3QdUv-Z9qIxjmnV");
         })();
 
-        // Blindaje absoluto de datos en localStorage (persistencia garantizada sin borrados)
+        function toggleMobileMenu() {
+            let menu = document.getElementById('nav-actions-menu');
+            menu.classList.toggle('active');
+        }
+
         let permissions = JSON.parse(localStorage.getItem('antonia_santos_perms')) || [];
         let teachers = JSON.parse(localStorage.getItem('antonia_santos_teachers')) || [];
         
@@ -562,7 +585,6 @@
             showEmail: false
         };
 
-        // Retrocompatibilidad por si faltan campos
         if(!schoolConfig.rectorUser) schoolConfig.rectorUser = "rector";
         if(!schoolConfig.rectorPass) schoolConfig.rectorPass = "RectorAntonia2026*";
         if(!schoolConfig.rectorNombres) schoolConfig.rectorNombres = "Álvaro";
@@ -638,13 +660,13 @@
             };
 
             if(teachers.some(t => t.correo === newDocente.correo)) {
-                alert("Este correo ya se encuentra registrado.");
+                alert("Este correo ya está registrado.");
                 return;
             }
 
             teachers.push(newDocente);
             localStorage.setItem('antonia_santos_teachers', JSON.stringify(teachers));
-            alert("¡Registro exitoso! Ya puede iniciar sesión con su correo y contraseña.");
+            alert("¡Registro exitoso! Ya puede iniciar sesión.");
             toggleRegister(false);
             document.getElementById('form-register').reset();
         }
@@ -654,7 +676,6 @@
             let user = document.getElementById('login_user').value.trim();
             let pass = document.getElementById('login_pass').value.trim();
 
-            // Validación con credenciales actualizadas del Rector
             if(user === schoolConfig.rectorUser && pass === schoolConfig.rectorPass) {
                 currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", jornada: "Todas", isRector: true, correo: schoolConfig.rectorUser };
                 startApp('admin');
@@ -713,7 +734,7 @@
                 document.getElementById('view-config').classList.add('hidden');
                 document.getElementById('view-coords').classList.add('hidden');
                 document.getElementById('view-reports').classList.add('hidden');
-                document.getElementById('admin-title').textContent = `Panel Directivo - ${currentUser.name}`;
+                document.getElementById('admin-title').textContent = `Panel - ${currentUser.name}`;
                 document.getElementById('user-session-info').textContent = `Rol: ${currentUser.role}`;
                 
                 if(currentUser.isRector) {
@@ -794,17 +815,17 @@
 
             if(editIdx === -1) {
                 if(coordinators.some(c => c.correo === newC.correo)) {
-                    alert("Ya existe un coordinador registrado con este correo.");
+                    alert("Ya existe un coordinador con este correo.");
                     return;
                 }
                 coordinators.push(newC);
-                alert("¡Coordinador creado con éxito!");
+                alert("¡Coordinador creado!");
             } else {
                 coordinators[editIdx] = newC;
-                alert("¡Coordinador actualizado con éxito!");
+                alert("¡Coordinador actualizado!");
                 document.getElementById('coord_edit_index').value = "-1";
                 document.getElementById('coord-form-title').textContent = "Nuevo Coordinador";
-                document.getElementById('coord_btn_submit').textContent = "Guardar Coordinador";
+                document.getElementById('coord_btn_submit').textContent = "Guardar";
             }
 
             localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
@@ -820,15 +841,15 @@
             document.getElementById('coord_whatsapp').value = c.whatsapp;
             document.getElementById('coord_jornada').value = c.jornada;
             document.getElementById('coord_pass').value = c.pass;
-            document.getElementById('coord-form-title').textContent = `Editar Coordinador: ${c.nombre}`;
-            document.getElementById('coord_btn_submit').textContent = "Actualizar Coordinador";
+            document.getElementById('coord-form-title').textContent = `Editar: ${c.nombre}`;
+            document.getElementById('coord_btn_submit').textContent = "Actualizar";
         }
 
         function renderCoordsTable() {
             let tbody = document.getElementById('coords-table-body');
             tbody.innerHTML = '';
             if(coordinators.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:1.5rem;">No hay coordinadores creados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:0.75rem;">No hay coordinadores.</td></tr>`;
                 return;
             }
             coordinators.forEach((c, idx) => {
@@ -839,8 +860,8 @@
                     <td>📱 ${c.whatsapp}</td>
                     <td><span style="color:#4f46e5; font-weight:700;">${c.jornada}</span></td>
                     <td style="text-align:center;">
-                        <button onclick="editCoordinator(${idx})" style="background:#0284c7; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-right:4px;">Editar</button>
-                        <button onclick="deleteCoordinator(${idx})" style="background:#e11d48; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Eliminar</button>
+                        <button onclick="editCoordinator(${idx})" style="background:#0284c7; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem; margin-right:2px;">Edit</button>
+                        <button onclick="deleteCoordinator(${idx})" style="background:#e11d48; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem;">Del</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -848,7 +869,7 @@
         }
 
         function deleteCoordinator(index) {
-            if(confirm("¿Está seguro de eliminar este coordinador?")) {
+            if(confirm("¿Eliminar?")) {
                 coordinators.splice(index, 1);
                 localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
                 renderCoordsTable();
@@ -881,7 +902,7 @@
                 if(pendingSaves <= 0) {
                     localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
                     applySchoolConfig();
-                    alert("¡Configuración institucional y credenciales del Rector actualizadas con éxito!");
+                    alert("¡Configuración guardada!");
                     switchView('admin');
                 }
             };
@@ -909,7 +930,7 @@
             if(pendingSaves === 0) {
                 localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
                 applySchoolConfig();
-                alert("¡Configuración institucional y credenciales del Rector actualizadas con éxito!");
+                alert("¡Configuración guardada!");
                 switchView('admin');
             }
         }
@@ -955,7 +976,7 @@
             let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
             if(diffDays < 3) {
-                alert("⚠️ Error: El permiso debe solicitarse con un mínimo de tres (3) días hábiles de anticipación.");
+                alert("⚠️ Debe solicitarse con un mínimo de 3 días hábiles de anticipación.");
                 return;
             }
 
@@ -968,13 +989,13 @@
             }).length;
 
             if(userMonthlyCount >= 3) {
-                alert("⚠️ [Límite Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
+                alert("⚠️ Límite de 3 permisos alcanzado para este mes.");
                 return;
             }
 
             let count = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
             if(count >= 2) {
-                alert("Límite de 2 permisos alcanzado para esta jornada.");
+                alert("⚠️ Límite de 2 permisos alcanzado para esta jornada.");
                 return;
             }
 
@@ -1012,10 +1033,10 @@
             localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
 
             let coordAsignado = coordinators.find(c => c.jornada === jornada) || { whatsapp: "3001112233" };
-            let msgWa = encodeURIComponent(`Hola, se ha iniciado el proceso de permiso radicado ${radicadoNum} para la fecha ${fecha} (${modalidad}) por el docente ${currentUser.name}. Por favor revise el panel.`);
+            let msgWa = encodeURIComponent(`Hola, permiso radicado ${radicadoNum} para el ${fecha} (${modalidad}) por ${currentUser.name}.`);
             let waUrl = `https://wa.me/57${coordAsignado.whatsapp}?text=${msgWa}`;
 
-            if(confirm(`✅ [Solicitud Registrada]\nRadicado: ${radicadoNum}\n\n¿Desea enviar la notificación inmediata por WhatsApp al Coordinador de la jornada ${jornada}?`)) {
+            if(confirm(`✅ [Registrado]\nRadicado: ${radicadoNum}\n\n¿Notificar por WhatsApp al Coordinador?`)) {
                 window.open(waUrl, '_blank');
             }
 
@@ -1038,7 +1059,7 @@
             let myPerms = permissions.filter(p => p.correo === currentUser.correo);
 
             if(myPerms.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:1.5rem;">No ha realizado solicitudes de permiso.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:0.75rem;">Sin solicitudes.</td></tr>`;
                 return;
             }
 
@@ -1047,11 +1068,11 @@
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
-                    <td>${p.fecha} <br><span style="font-size:0.75rem; color:#64748b; font-weight:bold;">${p.modalidad || 'Jornada Completa'}</span></td>
+                    <td>${p.fecha} <br><span style="font-size:0.6rem; color:#64748b; font-weight:bold;">${p.modalidad || 'Completa'}</span></td>
                     <td>${p.motivo}</td>
                     <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
                     <td style="text-align:center;">
-                        ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Ver Resolución</button>` : `<span style="font-size:0.75rem; color:#64748b;">En trámite</span>`}
+                        ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem;">Ver</button>` : `<span style="font-size:0.6rem; color:#64748b;">Trámite</span>`}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1068,7 +1089,7 @@
             });
 
             if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:2rem;">No hay solicitudes registradas.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:1rem;">No hay solicitudes.</td></tr>`;
                 return;
             }
 
@@ -1077,26 +1098,26 @@
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
-                    <td><strong style="display:block;">${p.nombre}</strong><span style="font-size:0.75rem; color:#64748b;">${p.correo}</span></td>
-                    <td>${p.fecha} <br><span style="color:#4f46e5; font-weight:700; font-size:0.75rem;">${p.jornada} (${p.modalidad || 'Jornada Completa'})</span></td>
-                    <td style="font-size:0.85rem; color:#475569;">
+                    <td><strong style="display:block;">${p.nombre}</strong><span style="font-size:0.6rem; color:#64748b;">${p.correo}</span></td>
+                    <td>${p.fecha} <br><span style="color:#4f46e5; font-weight:700; font-size:0.6rem;">${p.jornada}</span></td>
+                    <td style="font-size:0.7rem; color:#475569;">
                         <div><strong>Motivo:</strong> ${p.motivo}</div>
-                        <div style="font-size:0.75rem; margin-top:0.25rem;">
-                            📄 ${p.soportePermisoBase64 ? `<a href="${p.soportePermisoBase64}" download="${p.soportePermiso}" style="color:#4f46e5; font-weight:bold;">Descargar Soporte</a>` : p.soportePermiso} | 
-                            📁 ${p.soporteActividadesBase64 ? `<a href="${p.soporteActividadesBase64}" download="${p.soporteActividades}" style="color:#d97706; font-weight:bold;">Descargar Actividades</a>` : p.soporteActividades}
+                        <div style="font-size:0.6rem; margin-top:0.1rem;">
+                            📄 ${p.soportePermisoBase64 ? `<a href="${p.soportePermisoBase64}" download="${p.soportePermiso}" style="color:#4f46e5; font-weight:bold;">Soporte</a>` : p.soportePermiso} | 
+                            📁 ${p.soporteActividadesBase64 ? `<a href="${p.soporteActividadesBase64}" download="${p.soporteActividades}" style="color:#d97706; font-weight:bold;">Actividades</a>` : p.soporteActividades}
                         </div>
                     </td>
                     <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
                     <td style="text-align:center;">
-                        ${(currentUser.role === 'Coordinador' && p.estado === 'Pendiente') ? `<button onclick="updateStatus(${p.id}, 'Preaprobado')" style="background:#0284c7; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Preaprobar</button>` : ''}
+                        ${(currentUser.role === 'Coordinador' && p.estado === 'Pendiente') ? `<button onclick="updateStatus(${p.id}, 'Preaprobado')" style="background:#0284c7; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem;">Preaprobar</button>` : ''}
                         
-                        ${(currentUser.isRector && p.estado === 'Preaprobado') ? `<button onclick="updateStatus(${p.id}, 'Aprobado')" style="background:#059669; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Aprobar Definitivo</button>` : ''}
+                        ${(currentUser.isRector && p.estado === 'Preaprobado') ? `<button onclick="updateStatus(${p.id}, 'Aprobado')" style="background:#059669; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem;">Aprobar</button>` : ''}
                         
-                        ${(currentUser.isRector && p.estado === 'Pendiente') ? `<span style="font-size:0.7rem; color:#d97706; font-weight:bold; display:block; margin-bottom:2px;">Pendiente Preaprobación</span>` : ''}
+                        ${(currentUser.isRector && p.estado === 'Pendiente') ? `<span style="font-size:0.55rem; color:#d97706; font-weight:bold; display:block;">Falta Preaprobación</span>` : ''}
 
-                        <button onclick="promptReject(${p.id})" style="background:#e11d48; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-top:2px;">Negar</button>
+                        <button onclick="promptReject(${p.id})" style="background:#e11d48; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem; margin-top:2px;">Negar</button>
 
-                        ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; display:block; margin:4px auto 0 auto;">Ver Resolución</button>` : ''}
+                        ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem; display:block; margin:2px auto 0 auto;">Resolución</button>` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1120,7 +1141,7 @@
         function confirmReject() {
             let obs = document.getElementById('reject_observacion').value.trim();
             if(!obs) {
-                alert("Por favor escriba la observación del motivo de negación.");
+                alert("Especifique la observación.");
                 return;
             }
 
@@ -1137,14 +1158,14 @@
                     estado: "RECHAZADO",
                     fecha: p.fecha,
                     jornada: p.jornada,
-                    motivo: p.motivo + " | Observación: " + obs
+                    motivo: p.motivo + " | Obs: " + obs
                 };
 
                 emailjs.send("service_9hhf70g", "template_066a5sv", templateParams)
                     .then(function(response) {
-                        alert("📨 [Resolución de Negación Enviada]\nEl correo oficial ha sido despachado al docente.");
+                        alert("📨 [Enviado]");
                     }, function(error) {
-                        console.error("EmailJS Error:", error);
+                        console.error(error);
                     });
 
                 closeRejectModal();
@@ -1156,7 +1177,7 @@
             let p = permissions.find(x => x.id === id);
             if(p) {
                 if(currentUser.isRector && newStatus === 'Aprobado' && p.estado !== 'Preaprobado') {
-                    alert("⚠️ [Acción No Permitida]\nEl Rector no puede aprobar definitivamente un permiso si el Coordinador de la jornada aún no lo ha preaprobado.");
+                    alert("⚠️ Falta preaprobación del Coordinador.");
                     return;
                 }
 
@@ -1176,12 +1197,12 @@
 
                     emailjs.send("service_9hhf70g", "template_066a5sv", templateParams)
                         .then(function(response) {
-                            alert("📨 [Resolución Aprobada Enviada]\nEl correo oficial ha sido despachado al docente.");
+                            alert("📨 [Enviado]");
                         }, function(error) {
-                            console.error("EmailJS Error:", error);
+                            console.error(error);
                         });
                 } else if(newStatus === 'Preaprobado') {
-                    alert("🔔 [Preaprobación Registrada]\nSe ha actualizado el estado de la solicitud.");
+                    alert("🔔 [Preaprobado]");
                 }
 
                 renderTable();
@@ -1202,7 +1223,7 @@
             });
 
             if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:2rem;">No hay registros para este rango de fechas.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:1rem;">Sin registros.</td></tr>`;
                 return;
             }
 
@@ -1212,7 +1233,7 @@
                 tr.innerHTML = `
                     <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
                     <td>${p.nombre}</td>
-                    <td>${p.jornada} (${p.modalidad || 'Jornada Completa'})</td>
+                    <td>${p.jornada}</td>
                     <td>${p.fecha}</td>
                     <td>${p.motivo}</td>
                     <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
@@ -1226,7 +1247,7 @@
             if(!p) return;
 
             document.getElementById('modal-school-title').textContent = schoolConfig.nombre;
-            document.getElementById('modal-school-nit').textContent = `NIT: ${schoolConfig.nit} | ${schoolConfig.direccion} | Tel: ${schoolConfig.telefono}`;
+            document.getElementById('modal-school-nit').textContent = `NIT: ${schoolConfig.nit} | ${schoolConfig.direccion}`;
             
             let modalLogo = document.getElementById('modal-logo-box');
             if(schoolConfig.logo) {
@@ -1238,67 +1259,59 @@
             let isApproved = p.estado === 'Aprobado';
             let estadoColor = isApproved ? '#065f46' : '#9f1239';
             let estadoBg = isApproved ? '#d1fae5' : '#ffe4e6';
-            let resolucionTitulo = isApproved ? 'RESOLUCIÓN DE CONCESIÓN DE PERMISO LABORAL' : 'RESOLUCIÓN DE NEGACIÓN DE PERMISO LABORAL';
-            let resolucionVisto = isApproved ? 
-                'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales, en especial las conferidas por la Ley 715 de 2001, el Decreto 2277 de 1979 / Decreto 1278 de 2002, y el Decreto Único Reglamentario del Sector Educación 1075 de 2015, y' :
-                'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales y reglamentarias en materia de administración de personal docente y directivo docente, y';
+            let resolucionTitulo = isApproved ? 'RESOLUCIÓN DE CONCESIÓN' : 'RESOLUCIÓN DE NEGACIÓN';
+            let resolucionVisto = 'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales, y';
 
             let textoModalidad = p.modalidad === 'Por Horas' ? `por horas (de ${p.horaInicio} a ${p.horaFin})` : 'por jornada completa';
 
             let resolucionConsiderando = isApproved ?
-                `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral ${textoModalidad} con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>, invocando como motivo: "${p.motivo}".<br><br>
-                 Que la solicitud cumple con los requisitos de oportunidad (mínimo 3 días hábiles de anticipación), la verificación de disponibilidad de cupos en la jornada y cuenta con la respectiva preaprobación de Coordinación y la entrega del material pedagógico de reemplazo.` :
-                `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral ${textoModalidad} con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>.<br><br>
-                 <strong>Motivo de Negación / Observación Institucional:</strong> ${p.observacionRechazo || 'No especificada.'}`;
+                `Que el(la) docente <strong>${p.nombre}</strong> (${p.jornada}) presentó solicitud N° <strong>${p.radicado}</strong> para el <strong>${p.fecha}</strong>, motivo: "${p.motivo}".<br>Cumple con los requisitos.` :
+                `Que el(la) docente <strong>${p.nombre}</strong> (${p.jornada}) presentó solicitud N° <strong>${p.radicado}</strong> para el <strong>${p.fecha}</strong>.<br><strong>Motivo:</strong> ${p.observacionRechazo || 'No especificada.'}`;
 
             let resolucionResuelve = isApproved ?
-                `<strong>ARTÍCULO PRIMERO: CONCEDER</strong> permiso remunerado al(la) docente <strong>${p.nombre}</strong> ${textoModalidad} por el día <strong>${p.fecha}</strong> en la jornada <strong>${p.jornada}</strong>.<br><br>
-                 <strong>ARTÍCULO SEGUNDO:</strong> El(la) docente queda obligado(a) a garantizar el desarrollo de las actividades académicas programadas según el material adjunto en el radicado.<br><br>
-                 <strong>ARTÍCULO TERCERO:</strong> Comuníquese y cúmplase.` :
-                `<strong>ARTÍCULO PRIMERO: NEGAR</strong> la solicitud de permiso laboral presentada por el(la) docente <strong>${p.nombre}</strong> bajo el radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>.<br><br>
-                 <strong>ARTÍCULO SEGUNDO:</strong> El(la) docente deberá continuar con sus labores académicas habituales en la jornada correspondiente.<br><br>
-                 <strong>ARTÍCULO TERCERO:</strong> Comuníquese y cúmplase.`;
+                `<strong>ARTÍCULO PRIMERO: CONCEDER</strong> permiso remunerado al(la) docente <strong>${p.nombre}</strong> ${textoModalidad} para el día <strong>${p.fecha}</strong>.<br><strong>ARTÍCULO SEGUNDO:</strong> Comuníquese y cúmplase.` :
+                `<strong>ARTÍCULO PRIMERO: NEGAR</strong> la solicitud N° <strong>${p.radicado}</strong> para el día <strong>${p.fecha}</strong>.<br><strong>ARTÍCULO SEGUNDO:</strong> Comuníquese y cúmplase.`;
 
             let firmaRectorHtml = schoolConfig.firma ? 
-                `<div style="margin-top: 15px;"><img src="${schoolConfig.firma}" style="max-height: 70px; max-width: 180px; object-fit: contain; display: block; margin: 0 auto 5px auto;"></div>` : 
-                `<div style="height: 40px;"></div>`;
+                `<div style="margin-top: 6px;"><img src="${schoolConfig.firma}" style="max-height: 45px; max-width: 110px; object-fit: contain; display: block; margin: 0 auto 2px auto;"></div>` : 
+                `<div style="height: 20px;"></div>`;
 
             let nombreRectorStr = schoolConfig.showNombre ? `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos}` : "ÁLVARO GONZÁLEZ CONTRERAS (ALGC)";
             let infoExtraRector = "";
             if(schoolConfig.showTel) infoExtraRector += `<br>Tel: ${schoolConfig.rectorTel}`;
             if(schoolConfig.showEmail) infoExtraRector += `<br>Correo: ${schoolConfig.rectorEmail}`;
 
-            let msgWaDocente = encodeURIComponent(`Hola ${p.nombre}, su solicitud con radicado ${p.radicado} ha sido: ${p.estado.toUpperCase()}. Revise su formato institucional de resolución.`);
+            let msgWaDocente = encodeURIComponent(`Hola ${p.nombre}, su solicitud radicado ${p.radicado} ha sido: ${p.estado.toUpperCase()}. Revise su resolución.`);
             let linkWaDocente = `https://wa.me/57${p.whatsapp || '3000000000'}?text=${msgWaDocente}`;
 
             document.getElementById('permit-modal-content').innerHTML = `
-                <div style="text-align: center; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.75rem;">
-                    <h4 style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-bottom: 0.2rem;">${resolucionTitulo}</h4>
-                    <p style="font-size: 0.8rem; font-weight: 700; color: #4f46e5;">Radicado N°: ${p.radicado}</p>
+                <div style="text-align: center; margin-bottom: 0.4rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3rem;">
+                    <h4 style="font-size: 0.75rem; font-weight: 800; color: #0f172a; margin-bottom: 0.1rem;">${resolucionTitulo}</h4>
+                    <p style="font-size: 0.65rem; font-weight: 700; color: #4f46e5;">Radicado: ${p.radicado}</p>
                 </div>
-                <p style="margin-bottom: 0.75rem;"><strong>VISTOS:</strong> ${resolucionVisto}</p>
-                <p style="margin-bottom: 0.75rem;"><strong>CONSIDERANDO:</strong> ${resolucionConsiderando}</p>
-                <p style="margin-bottom: 1rem;"><strong>RESUELVE:</strong></p>
-                <div style="background: ${estadoBg}; border-left: 4px solid ${estadoColor}; padding: 1rem; border-radius: 6px; margin-bottom: 1.25rem;">
+                <p style="margin-bottom: 0.3rem;"><strong>VISTOS:</strong> ${resolucionVisto}</p>
+                <p style="margin-bottom: 0.3rem;"><strong>CONSIDERANDO:</strong> ${resolucionConsiderando}</p>
+                <p style="margin-bottom: 0.4rem;"><strong>RESUELVE:</strong></p>
+                <div style="background: ${estadoBg}; border-left: 3px solid ${estadoColor}; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.6rem;">
                     <p style="color: ${estadoColor}; font-weight: 600; margin: 0;">${resolucionResuelve}</p>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 2rem; font-size: 0.8rem; border-top: 1px solid #cbd5e1; padding-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.65rem; border-top: 1px solid #cbd5e1; padding-top: 0.4rem;">
                     <div>
-                        <p>Dada en Montería (Córdoba), a los ${new Date().toLocaleDateString()}.</p>
+                        <p>Dada en Montería, a los ${new Date().toLocaleDateString()}.</p>
                     </div>
                     <div style="text-align: center;">
                         ${firmaRectorHtml}
-                        <p style="font-weight: bold; color: #0f172a; border-top: 1px solid #475569; display: inline-block; padding-top: 4px; min-width: 180px;">${nombreRectorStr}</p>
-                        <p style="color: #64748b; margin-top:2px;">Rector - ${schoolConfig.nombre} ${infoExtraRector}</p>
+                        <p style="font-weight: bold; color: #0f172a; border-top: 1px solid #475569; display: inline-block; padding-top: 2px; min-width: 110px;">${nombreRectorStr}</p>
+                        <p style="color: #64748b; font-size: 0.55rem; margin-top: 1px;">Rector - ${schoolConfig.nombre} ${infoExtraRector}</p>
                     </div>
                 </div>
             `;
             
             let actionsContainer = document.getElementById('modal-actions-container');
             actionsContainer.innerHTML = `
-                <a href="${linkWaDocente}" target="_blank" class="btn-submit" style="background:#25d366; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;"><i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp</a>
-                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
-                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cerrar</button>
+                <a href="${linkWaDocente}" target="_blank" class="btn-submit" style="background:#25d366; width: auto; padding: 0.35rem 0.7rem; font-size: 0.7rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.25rem;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.35rem 0.7rem; font-size: 0.7rem;"><i class="fa-solid fa-print"></i> Imprimir</button>
+                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.35rem 0.7rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem;">Cerrar</button>
             `;
 
             document.getElementById('permitModal').classList.remove('hidden');
@@ -1309,4 +1322,4 @@
         }
     </script>
 </body>
-</html> 
+</html>

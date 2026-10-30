@@ -190,6 +190,13 @@
 
                     <div class="grid-2">
                         <div class="form-group">
+                            <label>Modalidad del Permiso</label>
+                            <select id="sol_modalidad" onchange="toggleModalidad()" required>
+                                <option value="Jornada Completa">Jornada Completa</option>
+                                <option value="Por Horas">Por Horas</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label>Motivo Institucional (Selección)</label>
                             <select id="sol_motivo_tipo" required>
                                 <option value="">Seleccione motivo...</option>
@@ -200,10 +207,22 @@
                                 <option value="Asuntos personales">Asuntos personales</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Descripción Adicional del Motivo</label>
-                            <input type="text" id="sol_motivo_detalle" required placeholder="Detalle breves razones...">
+                    </div>
+
+                    <div id="section-horas" class="grid-2 hidden" style="background:#f8fafc; padding:1.25rem; border-radius:12px; border:1.5px dashed #cbd5e1; margin-bottom:1.25rem;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label><i class="fa-solid fa-clock" style="color:#4f46e5;"></i> Hora de Inicio</label>
+                            <input type="time" id="sol_hora_inicio">
                         </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label><i class="fa-solid fa-clock" style="color:#4f46e5;"></i> Hora de Finalización</label>
+                            <input type="time" id="sol_hora_fin">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción Adicional del Motivo</label>
+                        <input type="text" id="sol_motivo_detalle" required placeholder="Detalle breves razones...">
                     </div>
 
                     <div class="grid-2" style="margin-bottom: 1.5rem;">
@@ -231,7 +250,7 @@
                     <thead>
                         <tr>
                             <th>Radicado</th>
-                            <th>Fecha Solicitada</th>
+                            <th>Fecha y Modalidad</th>
                             <th>Motivo</th>
                             <th>Estado</th>
                             <th style="text-align:center;">Acciones / Resolución</th>
@@ -360,7 +379,7 @@
             <section id="view-config" class="card hidden">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración de Datos del Colegio</h2>
-                    <p>Actualice la información institucional y cargue el logotipo oficial desde su equipo.</p>
+                    <p>Actualice la información institucional, cargue el logotipo y la firma digital del Rector.</p>
                 </div>
 
                 <form onsubmit="saveSchoolConfig(event)">
@@ -392,9 +411,16 @@
                             <input type="text" id="cfg_correo" required placeholder="correo@colegio.edu.co">
                         </div>
                         <div class="form-group">
-                            <label>Logotipo del Colegio (Seleccionar Archivo)</label>
+                            <label>Logotipo del Colegio (Imagen)</label>
                             <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.5rem; background: white;">
                         </div>
+                    </div>
+
+                    <div class="form-group" style="background:#f8fafc; padding:1.25rem; border:2px dashed #cbd5e1; border-radius:12px; margin-bottom:1.5rem;">
+                        <label style="color:#1e293b; font-weight:bold; margin-bottom:0.5rem;">
+                            <i class="fa-solid fa-signature" style="color:#4f46e5;"></i> Firma Digital del Rector (Imagen PNG transparente recomendada)
+                        </label>
+                        <input type="file" id="cfg_firma_file" accept="image/*" style="padding: 0.5rem; background: white; border:none;">
                     </div>
 
                     <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios Institucionales</button>
@@ -448,20 +474,29 @@
             emailjs.init("Fj3QdUv-Z9qIxjmnV");
         })();
 
+        // Protección de datos persistentes en localStorage (nunca se borran las pruebas)
         let permissions = JSON.parse(localStorage.getItem('antonia_santos_perms')) || [];
         let teachers = JSON.parse(localStorage.getItem('antonia_santos_teachers')) || [];
-        let coordinators = JSON.parse(localStorage.getItem('antonia_santos_coords')) || [
-            { nombre: "Coordinador Mañana", correo: "coord.manana", whatsapp: "3001112233", jornada: "Mañana", pass: "MananaAntonia2026*" },
-            { nombre: "Coordinador Tarde", correo: "coord.tarde", whatsapp: "3004445566", jornada: "Tarde", pass: "TardeAntonia2026*" }
-        ];
+        
+        let coordinators = JSON.parse(localStorage.getItem('antonia_santos_coords'));
+        if (!coordinators) {
+            coordinators = [
+                { nombre: "Coordinador Mañana", correo: "coord.manana", whatsapp: "3001112233", jornada: "Mañana", pass: "MananaAntonia2026*" },
+                { nombre: "Coordinador Tarde", correo: "coord.tarde", whatsapp: "3004445566", jornada: "Tarde", pass: "TardeAntonia2026*" }
+            ];
+            localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
+        }
+
         let schoolConfig = JSON.parse(localStorage.getItem('antonia_santos_school')) || {
             nombre: "I.E. ANTONIA SANTOS",
             nit: "800000000-1",
             direccion: "Montería, Córdoba",
             telefono: "3000000000",
             correo: "contacto@antoniasantos.edu.co",
-            logo: ""
+            logo: "",
+            firma: ""
         };
+
         let currentUser = null;
         let tempFilePermisoBase64 = "";
         let tempFileActividadesBase64 = "";
@@ -487,17 +522,21 @@
 
         function applySchoolConfig() {
             document.getElementById('login-school-title').textContent = schoolConfig.nombre;
+            
+            // Logotipo en la pantalla de inicio (login)
             let loginLogo = document.getElementById('login-logo-container');
             if(schoolConfig.logo) {
-                loginLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo">`;
+                loginLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
             } else {
                 loginLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
             }
 
             document.getElementById('header-school-name').textContent = schoolConfig.nombre;
+            
+            // Logotipo en el encabezado superior interno
             let headerLogo = document.getElementById('header-logo-container');
             if(schoolConfig.logo) {
-                headerLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo">`;
+                headerLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
             } else {
                 headerLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
             }
@@ -639,6 +678,25 @@
             }
         }
 
+        function toggleModalidad() {
+            let modalidad = document.getElementById('sol_modalidad').value;
+            let sectionHoras = document.getElementById('section-horas');
+            let horaInicio = document.getElementById('sol_hora_inicio');
+            let horaFin = document.getElementById('sol_hora_fin');
+
+            if(modalidad === 'Por Horas') {
+                sectionHoras.classList.remove('hidden');
+                horaInicio.required = true;
+                horaFin.required = true;
+            } else {
+                sectionHoras.classList.add('hidden');
+                horaInicio.required = false;
+                horaFin.required = false;
+                horaInicio.value = "";
+                horaFin.value = "";
+            }
+        }
+
         function saveCoordinator(e) {
             e.preventDefault();
             let editIdx = parseInt(document.getElementById('coord_edit_index').value);
@@ -716,29 +774,50 @@
         function saveSchoolConfig(e) {
             e.preventDefault();
             let fileInput = document.getElementById('cfg_logo_file');
+            let firmaInput = document.getElementById('cfg_firma_file');
 
-            let updateData = () => {
-                schoolConfig.nombre = document.getElementById('cfg_nombre').value.trim();
-                schoolConfig.nit = document.getElementById('cfg_nit').value.trim();
-                schoolConfig.direccion = document.getElementById('cfg_direccion').value.trim();
-                schoolConfig.telefono = document.getElementById('cfg_telefono').value.trim();
-                schoolConfig.correo = document.getElementById('cfg_correo').value.trim();
+            schoolConfig.nombre = document.getElementById('cfg_nombre').value.trim();
+            schoolConfig.nit = document.getElementById('cfg_nit').value.trim();
+            schoolConfig.direccion = document.getElementById('cfg_direccion').value.trim();
+            schoolConfig.telefono = document.getElementById('cfg_telefono').value.trim();
+            schoolConfig.correo = document.getElementById('cfg_correo').value.trim();
 
-                localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
-                applySchoolConfig();
-                alert("¡Datos institucionales y logotipo actualizados con éxito!");
-                switchView('admin');
+            let pendingSaves = 0;
+            let checkDone = () => {
+                pendingSaves--;
+                if(pendingSaves <= 0) {
+                    localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
+                    applySchoolConfig();
+                    alert("¡Datos institucionales, logotipo y firma digital actualizados con éxito!");
+                    switchView('admin');
+                }
             };
 
             if(fileInput.files && fileInput.files[0]) {
+                pendingSaves++;
                 let reader = new FileReader();
                 reader.onload = function(uploadEvent) {
                     schoolConfig.logo = uploadEvent.target.result;
-                    updateData();
+                    checkDone();
                 };
                 reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                updateData();
+            }
+
+            if(firmaInput.files && firmaInput.files[0]) {
+                pendingSaves++;
+                let readerFirma = new FileReader();
+                readerFirma.onload = function(uploadEvent) {
+                    schoolConfig.firma = uploadEvent.target.result;
+                    checkDone();
+                };
+                readerFirma.readAsDataURL(firmaInput.files[0]);
+            }
+
+            if(pendingSaves === 0) {
+                localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
+                applySchoolConfig();
+                alert("¡Datos institucionales actualizados con éxito!");
+                switchView('admin');
             }
         }
 
@@ -787,7 +866,6 @@
                 return;
             }
 
-            // Validar límite de 3 días por mes
             let targetMonth = selectedDate.getMonth();
             let targetYear = selectedDate.getFullYear();
             let userMonthlyCount = permissions.filter(p => {
@@ -807,9 +885,14 @@
                 return;
             }
 
+            let modalidad = document.getElementById('sol_modalidad').value;
             let motivoTipo = document.getElementById('sol_motivo_tipo').value;
             let motivoDetalle = document.getElementById('sol_motivo_detalle').value.trim();
-            let motivoCompleto = `[${motivoTipo}] ${motivoDetalle}`;
+            let horaInicio = document.getElementById('sol_hora_inicio').value;
+            let horaFin = document.getElementById('sol_hora_fin').value;
+
+            let detalleHoras = modalidad === 'Por Horas' ? ` [De ${horaInicio} a ${horaFin}]` : ' [Jornada Completa]';
+            let motivoCompleto = `[${motivoTipo}]${detalleHoras} ${motivoDetalle}`;
             let radicadoNum = "RAD-2026-" + Math.floor(10000 + Math.random() * 90000);
 
             let newP = {
@@ -820,6 +903,9 @@
                 whatsapp: currentUser.whatsapp || "3000000000",
                 jornada: jornada,
                 fecha: fecha,
+                modalidad: modalidad,
+                horaInicio: horaInicio,
+                horaFin: horaFin,
                 motivo: motivoCompleto,
                 soportePermiso: window.soportePermisoData?.name || "soporte.pdf",
                 soportePermisoBase64: window.soportePermisoData?.data || "",
@@ -833,7 +919,7 @@
             localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
 
             let coordAsignado = coordinators.find(c => c.jornada === jornada) || { whatsapp: "3001112233" };
-            let msgWa = encodeURIComponent(`Hola, se ha iniciado el proceso de permiso radicado ${radicadoNum} para la fecha ${fecha} por el docente ${currentUser.name}. Por favor revise el panel.`);
+            let msgWa = encodeURIComponent(`Hola, se ha iniciado el proceso de permiso radicado ${radicadoNum} para la fecha ${fecha} (${modalidad}) por el docente ${currentUser.name}. Por favor revise el panel.`);
             let waUrl = `https://wa.me/57${coordAsignado.whatsapp}?text=${msgWa}`;
 
             if(confirm(`✅ [Solicitud Registrada]\nRadicado: ${radicadoNum}\n\n¿Desea enviar la notificación inmediata por WhatsApp al Coordinador de la jornada ${jornada}?`)) {
@@ -842,6 +928,8 @@
 
             document.getElementById('sol_motivo_detalle').value = '';
             document.getElementById('sol_motivo_tipo').value = '';
+            document.getElementById('sol_modalidad').value = 'Jornada Completa';
+            toggleModalidad();
             document.getElementById('sol_fecha').value = '';
             document.getElementById('file_permiso').value = '';
             document.getElementById('file_actividades').value = '';
@@ -866,7 +954,7 @@
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
-                    <td>${p.fecha} (${p.jornada})</td>
+                    <td>${p.fecha} <br><span style="font-size:0.75rem; color:#64748b; font-weight:bold;">${p.modalidad || 'Jornada Completa'}</span></td>
                     <td>${p.motivo}</td>
                     <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
                     <td style="text-align:center;">
@@ -897,7 +985,7 @@
                 tr.innerHTML = `
                     <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
                     <td><strong style="display:block;">${p.nombre}</strong><span style="font-size:0.75rem; color:#64748b;">${p.correo}</span></td>
-                    <td>${p.fecha} <br><span style="color:#4f46e5; font-weight:700; font-size:0.75rem;">${p.jornada}</span></td>
+                    <td>${p.fecha} <br><span style="color:#4f46e5; font-weight:700; font-size:0.75rem;">${p.jornada} (${p.modalidad || 'Jornada Completa'})</span></td>
                     <td style="font-size:0.85rem; color:#475569;">
                         <div><strong>Motivo:</strong> ${p.motivo}</div>
                         <div style="font-size:0.75rem; margin-top:0.25rem;">
@@ -1031,7 +1119,7 @@
                 tr.innerHTML = `
                     <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
                     <td>${p.nombre}</td>
-                    <td>${p.jornada}</td>
+                    <td>${p.jornada} (${p.modalidad || 'Jornada Completa'})</td>
                     <td>${p.fecha}</td>
                     <td>${p.motivo}</td>
                     <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
@@ -1062,25 +1150,31 @@
                 'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales, en especial las conferidas por la Ley 715 de 2001, el Decreto 2277 de 1979 / Decreto 1278 de 2002, y el Decreto Único Reglamentario del Sector Educación 1075 de 2015, y' :
                 'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales y reglamentarias en materia de administración de personal docente y directivo docente, y';
 
+            let textoModalidad = p.modalidad === 'Por Horas' ? `por horas (de ${p.horaInicio} a ${p.horaFin})` : 'por jornada completa';
+
             let resolucionConsiderando = isApproved ?
-                `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>, invocando como motivo: "${p.motivo}".<br><br>
+                `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral ${textoModalidad} con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>, invocando como motivo: "${p.motivo}".<br><br>
                  Que la solicitud cumple con los requisitos de oportunidad (mínimo 3 días hábiles de anticipación), la verificación de disponibilidad de cupos en la jornada y cuenta con la respectiva preaprobación de Coordinación y la entrega del material pedagógico de reemplazo.` :
-                `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>.<br><br>
+                `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral ${textoModalidad} con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>.<br><br>
                  <strong>Motivo de Negación / Observación Institucional:</strong> ${p.observacionRechazo || 'No especificada.'}`;
 
             let resolucionResuelve = isApproved ?
-                `<strong>ARTÍCULO PRIMERO: CONCEDER</strong> permiso remunerado al(la) docente <strong>${p.nombre}</strong> por el día <strong>${p.fecha}</strong> en la jornada <strong>${p.jornada}</strong>.<br><br>
+                `<strong>ARTÍCULO PRIMERO: CONCEDER</strong> permiso remunerado al(la) docente <strong>${p.nombre}</strong> ${textoModalidad} por el día <strong>${p.fecha}</strong> en la jornada <strong>${p.jornada}</strong>.<br><br>
                  <strong>ARTÍCULO SEGUNDO:</strong> El(la) docente queda obligado(a) a garantizar el desarrollo de las actividades académicas programadas según el material adjunto en el radicado.<br><br>
                  <strong>ARTÍCULO TERCERO:</strong> Comuníquese y cúmplase.` :
                 `<strong>ARTÍCULO PRIMERO: NEGAR</strong> la solicitud de permiso laboral presentada por el(la) docente <strong>${p.nombre}</strong> bajo el radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>.<br><br>
                  <strong>ARTÍCULO SEGUNDO:</strong> El(la) docente deberá continuar con sus labores académicas habituales en la jornada correspondiente.<br><br>
                  <strong>ARTÍCULO TERCERO:</strong> Comuníquese y cúmplase.`;
 
+            let firmaRectorHtml = schoolConfig.firma ? 
+                `<div style="margin-top: 15px;"><img src="${schoolConfig.firma}" style="max-height: 70px; max-width: 180px; object-fit: contain; display: block; margin: 0 auto 5px auto;"></div>` : 
+                `<div style="height: 40px;"></div>`;
+
             let msgWaDocente = encodeURIComponent(`Hola ${p.nombre}, su solicitud con radicado ${p.radicado} ha sido: ${p.estado.toUpperCase()}. Revise su formato institucional de resolución.`);
             let linkWaDocente = `https://wa.me/57${p.whatsapp || '3000000000'}?text=${msgWaDocente}`;
 
             document.getElementById('permit-modal-content').innerHTML = `
-                <div style="text-align: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem;">
+                <div style="text-align: center; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.75rem;">
                     <h4 style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-bottom: 0.2rem;">${resolucionTitulo}</h4>
                     <p style="font-size: 0.8rem; font-weight: 700; color: #4f46e5;">Radicado N°: ${p.radicado}</p>
                 </div>
@@ -1094,8 +1188,9 @@
                     <div>
                         <p>Dada en Montería (Córdoba), a los ${new Date().toLocaleDateString()}.</p>
                     </div>
-                    <div style="text-align: right;">
-                        <p style="font-weight: bold; color: #0f172a;">ÁLVARO GONZÁLEZ CONTRERAS (ALGC)</p>
+                    <div style="text-align: center;">
+                        ${firmaRectorHtml}
+                        <p style="font-weight: bold; color: #0f172a; border-top: 1px solid #475569; display: inline-block; padding-top: 4px; min-width: 180px;">ÁLVARO GONZÁLEZ CONTRERAS (ALGC)</p>
                         <p style="color: #64748b;">Rector - ${schoolConfig.nombre}</p>
                     </div>
                 </div>
@@ -1116,4 +1211,4 @@
         }
     </script>
 </body>
-</html>   
+</html> 

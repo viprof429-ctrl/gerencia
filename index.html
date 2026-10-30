@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Permisos - I.E. Antonia Santos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SDK de EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
@@ -352,6 +354,11 @@
     </div>
 
     <script>
+        // Inicializar EmailJS con tu Public Key real
+        (function(){
+            emailjs.init("Fj3QdUv-Z9qIxjmnV");
+        })();
+
         let permissions = JSON.parse(localStorage.getItem('antonia_santos_perms')) || [];
         let teachers = JSON.parse(localStorage.getItem('antonia_santos_teachers')) || [];
         let coordinators = JSON.parse(localStorage.getItem('antonia_santos_coords')) || [
@@ -375,7 +382,7 @@
 
         function setMinDate() {
             let today = new Date();
-            today.setDate(today.getDate() + 3); // Mínimo 3 días hábiles
+            today.setDate(today.getDate() + 3);
             let yyyy = today.getFullYear();
             let mm = String(today.getMonth() + 1).padStart(2, '0');
             let dd = String(today.getDate()).padStart(2, '0');
@@ -672,7 +679,6 @@
             permissions.push(newP);
             localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
 
-            // Enlace interactivo de WhatsApp para notificar al coordinador de la jornada
             let coordAsignado = coordinators.find(c => c.jornada === jornada) || { whatsapp: "3001112233" };
             let msgWa = encodeURIComponent(`Hola, se ha iniciado el proceso de permiso radicado ${radicadoNum} para la fecha ${fecha} por el docente ${currentUser.name}. Por favor revise el panel.`);
             let waUrl = `https://wa.me/57${coordAsignado.whatsapp}?text=${msgWa}`;
@@ -733,7 +739,6 @@
         function updateStatus(id, newStatus) {
             let p = permissions.find(x => x.id === id);
             if(p) {
-                // Validación estricta: Rector no puede aprobar si no está preaprobado
                 if(currentUser.isRector && newStatus === 'Aprobado' && p.estado !== 'Preaprobado') {
                     alert("⚠️ [Acción No Permitida]\nEl Rector no puede aprobar definitivamente un permiso si el Coordinador de la jornada aún no lo ha preaprobado.");
                     return;
@@ -742,12 +747,27 @@
                 p.estado = newStatus;
                 localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
                 
-                if(newStatus === 'Preaprobado') {
-                    alert("🔔 [Preaprobación Registrada]\nSe ha actualizado el estado. Ya puede notificar al Rector para su autorización definitiva.");
-                } else if(newStatus === 'Aprobado') {
-                    alert("📄 [Aprobación Definitiva & Correo Enviado]\nEl permiso ha sido autorizado por Rectoría. Se ha remitido el soporte oficial por correo al docente (" + p.correo + ").");
-                } else if(newStatus === 'Rechazado') {
-                    alert("❌ [Permiso Negado & Correo Enviado]\nSe ha generado el soporte de denegación y se ha notificado por correo electrónico al solicitante (" + p.correo + ").");
+                // Automatización real de correo con EmailJS usando tu service_ll8lbt9
+                if(newStatus === 'Aprobado' || newStatus === 'Rechazado') {
+                    let templateParams = {
+                        to_email: p.correo,
+                        to_name: p.nombre,
+                        radicado: p.radicado,
+                        estado: p.estado,
+                        fecha: p.fecha,
+                        jornada: p.jornada,
+                        motivo: p.motivo
+                    };
+
+                    emailjs.send("service_ll8lbt9", "template_default", templateParams)
+                        .then(function(response) {
+                            alert("📨 [Correo Automático Enviado]\nLa resolución oficial ha sido despachada con éxito al correo del docente: " + p.correo);
+                        }, function(error) {
+                            alert("⚠️ El estado se actualizó, pero hubo un fallo al enviar el correo automático. Verifique que su plantilla en EmailJS esté guardada.");
+                            console.error("EmailJS Error:", error);
+                        });
+                } else if(newStatus === 'Preaprobado') {
+                    alert("🔔 [Preaprobación Registrada]\nSe ha actualizado el estado de la solicitud.");
                 }
 
                 renderTable();

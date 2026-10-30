@@ -1,37 +1,3 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Permisos - I.E. Antonia Santos</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SDK de EmailJS -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-        body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
-        .hidden { display: none !important; }
-
-        /* Pantalla de Acceso / Login y Registro */
-        .auth-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
-        .auth-logo { width: 70px; height: 70px; background: #f59e0b; color: #0f172a; border-radius: 16px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; overflow: hidden; }
-        .auth-logo img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* Navbar */
-        header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-        .brand { display: flex; align-items: center; gap: 1rem; }
-        .brand-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; overflow: hidden; background: #f59e0b; color: #0f172a; }
-        .brand-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .brand-text h1 { font-size: 1.15rem; font-weight: 800; }
-        .brand-text p { font-size: 0.75rem; color: #cbd5e1; }
-
-        /* Contenedor Principal */
-        main { max-width: 1000px; width: 100%; margin: 2.5rem auto; padding: 0 1.5rem; flex-grow: 1; }
-        .card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
-        
-        .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; }
-        .card-header h2 { font-size: 1.35rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.75rem; }
         .card-header p { font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }

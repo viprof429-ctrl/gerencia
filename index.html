@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Permisos - I.E. Antonia Santos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SDK de EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
@@ -352,6 +354,11 @@
     </div>
 
     <script>
+        // Inicialización de EmailJS con la llave pública
+        (function(){
+            emailjs.init("Fj3QdUv-Z9qIxjmnV");
+        })();
+
         let permissions = JSON.parse(localStorage.getItem('antonia_santos_perms')) || [];
         let teachers = JSON.parse(localStorage.getItem('antonia_santos_teachers')) || [];
         let coordinators = JSON.parse(localStorage.getItem('antonia_santos_coords')) || [
@@ -740,14 +747,25 @@
                 p.estado = newStatus;
                 localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
                 
+                // Envío automático en segundo plano con EmailJS
                 if(newStatus === 'Aprobado' || newStatus === 'Rechazado') {
-                    let subjectMail = encodeURIComponent(`Resolución de Permiso Institucional - Radicado ${p.radicado}`);
-                    let bodyMail = encodeURIComponent(`Estimado/a ${p.nombre},\n\nLe informamos que su solicitud de permiso laboral con radicado ${p.radicado} para la fecha ${p.fecha} (${p.jornada}) ha sido: ${p.estado.toUpperCase()}.\n\nMotivo institucional: ${p.motivo}\n\nAtentamente,\nRectoría y Coordinación\nI.E. Antonia Santos`);
-                    let mailtoUrl = `mailto:${p.correo}?subject=${subjectMail}&body=${bodyMail}`;
+                    let templateParams = {
+                        to_email: p.correo,
+                        to_name: p.nombre,
+                        radicado: p.radicado,
+                        estado: p.estado,
+                        fecha: p.fecha,
+                        jornada: p.jornada,
+                        motivo: p.motivo
+                    };
 
-                    if(confirm(`✅ [Estado Actualizado: ${p.estado}]\n\n¿Desea abrir su correo para enviar la resolución oficial al docente ${p.correo}?`)) {
-                        window.open(mailtoUrl, '_blank');
-                    }
+                    emailjs.send("service_9hhf70g", "template_066a5sv", templateParams)
+                        .then(function(response) {
+                            alert("📨 [Correo Automático Enviado]\nLa resolución oficial ha sido despachada con éxito al correo del docente: " + p.correo);
+                        }, function(error) {
+                            alert("⚠️ El estado se actualizó, pero hubo un fallo al conectar con EmailJS.");
+                            console.error("EmailJS Error:", error);
+                        });
                 } else if(newStatus === 'Preaprobado') {
                     alert("🔔 [Preaprobación Registrada]\nSe ha actualizado el estado de la solicitud.");
                 }

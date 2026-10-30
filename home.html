@@ -1,1 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistema de Permisos - I.E. Antonia Santos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+        .hidden { display: none !important; }
+        .auth-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .auth-card { background: white; border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 380px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
+        .auth-logo { width: 60px; height: 60px; background: #f59e0b; color: #0f172a; border-radius: 12px; margin: 0 auto 0.5rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; overflow: hidden; }
+        .auth-logo img { width: 100%; height: 100%; object-fit: cover; }
+        header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: relative; width: 100%; z-index: 1000; }
+        .brand { display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex-grow: 1; }
+        .brand-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold; overflow: hidden; background: #f59e0b; color: #0f172a; flex-shrink: 0; }
+        .brand-text { min-width: 0; flex-grow: 1; }
+        .brand-text h1 { font-size: 0.85rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .brand-text p { font-size: 0.6rem; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .nav-actions { display: flex; align-items: center; gap: 0.3rem; }
+        .nav-admin-btn { background: #4f46e5; color: white; border: none; padding: 0.4rem 0.6rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.2rem; }
+        .logout-btn { background: #e11d48; color: white; border: none; padding: 0.4rem 0.6rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 0.2rem; }
+        .menu-toggle { display: none; background: none; border: none; color: white; font-size: 1.4rem; cursor: pointer; padding: 0.3rem; flex-shrink: 0; }
+        main { max-width: 1000px; width: 100%; margin: 0.75rem auto; padding: 0 0.5rem; flex-grow: 1; }
+        .card { background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 4px 15px -3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 1rem; width: 100%; }
+        .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 0.6rem; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.2rem; }
+        .card-header h2 { font-size: 0.95rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.3rem; word-break: break-word; }
+        .card-header p { font-size: 0.7rem; color: #64748b; word-break: break-word; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; width: 100%; }
+        .form-group { margin-bottom: 0.6rem; width: 100%; }
+        label { display: block; font-weight: 700; margin-bottom: 0.25rem; font-size: 0.7rem; color: #334155; }
+        input, select, textarea { width: 100%; padding: 0.55rem; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #f8fafc; color: #1e293b; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #4f46e5; background: #fff; }
+        .banner-info { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 0.6rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-direction: column; gap: 0.4rem; }
+        .badge-slot { background: white; padding: 0.3rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: #4338ca; border: 1px solid #c7d2fe; text-align: center; width: 100%; }
+        .btn-submit { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; border: none; padding: 0.65rem 0.85rem; font-size: 0.8rem; font-weight: 700; border-radius: 6px; cursor: pointer; width: 100%; box-shadow: 0 2px 8px rgba(79,70,229,0.25); display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
+        .link-btn { background: none; border: none; color: #4f46e5; font-weight: 700; font-size: 0.7rem; cursor: pointer; text-decoration: underline; padding: 0; }
+        @media (max-width: 768px) {
+            header { padding: 0.6rem 0.75rem; }
+            .brand-text h1 { font-size: 0.75rem; max-width: 120px; }
+            .menu-toggle { display: block !important; }
+            .nav-actions { display: none !important; position: absolute; top: 100%; left: 0; right: 0; background: #0f172a; flex-direction: column; gap: 0.4rem; padding: 0.75rem; box-shadow: 0 15px 25px rgba(0,0,0,0.4); border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
+            .nav-actions.active { display: flex !important; }
+            .nav-admin-btn, .logout-btn { width: 100% !important; justify-content: flex-start !important; padding: 0.6rem 0.8rem !important; font-size: 0.8rem !important; }
+            main { margin: 0.4rem auto; padding: 0 0.25rem; }
+            .card { padding: 0.75rem; border-radius: 10px; }
+            .grid-2 { grid-template-columns: 1fr; gap: 0.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="auth-screen" class="auth-overlay">
+        <div class="auth-card">
+            <div class="auth-logo" id="login-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h2 id="login-school-title" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">I.E. ANTONIA SANTOS</h2>
+            <p style="font-size: 0.65rem; color: #64748b; margin-bottom: 0.75rem;">Control de Permisos Cloud</p>
 
+            <form id="form-login" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Correo / Usuario</label>
+                    <input type="text" id="login_user" required placeholder="usuario o correo" value="rector">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <div style="position: relative; width: 100%;">
+                        <input type="password" id="login_pass" required placeholder="••••••••" value="RectorAntonia2026*" style="width: 100%; padding: 0.55rem; padding-right: 2.2rem; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #f8fafc; color: #1e293b;">
+                        <button type="button" onclick="let i=document.getElementById('login_pass'), b=this.querySelector('i'); if(i.type==='password'){i.type='text';b.classList.remove('fa-eye');b.classList.add('fa-eye-slash');}else{i.type='password';b.classList.remove('fa-eye-slash');b.classList.add('fa-eye');}" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.85rem; padding: 0.2rem;"><i class="fa-solid fa-eye"></i></button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit">Ingresar</button>
+                <div style="text-align: center; margin-top: 0.6rem;">
+                    <button type="button" class="link-btn" onclick="toggleRegister(true)">¿No tienes cuenta? Regístrate</button>
+                </div>
+            </form>
+
+            <form id="form-register" onsubmit="handleRegister(event)" class="hidden">
+                <h3 style="font-size: 0.85rem; font-weight: 800; color: #1e1b4b; margin-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25rem;">Registro Docente</h3>
+                <div class="form-group" style="margin-bottom:0.4rem;"><label>Nombres</label><input type="text" id="reg_nombres" required></div>
+                <div class="form-group" style="margin-bottom:0.4rem;"><label>Apellidos</label><input type="text" id="reg_apellidos" required></div>
+                <div class="form-group" style="margin-bottom:0.4rem;"><label>Correo</label><input type="text" id="reg_correo" required></div>
+                <div class="form-group" style="margin-bottom:0.4rem;"><label>Teléfono</label><input type="tel" id="reg_tel" required></div>
+                <div class="form-group" style="margin-bottom:0.4rem;">
+                    <label>Jornada</label>
+                    <select id="reg_jornada" required><option value="">Seleccione...</option><option value="Mañana">Mañana</option><option value="Tarde">Tarde</option></select>
+                </div>
+                <div class="form-group" style="margin-bottom:0.5rem;">
+                    <label>Contraseña</label>
+                    <div style="position: relative; width: 100%;">
+                        <input type="password" id="reg_pass" required placeholder="••••••••" style="width: 100%; padding: 0.55rem; padding-right: 2.2rem; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #f8fafc; color: #1e293b;">
+                        <button type="button" onclick="let i=document.getElementById('reg_pass'), b=this.querySelector('i'); if(i.type==='password'){i.type='text';b.classList.remove('fa-eye');b.classList.add('fa-eye-slash');}else{i.type='password';b.classList.remove('fa-eye-slash');b.classList.add('fa-eye');}" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.85rem; padding: 0.2rem;"><i class="fa-solid fa-eye"></i></button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" style="background:#059669;">Completar</button>
+                <div style="text-align: center; margin-top: 0.5rem;"><button type="button" class="link-btn" style="color:#64748b;" onclick="toggleRegister(false)">← Volver</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-app" style="display:flex; flex-direction:column; flex-grow:1;">
+        <header>
+            <div class="brand">
+                <div class="brand-icon" id="header-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div class="brand-text">
+                    <h1 id="header-school-name">I.E. ANTONIA SANTOS</h1>
+                    <p id="user-session-info">Sistema Cloud</p>
+                </div>
+            </div>
+            <button class="menu-toggle" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></button>
+            <div class="nav-actions" id="nav-actions-menu">
+                <div id="rector-extra-nav" class="hidden" style="display:contents;">
+                    <button onclick="switchView('config'); toggleMobileMenu();" class="nav-admin-btn"><i class="fa-solid fa-gear"></i> Configuración</button>
+                    <button onclick="switchView('coords'); toggleMobileMenu();" class="nav-admin-btn" style="background:#0284c7;"><i class="fa-solid fa-user-tie"></i> Coordinadores</button>
+                    <button onclick="switchView('reports'); toggleMobileMenu();" class="nav-admin-btn" style="background:#d97706;"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
+                    <button onclick="switchView('admin'); toggleMobileMenu();" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
+                </div>
+                <button onclick="logout()" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+            </div>
+        </header>
+
+        <main>
+            <section id="view-solicitud" class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-clipboard-user" style="color:#f59e0b;"></i> Solicitud de Permiso</h2>
+                    <p>Límite: 3 días/mes. Mínimo 3 días hábiles de anticipación.</p>
+                </div>
+                <form onsubmit="handleFormSubmit(event)">
+                    <div class="grid-2">
+                        <div class="form-group"><label>Solicitante</label><input type="text" id="sol_nombre" readonly style="background:#e2e8f0; font-weight:bold;"></div>
+                        <div class="form-group"><label>Jornada</label><input type="text" id="sol_info_jornada" readonly style="background:#e2e8f0; font-weight:bold;"></div>
+                    </div>
+                    <div class="banner-info">
+                        <div><label style="margin-bottom:0.1rem; color:#312e81;">Seleccione Fecha y Cupos</label></div>
+                        <div style="display:flex; gap:0.3rem; align-items:center; flex-direction:column; width:100%;">
+                            <input type="date" id="sol_fecha" required style="width:100%; padding:0.5rem; background:white;">
+                            <div id="slot-badge" class="badge-slot">Cupos: --</div>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Modalidad</label>
+                            <select id="sol_modalidad" required><option value="Jornada Completa">Jornada Completa</option><option value="Por Horas">Por Horas</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Motivo</label>
+                            <select id="sol_motivo_tipo" required>
+                                <option value="">Seleccione...</option>
+                                <option value="Calamidad doméstica">Calamidad doméstica</option>
+                                <option value="Comisión de servicios">Comisión de servicios</option>
+                                <option value="Estudios / Capacitación">Estudios / Capacitación</option>
+                                <option value="Asuntos de salud">Asuntos de salud</option>
+                                <option value="Asuntos personales">Asuntos personales</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>Descripción del Motivo</label><input type="text" id="sol_motivo_detalle" required placeholder="Breve razón..."></div>
+                    <button type="submit" class="btn-submit"><i class="fa-solid fa-paper-plane"></i> Enviar Solicitud</button>
+                </form>
+            </section>
+            <section id="view-admin" class="card hidden"><div class="card-header"><h2 id="admin-title">Panel Directivo</h2></div></section>
+        </main>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://ftrlvaxtgrgxvxodtqfl.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_BevO5oiQAphvZeVKzIQH8Q_tj0-8hBz"; 
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function toggleMobileMenu() {
+            document.getElementById('nav-actions-menu').classList.toggle('active');
+        }
+
+        let schoolConfig = {
+            nombre: "I.E. ANTONIA SANTOS",
+            rectorUser: "rector",
+            rectorPass: "RectorAntonia2026*",
+            rectorNombres: "Álvaro",
+            rectorApellidos: "González Contreras (ALGC)"
+        };
+
+        let currentUser = null;
+
+        function handleLogin(e) {
+            e.preventDefault();
+            let user = document.getElementById('login_user').value.trim();
+            let pass = document.getElementById('login_pass').value.trim();
+
+            if(user === schoolConfig.rectorUser && pass === schoolConfig.rectorPass) {
+                currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", jornada: "Todas", isRector: true };
+                sessionStorage.setItem('antonia_current_user', JSON.stringify(currentUser));
+                startApp('admin');
+                return;
+            }
+            alert("Usuario o contraseña incorrectos.");
+        }
+
+        function startApp(type) {
+            document.getElementById('auth-screen').style.display = 'none';
+            if(type === 'docente') {
+                document.getElementById('view-solicitud').classList.remove('hidden');
+            } else {
+                document.getElementById('view-solicitud').classList.add('hidden');
+                document.getElementById('view-admin').classList.remove('hidden');
+            }
+        }
+
+        function toggleRegister(show) {
+            document.getElementById('form-login').classList.toggle('hidden', show);
+            document.getElementById('form-register').classList.toggle('hidden', !show);
+        }
+
+        function logout() { 
+            sessionStorage.removeItem('antonia_current_user');
+            location.reload(); 
+        }
+    </script>
+</body>
+</html> 

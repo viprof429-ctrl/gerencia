@@ -1,4 +1,4 @@
-A<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -27,7 +27,7 @@ A<!DOCTYPE html>
         .brand-text p { font-size: 0.75rem; color: #cbd5e1; }
 
         /* Contenedor Principal */
-        main { max-width: 1000px; width: 100%; margin: 2.5rem auto; padding: 0 1.5rem; flex-grow: 1; }
+        main { max-width: 1050px; width: 100%; margin: 2.5rem auto; padding: 0 1.5rem; flex-grow: 1; }
         .card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
         
         .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; }
@@ -60,7 +60,7 @@ A<!DOCTYPE html>
         .nav-admin-btn { background: #4f46e5; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem; }
 
         .modal-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
-        .modal-card { background: white; border-radius: 20px; padding: 2rem; width: 100%; max-width: 600px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .modal-card { background: white; border-radius: 20px; padding: 2rem; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
     </style>
 </head>
 <body>
@@ -146,6 +146,11 @@ A<!DOCTYPE html>
                 <div id="rector-extra-nav" class="hidden">
                     <button onclick="switchView('config')" class="nav-admin-btn"><i class="fa-solid fa-gear"></i> Configurar Colegio</button>
                     <button onclick="switchView('coords')" class="nav-admin-btn" style="background:#0284c7;"><i class="fa-solid fa-user-tie"></i> Coordinadores</button>
+                    <button onclick="switchView('reports')" class="nav-admin-btn" style="background:#d97706;"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
+                    <button onclick="switchView('admin')" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
+                </div>
+                <div id="coord-extra-nav" class="hidden">
+                    <button onclick="switchView('reports')" class="nav-admin-btn" style="background:#d97706;"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
                     <button onclick="switchView('admin')" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
                 </div>
                 <button onclick="logout()" style="background:#e11d48; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.85rem;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
@@ -157,7 +162,7 @@ A<!DOCTYPE html>
             <section id="view-solicitud" class="card">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-clipboard-user" style="color:#f59e0b;"></i> Solicitud de Permiso Laboral</h2>
-                    <p>Sus datos institucionales ya se encuentran precargados. <strong>Nota:</strong> Mínimo 3 días hábiles de anticipación.</p>
+                    <p>Límite máximo permitido: <strong>3 días por mes</strong>. Mínimo 3 días hábiles de anticipación.</p>
                 </div>
 
                 <form onsubmit="handleFormSubmit(event)">
@@ -183,9 +188,22 @@ A<!DOCTYPE html>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Motivo Institucional de la Ausencia</label>
-                        <textarea id="sol_motivo" rows="3" required placeholder="Describa brevemente la razón del permiso..."></textarea>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Motivo Institucional (Selección)</label>
+                            <select id="sol_motivo_tipo" required>
+                                <option value="">Seleccione motivo...</option>
+                                <option value="Calamidad doméstica">Calamidad doméstica</option>
+                                <option value="Comisión de servicios">Comisión de servicios</option>
+                                <option value="Estudios / Capacitación">Estudios / Capacitación</option>
+                                <option value="Asuntos de salud">Asuntos de salud</option>
+                                <option value="Asuntos personales">Asuntos personales</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción Adicional del Motivo</label>
+                            <input type="text" id="sol_motivo_detalle" required placeholder="Detalle breves razones...">
+                        </div>
                     </div>
 
                     <div class="grid-2" style="margin-bottom: 1.5rem;">
@@ -193,13 +211,13 @@ A<!DOCTYPE html>
                             <label style="font-size: 0.8rem; font-weight: bold; color: #1e293b; margin-bottom: 0.5rem;">
                                 <i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> 1. Soporte del Permiso (PDF Obligatorio)
                             </label>
-                            <input type="file" id="file_permiso" accept=".pdf" required style="font-size:0.8rem; border:none; padding:0; background:transparent;">
+                            <input type="file" id="file_permiso" accept=".pdf" required style="font-size:0.8rem; border:none; padding:0; background:transparent;" onchange="handleFileUpload(event, 'soportePermisoData')">
                         </div>
                         <div style="background:#f8fafc; padding:1rem; border:2px dashed #cbd5e1; border-radius:12px;">
                             <label style="font-size: 0.8rem; font-weight: bold; color: #1e293b; margin-bottom: 0.5rem;">
                                 <i class="fa-solid fa-file-lines" style="color:#d97706;"></i> 2. Material de Actividades (PDF Obligatorio)
                             </label>
-                            <input type="file" id="file_actividades" accept=".pdf" required style="font-size:0.8rem; border:none; padding:0; background:transparent;">
+                            <input type="file" id="file_actividades" accept=".pdf" required style="font-size:0.8rem; border:none; padding:0; background:transparent;" onchange="handleFileUpload(event, 'soporteActividadesData')">
                         </div>
                     </div>
 
@@ -207,6 +225,20 @@ A<!DOCTYPE html>
                         <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud Oficial
                     </button>
                 </form>
+
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: #1e1b4b; margin-top: 2.5rem; margin-bottom: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">Mi Historial de Solicitudes</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Radicado</th>
+                            <th>Fecha Solicitada</th>
+                            <th>Motivo</th>
+                            <th>Estado</th>
+                            <th style="text-align:center;">Acciones / Resolución</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacher-history-body"></tbody>
+                </table>
             </section>
 
             <!-- VISTA PANEL DIRECTIVO -->
@@ -231,15 +263,53 @@ A<!DOCTYPE html>
                 </table>
             </section>
 
+            <!-- VISTA REPORTES (RECTOR Y COORDINADOR) -->
+            <section id="view-reports" class="card hidden">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-chart-pie" style="color:#d97706;"></i> Reportes de Permisos Institucionales</h2>
+                    <p>Filtre los permisos solicitados por rango de fechas para auditoría y control.</p>
+                </div>
+
+                <div style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;" class="grid-2">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Fecha Desde</label>
+                        <input type="date" id="rep_desde" onchange="renderReports()">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Fecha Hasta</label>
+                        <input type="date" id="rep_hasta" onchange="renderReports()">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+                    <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; background: #0284c7;"><i class="fa-solid fa-print"></i> Imprimir / Exportar Reporte</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Radicado</th>
+                            <th>Solicitante</th>
+                            <th>Jornada</th>
+                            <th>Fecha</th>
+                            <th>Motivo</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-table-body"></tbody>
+                </table>
+            </section>
+
             <!-- VISTA GESTIÓN DE COORDINADORES (EXCLUSIVO RECTOR) -->
             <section id="view-coords" class="card hidden">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-user-tie" style="color:#f59e0b;"></i> Crear y Gestionar Coordinadores</h2>
-                    <p>Agregue coordinadores institucionales asignando su correo, celular y WhatsApp de notificación.</p>
+                    <p>Agregue, edite o elimine coordinadores institucionales.</p>
                 </div>
 
                 <form onsubmit="saveCoordinator(event)" style="background:#f8fafc; padding:1.5rem; border-radius:14px; border:1px solid #e2e8f0; margin-bottom:2rem;">
-                    <h3 style="font-size:0.95rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem;">Nuevo Coordinador</h3>
+                    <h3 id="coord-form-title" style="font-size:0.95rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem;">Nuevo Coordinador</h3>
+                    <input type="hidden" id="coord_edit_index" value="-1">
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Nombre Completo</label>
@@ -268,7 +338,7 @@ A<!DOCTYPE html>
                         <label>Contraseña de Acceso</label>
                         <input type="password" id="coord_pass" required placeholder="Mínimo 6 caracteres">
                     </div>
-                    <button type="submit" class="btn-submit" style="background:#0284c7;">Guardar Coordinador</button>
+                    <button type="submit" id="coord_btn_submit" class="btn-submit" style="background:#0284c7;">Guardar Coordinador</button>
                 </form>
 
                 <h3 style="font-size:1rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem;">Coordinadores Registrados</h3>
@@ -333,22 +403,41 @@ A<!DOCTYPE html>
         </main>
     </div>
 
-    <!-- MODAL FORMATO OFICIAL / REPORTE -->
+    <!-- MODAL RESOLUCIÓN OFICIAL EN PDF / FORMATO LEGAL -->
     <div id="permitModal" class="modal-bg hidden">
         <div class="modal-card">
-            <div style="display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1rem;">
-                <div id="modal-logo-box" style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold;">
+            <!-- Encabezado Institucional Dinámico -->
+            <div style="display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #0f172a; padding-bottom: 1rem; margin-bottom: 1.25rem;">
+                <div id="modal-logo-box" style="width: 65px; height: 65px; border-radius: 10px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1.5rem; flex-shrink: 0;">
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
-                <div>
-                    <h3 id="modal-school-title" style="font-size: 1.1rem; font-weight: 800; color: #1e1b4b;">I.E. ANTONIA SANTOS</h3>
-                    <p id="modal-school-nit" style="font-size: 0.75rem; color: #64748b;">NIT: 800000000-1 | Montería, Córdoba</p>
+                <div style="flex-grow: 1; text-align: center;">
+                    <h3 id="modal-school-title" style="font-size: 1.15rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">I.E. ANTONIA SANTOS</h3>
+                    <p id="modal-school-nit" style="font-size: 0.75rem; color: #475569; font-weight: 600;">NIT: 800000000-1 | Montería, Córdoba</p>
+                    <p style="font-size: 0.70rem; color: #64748b;">RECTORÍA - GESTIÓN DE TALENTO HUMANO Y PERMISOS LABORALES</p>
                 </div>
             </div>
-            <div id="permit-modal-content" style="font-size: 0.9rem; color: #334155; line-height: 1.6; background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;"></div>
-            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;" id="modal-actions-container">
-                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir Soporte Oficial</button>
+
+            <!-- Contenido de la Resolución Legal -->
+            <div id="permit-modal-content" style="font-size: 0.85rem; color: #1e293b; line-height: 1.6; background: #ffffff; padding: 1.5rem; border-radius: 10px; border: 1px solid #cbd5e1; margin-bottom: 1.5rem;"></div>
+
+            <!-- Acciones del Modal -->
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap;" id="modal-actions-container">
+                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
                 <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MOTIVO DE NEGACIÓN -->
+    <div id="rejectModal" class="modal-bg hidden">
+        <div class="modal-card" style="max-width: 450px;">
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: #9f1239; margin-bottom: 1rem;"><i class="fa-solid fa-triangle-exclamation"></i> Negar Permiso Laboral</h3>
+            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 1rem;">Por favor especifique la observación u motivo institucional por el cual se niega esta solicitud:</p>
+            <textarea id="reject_observacion" rows="4" style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 8px; margin-bottom: 1.25rem;" placeholder="Escriba la razón reglamentaria..."></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button onclick="confirmReject()" class="btn-submit" style="background: #e11d48; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;">Confirmar Negación</button>
+                <button onclick="closeRejectModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cancelar</button>
             </div>
         </div>
     </div>
@@ -374,6 +463,9 @@ A<!DOCTYPE html>
             logo: ""
         };
         let currentUser = null;
+        let tempFilePermisoBase64 = "";
+        let tempFileActividadesBase64 = "";
+        let pendingRejectId = null;
 
         window.onload = function() {
             applySchoolConfig();
@@ -493,23 +585,29 @@ A<!DOCTYPE html>
                 document.getElementById('view-admin').classList.add('hidden');
                 document.getElementById('view-config').classList.add('hidden');
                 document.getElementById('view-coords').classList.add('hidden');
+                document.getElementById('view-reports').classList.add('hidden');
                 document.getElementById('rector-extra-nav').classList.add('hidden');
+                document.getElementById('coord-extra-nav').classList.add('hidden');
                 document.getElementById('sol_nombre').value = currentUser.name;
                 document.getElementById('sol_info_jornada').value = `Docente - Jornada ${currentUser.jornada}`;
                 document.getElementById('user-session-info').textContent = `Docente: ${currentUser.name} (${currentUser.jornada})`;
+                renderTeacherHistory();
                 setMinDate();
             } else {
                 document.getElementById('view-solicitud').classList.add('hidden');
                 document.getElementById('view-admin').classList.remove('hidden');
                 document.getElementById('view-config').classList.add('hidden');
                 document.getElementById('view-coords').classList.add('hidden');
+                document.getElementById('view-reports').classList.add('hidden');
                 document.getElementById('admin-title').textContent = `Panel Directivo - ${currentUser.name}`;
                 document.getElementById('user-session-info').textContent = `Rol: ${currentUser.role}`;
                 
                 if(currentUser.isRector) {
                     document.getElementById('rector-extra-nav').classList.remove('hidden');
+                    document.getElementById('coord-extra-nav').classList.add('hidden');
                 } else {
                     document.getElementById('rector-extra-nav').classList.add('hidden');
+                    document.getElementById('coord-extra-nav').classList.remove('hidden');
                 }
                 renderTable();
             }
@@ -520,6 +618,7 @@ A<!DOCTYPE html>
             document.getElementById('view-admin').classList.add('hidden');
             document.getElementById('view-config').classList.add('hidden');
             document.getElementById('view-coords').classList.add('hidden');
+            document.getElementById('view-reports').classList.add('hidden');
 
             if(view === 'admin') {
                 document.getElementById('view-admin').classList.remove('hidden');
@@ -534,11 +633,15 @@ A<!DOCTYPE html>
             } else if(view === 'coords') {
                 document.getElementById('view-coords').classList.remove('hidden');
                 renderCoordsTable();
+            } else if(view === 'reports') {
+                document.getElementById('view-reports').classList.remove('hidden');
+                renderReports();
             }
         }
 
         function saveCoordinator(e) {
             e.preventDefault();
+            let editIdx = parseInt(document.getElementById('coord_edit_index').value);
             let newC = {
                 nombre: document.getElementById('coord_nombre').value.trim(),
                 correo: document.getElementById('coord_correo').value.trim(),
@@ -547,16 +650,36 @@ A<!DOCTYPE html>
                 pass: document.getElementById('coord_pass').value.trim()
             };
 
-            if(coordinators.some(c => c.correo === newC.correo)) {
-                alert("Ya existe un coordinador registrado con este correo.");
-                return;
+            if(editIdx === -1) {
+                if(coordinators.some(c => c.correo === newC.correo)) {
+                    alert("Ya existe un coordinador registrado con este correo.");
+                    return;
+                }
+                coordinators.push(newC);
+                alert("¡Coordinador creado con éxito!");
+            } else {
+                coordinators[editIdx] = newC;
+                alert("¡Coordinador actualizado con éxito!");
+                document.getElementById('coord_edit_index').value = "-1";
+                document.getElementById('coord-form-title').textContent = "Nuevo Coordinador";
+                document.getElementById('coord_btn_submit').textContent = "Guardar Coordinador";
             }
 
-            coordinators.push(newC);
             localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
-            alert("¡Coordinador creado con éxito!");
             e.target.reset();
             renderCoordsTable();
+        }
+
+        function editCoordinator(index) {
+            let c = coordinators[index];
+            document.getElementById('coord_edit_index').value = index;
+            document.getElementById('coord_nombre').value = c.nombre;
+            document.getElementById('coord_correo').value = c.correo;
+            document.getElementById('coord_whatsapp').value = c.whatsapp;
+            document.getElementById('coord_jornada').value = c.jornada;
+            document.getElementById('coord_pass').value = c.pass;
+            document.getElementById('coord-form-title').textContent = `Editar Coordinador: ${c.nombre}`;
+            document.getElementById('coord_btn_submit').textContent = "Actualizar Coordinador";
         }
 
         function renderCoordsTable() {
@@ -574,6 +697,7 @@ A<!DOCTYPE html>
                     <td>📱 ${c.whatsapp}</td>
                     <td><span style="color:#4f46e5; font-weight:700;">${c.jornada}</span></td>
                     <td style="text-align:center;">
+                        <button onclick="editCoordinator(${idx})" style="background:#0284c7; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-right:4px;">Editar</button>
                         <button onclick="deleteCoordinator(${idx})" style="background:#e11d48; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Eliminar</button>
                     </td>
                 `;
@@ -636,6 +760,17 @@ A<!DOCTYPE html>
             badge.style.color = disponibles > 0 ? '#059669' : '#e11d48';
         }
 
+        function handleFileUpload(e, targetKey) {
+            let file = e.target.files[0];
+            if(file) {
+                let reader = new FileReader();
+                reader.onload = function(uploadEvent) {
+                    window[targetKey] = { name: file.name, data: uploadEvent.target.result };
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
         function handleFormSubmit(e) {
             e.preventDefault();
             let fecha = document.getElementById('sol_fecha').value;
@@ -652,14 +787,29 @@ A<!DOCTYPE html>
                 return;
             }
 
+            // Validar límite de 3 días por mes
+            let targetMonth = selectedDate.getMonth();
+            let targetYear = selectedDate.getFullYear();
+            let userMonthlyCount = permissions.filter(p => {
+                if(p.correo !== currentUser.correo || p.estado === 'Rechazado') return false;
+                let pDate = new Date(p.fecha);
+                return pDate.getMonth() === targetMonth && pDate.getFullYear() === targetYear;
+            }).length;
+
+            if(userMonthlyCount >= 3) {
+                alert("⚠️ [Límite Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
+                return;
+            }
+
             let count = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
             if(count >= 2) {
                 alert("Límite de 2 permisos alcanzado para esta jornada.");
                 return;
             }
 
-            let filePermiso = document.getElementById('file_permiso').files[0]?.name || "soporte.pdf";
-            let fileActividades = document.getElementById('file_actividades').files[0]?.name || "actividades.pdf";
+            let motivoTipo = document.getElementById('sol_motivo_tipo').value;
+            let motivoDetalle = document.getElementById('sol_motivo_detalle').value.trim();
+            let motivoCompleto = `[${motivoTipo}] ${motivoDetalle}`;
             let radicadoNum = "RAD-2026-" + Math.floor(10000 + Math.random() * 90000);
 
             let newP = {
@@ -670,10 +820,13 @@ A<!DOCTYPE html>
                 whatsapp: currentUser.whatsapp || "3000000000",
                 jornada: jornada,
                 fecha: fecha,
-                motivo: document.getElementById('sol_motivo').value,
-                soportePermiso: filePermiso,
-                soporteActividades: fileActividades,
-                estado: "Pendiente"
+                motivo: motivoCompleto,
+                soportePermiso: window.soportePermisoData?.name || "soporte.pdf",
+                soportePermisoBase64: window.soportePermisoData?.data || "",
+                soporteActividades: window.soporteActividadesData?.name || "actividades.pdf",
+                soporteActividadesBase64: window.soporteActividadesData?.data || "",
+                estado: "Pendiente",
+                observacionRechazo: ""
             };
 
             permissions.push(newP);
@@ -687,11 +840,41 @@ A<!DOCTYPE html>
                 window.open(waUrl, '_blank');
             }
 
-            document.getElementById('sol_motivo').value = '';
+            document.getElementById('sol_motivo_detalle').value = '';
+            document.getElementById('sol_motivo_tipo').value = '';
             document.getElementById('sol_fecha').value = '';
             document.getElementById('file_permiso').value = '';
             document.getElementById('file_actividades').value = '';
             document.getElementById('slot-badge').textContent = "Cupos: --";
+            window.soportePermisoData = null;
+            window.soporteActividadesData = null;
+            renderTeacherHistory();
+        }
+
+        function renderTeacherHistory() {
+            let tbody = document.getElementById('teacher-history-body');
+            tbody.innerHTML = '';
+            let myPerms = permissions.filter(p => p.correo === currentUser.correo);
+
+            if(myPerms.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:1.5rem;">No ha realizado solicitudes de permiso.</td></tr>`;
+                return;
+            }
+
+            myPerms.forEach(p => {
+                let badgeClass = p.estado === 'Aprobado' ? 'status-approved' : p.estado === 'Preaprobado' ? 'status-preapproved' : p.estado === 'Rechazado' ? 'status-rejected' : 'status-pending';
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
+                    <td>${p.fecha} (${p.jornada})</td>
+                    <td>${p.motivo}</td>
+                    <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
+                    <td style="text-align:center;">
+                        ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Ver Resolución</button>` : `<span style="font-size:0.75rem; color:#64748b;">En trámite</span>`}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
         function renderTable() {
@@ -717,7 +900,10 @@ A<!DOCTYPE html>
                     <td>${p.fecha} <br><span style="color:#4f46e5; font-weight:700; font-size:0.75rem;">${p.jornada}</span></td>
                     <td style="font-size:0.85rem; color:#475569;">
                         <div><strong>Motivo:</strong> ${p.motivo}</div>
-                        <div style="font-size:0.75rem; margin-top:0.25rem;">📄 ${p.soportePermiso} | 📁 ${p.soporteActividades}</div>
+                        <div style="font-size:0.75rem; margin-top:0.25rem;">
+                            📄 ${p.soportePermisoBase64 ? `<a href="${p.soportePermisoBase64}" download="${p.soportePermiso}" style="color:#4f46e5; font-weight:bold;">Descargar Soporte</a>` : p.soportePermiso} | 
+                            📁 ${p.soporteActividadesBase64 ? `<a href="${p.soporteActividadesBase64}" download="${p.soporteActividades}" style="color:#d97706; font-weight:bold;">Descargar Actividades</a>` : p.soporteActividades}
+                        </div>
                     </td>
                     <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
                     <td style="text-align:center;">
@@ -727,13 +913,62 @@ A<!DOCTYPE html>
                         
                         ${(currentUser.isRector && p.estado === 'Pendiente') ? `<span style="font-size:0.7rem; color:#d97706; font-weight:bold; display:block; margin-bottom:2px;">Pendiente Preaprobación</span>` : ''}
 
-                        <button onclick="updateStatus(${p.id}, 'Rechazado')" style="background:#e11d48; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-top:2px;">Negar</button>
+                        <button onclick="promptReject(${p.id})" style="background:#e11d48; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-top:2px;">Negar</button>
 
-                        ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; display:block; margin:4px auto 0 auto;">Ver Soporte</button>` : ''}
+                        ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; display:block; margin:4px auto 0 auto;">Ver Resolución</button>` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function promptReject(id) {
+            let p = permissions.find(x => x.id === id);
+            if(p) {
+                pendingRejectId = id;
+                document.getElementById('reject_observacion').value = "";
+                document.getElementById('rejectModal').classList.remove('hidden');
+            }
+        }
+
+        function closeRejectModal() {
+            pendingRejectId = null;
+            document.getElementById('rejectModal').classList.add('hidden');
+        }
+
+        function confirmReject() {
+            let obs = document.getElementById('reject_observacion').value.trim();
+            if(!obs) {
+                alert("Por favor escriba la observación del motivo de negación.");
+                return;
+            }
+
+            let p = permissions.find(x => x.id === pendingRejectId);
+            if(p) {
+                p.estado = "Rechazado";
+                p.observacionRechazo = obs;
+                localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
+
+                let templateParams = {
+                    to_email: p.correo,
+                    to_name: p.nombre,
+                    radicado: p.radicado,
+                    estado: "RECHAZADO",
+                    fecha: p.fecha,
+                    jornada: p.jornada,
+                    motivo: p.motivo + " | Observación: " + obs
+                };
+
+                emailjs.send("service_9hhf70g", "template_066a5sv", templateParams)
+                    .then(function(response) {
+                        alert("📨 [Resolución de Negación Enviada]\nEl correo oficial ha sido despachado al docente.");
+                    }, function(error) {
+                        console.error("EmailJS Error:", error);
+                    });
+
+                closeRejectModal();
+                renderTable();
+            }
         }
 
         function updateStatus(id, newStatus) {
@@ -747,13 +982,12 @@ A<!DOCTYPE html>
                 p.estado = newStatus;
                 localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
                 
-                // Envío automático en segundo plano con EmailJS
-                if(newStatus === 'Aprobado' || newStatus === 'Rechazado') {
+                if(newStatus === 'Aprobado') {
                     let templateParams = {
                         to_email: p.correo,
                         to_name: p.nombre,
                         radicado: p.radicado,
-                        estado: p.estado,
+                        estado: "APROBADO",
                         fecha: p.fecha,
                         jornada: p.jornada,
                         motivo: p.motivo
@@ -761,9 +995,8 @@ A<!DOCTYPE html>
 
                     emailjs.send("service_9hhf70g", "template_066a5sv", templateParams)
                         .then(function(response) {
-                            alert("📨 [Correo Automático Enviado]\nLa resolución oficial ha sido despachada con éxito al correo del docente: " + p.correo);
+                            alert("📨 [Resolución Aprobada Enviada]\nEl correo oficial ha sido despachado al docente.");
                         }, function(error) {
-                            alert("⚠️ El estado se actualizó, pero hubo un fallo al conectar con EmailJS.");
                             console.error("EmailJS Error:", error);
                         });
                 } else if(newStatus === 'Preaprobado') {
@@ -772,6 +1005,39 @@ A<!DOCTYPE html>
 
                 renderTable();
             }
+        }
+
+        function renderReports() {
+            let desde = document.getElementById('rep_desde').value;
+            let hasta = document.getElementById('rep_hasta').value;
+            let tbody = document.getElementById('reports-table-body');
+            tbody.innerHTML = '';
+
+            let filtered = permissions.filter(p => {
+                if(currentUser.jornada !== 'Todas' && p.jornada !== currentUser.jornada) return false;
+                if(desde && p.fecha < desde) return false;
+                if(hasta && p.fecha > hasta) return false;
+                return true;
+            });
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:2rem;">No hay registros para este rango de fechas.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                let badgeClass = p.estado === 'Aprobado' ? 'status-approved' : p.estado === 'Preaprobado' ? 'status-preapproved' : p.estado === 'Rechazado' ? 'status-rejected' : 'status-pending';
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
+                    <td>${p.nombre}</td>
+                    <td>${p.jornada}</td>
+                    <td>${p.fecha}</td>
+                    <td>${p.motivo}</td>
+                    <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
         function openModal(id) {
@@ -788,29 +1054,57 @@ A<!DOCTYPE html>
                 modalLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
             }
 
-            let estadoColor = p.estado === 'Aprobado' ? '#065f46' : '#9f1239';
-            let estadoBg = p.estado === 'Aprobado' ? '#d1fae5' : '#ffe4e6';
-            let textoResolucion = p.estado === 'Aprobado' ? '✓ CONCEDIDO Y APROBADO DEFINITIVAMENTE por Rectoría y Coordinación bajo los lineamientos institucionales.' : '✕ DENEGADO / NEGADO por Rectoría tras la revisión institucional.';
+            let isApproved = p.estado === 'Aprobado';
+            let estadoColor = isApproved ? '#065f46' : '#9f1239';
+            let estadoBg = isApproved ? '#d1fae5' : '#ffe4e6';
+            let resolucionTitulo = isApproved ? 'RESOLUCIÓN DE CONCESIÓN DE PERMISO LABORAL' : 'RESOLUCIÓN DE NEGACIÓN DE PERMISO LABORAL';
+            let resolucionVisto = isApproved ? 
+                'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales, en especial las conferidas por la Ley 715 de 2001, el Decreto 2277 de 1979 / Decreto 1278 de 2002, y el Decreto Único Reglamentario del Sector Educación 1075 de 2015, y' :
+                'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales y reglamentarias en materia de administración de personal docente y directivo docente, y';
 
-            let msgWaDocente = encodeURIComponent(`Hola ${p.nombre}, su solicitud con radicado ${p.radicado} ha sido: ${p.estado.toUpperCase()}. Revise su formato institucional.`);
+            let resolucionConsiderando = isApproved ?
+                `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>, invocando como motivo: "${p.motivo}".<br><br>
+                 Que la solicitud cumple con los requisitos de oportunidad (mínimo 3 días hábiles de anticipación), la verificación de disponibilidad de cupos en la jornada y cuenta con la respectiva preaprobación de Coordinación y la entrega del material pedagógico de reemplazo.` :
+                `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>.<br><br>
+                 <strong>Motivo de Negación / Observación Institucional:</strong> ${p.observacionRechazo || 'No especificada.'}`;
+
+            let resolucionResuelve = isApproved ?
+                `<strong>ARTÍCULO PRIMERO: CONCEDER</strong> permiso remunerado al(la) docente <strong>${p.nombre}</strong> por el día <strong>${p.fecha}</strong> en la jornada <strong>${p.jornada}</strong>.<br><br>
+                 <strong>ARTÍCULO SEGUNDO:</strong> El(la) docente queda obligado(a) a garantizar el desarrollo de las actividades académicas programadas según el material adjunto en el radicado.<br><br>
+                 <strong>ARTÍCULO TERCERO:</strong> Comuníquese y cúmplase.` :
+                `<strong>ARTÍCULO PRIMERO: NEGAR</strong> la solicitud de permiso laboral presentada por el(la) docente <strong>${p.nombre}</strong> bajo el radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>.<br><br>
+                 <strong>ARTÍCULO SEGUNDO:</strong> El(la) docente deberá continuar con sus labores académicas habituales en la jornada correspondiente.<br><br>
+                 <strong>ARTÍCULO TERCERO:</strong> Comuníquese y cúmplase.`;
+
+            let msgWaDocente = encodeURIComponent(`Hola ${p.nombre}, su solicitud con radicado ${p.radicado} ha sido: ${p.estado.toUpperCase()}. Revise su formato institucional de resolución.`);
             let linkWaDocente = `https://wa.me/57${p.whatsapp || '3000000000'}?text=${msgWaDocente}`;
 
             document.getElementById('permit-modal-content').innerHTML = `
-                <p><strong>N° de Radicado:</strong> <span style="color:#4f46e5;">${p.radicado}</span></p>
-                <p><strong>Solicitante:</strong> ${p.nombre} (${p.correo})</p>
-                <p><strong>Jornada Requerida:</strong> ${p.jornada}</p>
-                <p><strong>Fecha del Permiso:</strong> ${p.fecha}</p>
-                <p><strong>Motivo:</strong> ${p.motivo}</p>
-                <p><strong>Soporte PDF:</strong> ${p.soportePermiso}</p>
-                <p><strong>Actividades PDF:</strong> ${p.soporteActividades}</p>
-                <hr style="margin: 1rem 0; border:0; border-top:1px solid #cbd5e1;">
-                <p style="color: ${estadoColor}; font-weight: bold; background: ${estadoBg}; padding: 0.75rem; border-radius: 6px; text-align:center;">${textoResolucion}</p>
+                <div style="text-align: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem;">
+                    <h4 style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-bottom: 0.2rem;">${resolucionTitulo}</h4>
+                    <p style="font-size: 0.8rem; font-weight: 700; color: #4f46e5;">Radicado N°: ${p.radicado}</p>
+                </div>
+                <p style="margin-bottom: 0.75rem;"><strong>VISTOS:</strong> ${resolucionVisto}</p>
+                <p style="margin-bottom: 0.75rem;"><strong>CONSIDERANDO:</strong> ${resolucionConsiderando}</p>
+                <p style="margin-bottom: 1rem;"><strong>RESUELVE:</strong></p>
+                <div style="background: ${estadoBg}; border-left: 4px solid ${estadoColor}; padding: 1rem; border-radius: 6px; margin-bottom: 1.25rem;">
+                    <p style="color: ${estadoColor}; font-weight: 600; margin: 0;">${resolucionResuelve}</p>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 2rem; font-size: 0.8rem; border-top: 1px solid #cbd5e1; padding-top: 1rem;">
+                    <div>
+                        <p>Dada en Montería (Córdoba), a los ${new Date().toLocaleDateString()}.</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-weight: bold; color: #0f172a;">ÁLVARO GONZÁLEZ CONTRERAS (ALGC)</p>
+                        <p style="color: #64748b;">Rector - ${schoolConfig.nombre}</p>
+                    </div>
+                </div>
             `;
             
             let actionsContainer = document.getElementById('modal-actions-container');
             actionsContainer.innerHTML = `
                 <a href="${linkWaDocente}" target="_blank" class="btn-submit" style="background:#25d366; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;"><i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp</a>
-                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir</button>
+                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
                 <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cerrar</button>
             `;
 

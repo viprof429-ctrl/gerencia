@@ -1,4 +1,4 @@
-A<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -7,6 +7,8 @@ A<!DOCTYPE html>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SDK de EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- SDK de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
@@ -27,7 +29,7 @@ A<!DOCTYPE html>
         .brand-text h1 { font-size: 0.85rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .brand-text p { font-size: 0.6rem; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Menú y Botones por Defecto (Escritorio) */
+        /* Menú y Botones */
         .nav-actions { display: flex; align-items: center; gap: 0.3rem; }
         .nav-admin-btn { background: #4f46e5; color: white; border: none; padding: 0.4rem 0.6rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.2rem; }
         .logout-btn { background: #e11d48; color: white; border: none; padding: 0.4rem 0.6rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 0.2rem; }
@@ -70,13 +72,11 @@ A<!DOCTYPE html>
         .modal-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 0.5rem; }
         .modal-card { background: white; border-radius: 12px; padding: 1rem; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.25); }
 
-        /* REGLAS ESTRICTAS PARA CELULARES (MÁXIMO 768px) */
         @media (max-width: 768px) {
             header { padding: 0.6rem 0.75rem; }
             .brand-text h1 { font-size: 0.75rem; max-width: 120px; }
             .menu-toggle { display: block !important; }
             
-            /* Ocultar barra horizontal de botones y convertirla en menú desplegable flotante */
             .nav-actions { display: none !important; position: absolute; top: 100%; left: 0; right: 0; background: #0f172a; flex-direction: column; gap: 0.4rem; padding: 0.75rem; box-shadow: 0 15px 25px rgba(0,0,0,0.4); border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
             .nav-actions.active { display: flex !important; }
             
@@ -95,7 +95,7 @@ A<!DOCTYPE html>
         <div class="auth-card">
             <div class="auth-logo" id="login-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
             <h2 id="login-school-title" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">I.E. ANTONIA SANTOS</h2>
-            <p style="font-size: 0.65rem; color: #64748b; margin-bottom: 0.75rem;">Control de Permisos Institucional</p>
+            <p style="font-size: 0.65rem; color: #64748b; margin-bottom: 0.75rem;">Control de Permisos Cloud</p>
 
             <form id="form-login" onsubmit="handleLogin(event)">
                 <div class="form-group">
@@ -114,43 +114,18 @@ A<!DOCTYPE html>
 
             <form id="form-register" onsubmit="handleRegister(event)" class="hidden">
                 <h3 style="font-size: 0.85rem; font-weight: 800; color: #1e1b4b; margin-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25rem;">Registro Docente</h3>
-                <div class="form-group" style="margin-bottom:0.4rem;">
-                    <label>Nombres</label>
-                    <input type="text" id="reg_nombres" required placeholder="Nombres">
-                </div>
-                <div class="form-group" style="margin-bottom:0.4rem;">
-                    <label>Apellidos</label>
-                    <input type="text" id="reg_apellidos" required placeholder="Apellidos">
-                </div>
-                <div class="form-group" style="margin-bottom:0.4rem;">
-                    <label>Correo Institucional</label>
-                    <input type="text" id="reg_correo" required placeholder="correo@colegio.edu.co">
-                </div>
-                <div class="form-group" style="margin-bottom:0.4rem;">
-                    <label>Teléfono / WhatsApp</label>
-                    <input type="tel" id="reg_tel" required placeholder="3001234567">
-                </div>
+                <div class="form-group" style="margin-bottom:0.4rem;"><label>Nombres</label><input type="text" id="reg_nombres" required></div>
+                <div class="form-group" style="margin-bottom:0.4rem;"><label>Apellidos</label><input type="text" id="reg_apellidos" required></div>
+                <div class="form-group" style="margin-bottom:0.4rem;"><label>Correo</label><input type="text" id="reg_correo" required></div>
+                <div class="form-group" style="margin-bottom:0.4rem;"><label>Teléfono</label><input type="tel" id="reg_tel" required></div>
                 <div class="form-group" style="margin-bottom:0.4rem;">
                     <label>Jornada</label>
-                    <select id="reg_jornada" required>
-                        <option value="">Seleccione...</option>
-                        <option value="Mañana">Mañana</option>
-                        <option value="Tarde">Tarde</option>
-                    </select>
+                    <select id="reg_jornada" required><option value="">Seleccione...</option><option value="Mañana">Mañana</option><option value="Tarde">Tarde</option></select>
                 </div>
-                <div class="form-group" style="margin-bottom:0.5rem;">
-                    <label>Contraseña</label>
-                    <input type="password" id="reg_pass" required placeholder="Mínimo 6 caracteres">
-                </div>
+                <div class="form-group" style="margin-bottom:0.5rem;"><label>Contraseña</label><input type="password" id="reg_pass" required></div>
                 <button type="submit" class="btn-submit" style="background:#059669;">Completar</button>
-                <div style="text-align: center; margin-top: 0.5rem;">
-                    <button type="button" class="link-btn" style="color:#64748b;" onclick="toggleRegister(false)">← Volver</button>
-                </div>
+                <div style="text-align: center; margin-top: 0.5rem;"><button type="button" class="link-btn" style="color:#64748b;" onclick="toggleRegister(false)">← Volver</button></div>
             </form>
-
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.4rem; margin-top: 0.75rem; font-size: 0.6rem; color: #475569; text-align: left;">
-                <strong>Rector:</strong> <code id="login-hint-user">rector</code> | <strong>Clave:</strong> <code id="login-hint-pass">RectorAntonia2026*</code>
-            </div>
         </div>
     </div>
 
@@ -161,7 +136,7 @@ A<!DOCTYPE html>
                 <div class="brand-icon" id="header-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
                 <div class="brand-text">
                     <h1 id="header-school-name">I.E. ANTONIA SANTOS</h1>
-                    <p id="user-session-info">Sistema de Permisos</p>
+                    <p id="user-session-info">Sistema Cloud</p>
                 </div>
             </div>
             
@@ -192,20 +167,14 @@ A<!DOCTYPE html>
 
                 <form onsubmit="handleFormSubmit(event)">
                     <div class="grid-2">
-                        <div class="form-group">
-                            <label>Solicitante</label>
-                            <input type="text" id="sol_nombre" readonly style="background:#e2e8f0; font-weight:bold;">
-                        </div>
-                        <div class="form-group">
-                            <label>Jornada</label>
-                            <input type="text" id="sol_info_jornada" readonly style="background:#e2e8f0; font-weight:bold;">
-                        </div>
+                        <div class="form-group"><label>Solicitante</label><input type="text" id="sol_nombre" readonly style="background:#e2e8f0; font-weight:bold;"></div>
+                        <div class="form-group"><label>Jornada</label><input type="text" id="sol_info_jornada" readonly style="background:#e2e8f0; font-weight:bold;"></div>
                     </div>
 
                     <div class="banner-info">
                         <div>
                             <label style="margin-bottom:0.1rem; color:#312e81;">Seleccione Fecha y Cupos</label>
-                            <span style="font-size:0.65rem; color:#4f46e5;">Verifique la disponibilidad del día.</span>
+                            <span style="font-size:0.65rem; color:#4f46e5;">Verifique disponibilidad.</span>
                         </div>
                         <div style="display:flex; gap:0.3rem; align-items:center; flex-direction:column; width:100%;">
                             <input type="date" id="sol_fecha" onchange="checkSlots()" required style="width:100%; padding:0.5rem; background:white;">
@@ -235,53 +204,30 @@ A<!DOCTYPE html>
                     </div>
 
                     <div id="section-horas" class="grid-2 hidden" style="background:#f8fafc; padding:0.75rem; border-radius:6px; border:1.5px dashed #cbd5e1; margin-bottom:0.6rem;">
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label>Hora Inicio</label>
-                            <input type="time" id="sol_hora_inicio">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label>Hora Fin</label>
-                            <input type="time" id="sol_hora_fin">
-                        </div>
+                        <div class="form-group" style="margin-bottom:0;"><label>Hora Inicio</label><input type="time" id="sol_hora_inicio"></div>
+                        <div class="form-group" style="margin-bottom:0;"><label>Hora Fin</label><input type="time" id="sol_hora_fin"></div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Descripción del Motivo</label>
-                        <input type="text" id="sol_motivo_detalle" required placeholder="Breve razón...">
-                    </div>
+                    <div class="form-group"><label>Descripción del Motivo</label><input type="text" id="sol_motivo_detalle" required placeholder="Breve razón..."></div>
 
                     <div class="grid-2" style="margin-bottom: 0.75rem;">
                         <div style="background:#f8fafc; padding:0.5rem; border:2px dashed #cbd5e1; border-radius:6px;">
-                            <label style="font-size: 0.65rem; font-weight: bold; color: #1e293b; margin-bottom: 0.2rem;">
-                                <i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> 1. Soporte (PDF)
-                            </label>
+                            <label style="font-size: 0.65rem; font-weight: bold;"><i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> Soporte (PDF)</label>
                             <input type="file" id="file_permiso" accept=".pdf" required style="font-size:0.65rem; border:none; padding:0; background:transparent;" onchange="handleFileUpload(event, 'soportePermisoData')">
                         </div>
                         <div style="background:#f8fafc; padding:0.5rem; border:2px dashed #cbd5e1; border-radius:6px;">
-                            <label style="font-size: 0.65rem; font-weight: bold; color: #1e293b; margin-bottom: 0.2rem;">
-                                <i class="fa-solid fa-file-lines" style="color:#d97706;"></i> 2. Actividades (PDF)
-                            </label>
+                            <label style="font-size: 0.65rem; font-weight: bold;"><i class="fa-solid fa-file-lines" style="color:#d97706;"></i> Actividades (PDF)</label>
                             <input type="file" id="file_actividades" accept=".pdf" required style="font-size:0.65rem; border:none; padding:0; background:transparent;" onchange="handleFileUpload(event, 'soporteActividadesData')">
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-submit">
-                        <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud
-                    </button>
+                    <button type="submit" class="btn-submit"><i class="fa-solid fa-paper-plane"></i> Enviar Solicitud</button>
                 </form>
 
                 <h3 style="font-size: 0.85rem; font-weight: 800; color: #1e1b4b; margin-top: 1.25rem; margin-bottom: 0.5rem; border-top: 1px solid #e2e8f0; padding-top: 0.75rem;">Mis Solicitudes</h3>
                 <div class="table-responsive">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Radicado</th>
-                                <th>Fecha/Mod</th>
-                                <th>Motivo</th>
-                                <th>Estado</th>
-                                <th style="text-align:center;">Acción</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Radicado</th><th>Fecha/Mod</th><th>Motivo</th><th>Estado</th><th style="text-align:center;">Acción</th></tr></thead>
                         <tbody id="teacher-history-body"></tbody>
                     </table>
                 </div>
@@ -289,23 +235,10 @@ A<!DOCTYPE html>
 
             <!-- VISTA PANEL DIRECTIVO -->
             <section id="view-admin" class="card hidden">
-                <div class="card-header">
-                    <h2 id="admin-title">Panel Directivo</h2>
-                    <p>Aprobación de solicitudes</p>
-                </div>
-
+                <div class="card-header"><h2 id="admin-title">Panel Directivo</h2><p>Aprobación de solicitudes</p></div>
                 <div class="table-responsive">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Radicado</th>
-                                <th>Solicitante</th>
-                                <th>Jornada/Fecha</th>
-                                <th>Motivo/Soportes</th>
-                                <th>Estado</th>
-                                <th style="text-align:center;">Acciones</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Radicado</th><th>Solicitante</th><th>Jornada/Fecha</th><th>Motivo</th><th>Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
                         <tbody id="admin-table-body"></tbody>
                     </table>
                 </div>
@@ -313,38 +246,14 @@ A<!DOCTYPE html>
 
             <!-- VISTA REPORTES -->
             <section id="view-reports" class="card hidden">
-                <div class="card-header">
-                    <h2><i class="fa-solid fa-chart-pie" style="color:#d97706;"></i> Reportes</h2>
-                    <p>Filtrar por fechas.</p>
-                </div>
-
+                <div class="card-header"><h2><i class="fa-solid fa-chart-pie" style="color:#d97706;"></i> Reportes</h2><p>Filtrar por fechas.</p></div>
                 <div style="background: #f8fafc; padding: 0.6rem; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 0.75rem;" class="grid-2">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Desde</label>
-                        <input type="date" id="rep_desde" onchange="renderReports()">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Hasta</label>
-                        <input type="date" id="rep_hasta" onchange="renderReports()">
-                    </div>
+                    <div class="form-group" style="margin-bottom: 0;"><label>Desde</label><input type="date" id="rep_desde" onchange="renderReports()"></div>
+                    <div class="form-group" style="margin-bottom: 0;"><label>Hasta</label><input type="date" id="rep_hasta" onchange="renderReports()"></div>
                 </div>
-
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 0.6rem;">
-                    <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.35rem 0.7rem; font-size: 0.7rem; background: #0284c7;"><i class="fa-solid fa-print"></i> Imprimir</button>
-                </div>
-
                 <div class="table-responsive">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Radicado</th>
-                                <th>Solicitante</th>
-                                <th>Jornada</th>
-                                <th>Fecha</th>
-                                <th>Motivo</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Radicado</th><th>Solicitante</th><th>Jornada</th><th>Fecha</th><th>Motivo</th><th>Estado</th></tr></thead>
                         <tbody id="reports-table-body"></tbody>
                     </table>
                 </div>
@@ -352,57 +261,18 @@ A<!DOCTYPE html>
 
             <!-- VISTA COORDINADORES -->
             <section id="view-coords" class="card hidden">
-                <div class="card-header">
-                    <h2><i class="fa-solid fa-user-tie" style="color:#f59e0b;"></i> Coordinadores</h2>
-                    <p>Gestión de coordinadores.</p>
-                </div>
-
+                <div class="card-header"><h2><i class="fa-solid fa-user-tie" style="color:#f59e0b;"></i> Coordinadores</h2><p>Gestión</p></div>
                 <form onsubmit="saveCoordinator(event)" style="background:#f8fafc; padding:0.75rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:1rem;">
                     <h3 id="coord-form-title" style="font-size:0.8rem; font-weight:800; color:#1e1b4b; margin-bottom:0.5rem;">Nuevo Coordinador</h3>
                     <input type="hidden" id="coord_edit_index" value="-1">
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label>Nombre</label>
-                            <input type="text" id="coord_nombre" required placeholder="Nombre">
-                        </div>
-                        <div class="form-group">
-                            <label>Correo</label>
-                            <input type="text" id="coord_correo" required placeholder="Correo">
-                        </div>
-                    </div>
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label>WhatsApp</label>
-                            <input type="tel" id="coord_whatsapp" required placeholder="3001234567">
-                        </div>
-                        <div class="form-group">
-                            <label>Jornada</label>
-                            <select id="coord_jornada" required>
-                                <option value="">Seleccione...</option>
-                                <option value="Mañana">Mañana</option>
-                                <option value="Tarde">Tarde</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Contraseña</label>
-                        <input type="password" id="coord_pass" required placeholder="Contraseña">
-                    </div>
+                    <div class="grid-2"><div class="form-group"><label>Nombre</label><input type="text" id="coord_nombre" required></div><div class="form-group"><label>Correo</label><input type="text" id="coord_correo" required></div></div>
+                    <div class="grid-2"><div class="form-group"><label>WhatsApp</label><input type="tel" id="coord_whatsapp" required></div><div class="form-group"><label>Jornada</label><select id="coord_jornada" required><option value="">Seleccione...</option><option value="Mañana">Mañana</option><option value="Tarde">Tarde</option></select></div></div>
+                    <div class="form-group"><label>Contraseña</label><input type="password" id="coord_pass" required></div>
                     <button type="submit" id="coord_btn_submit" class="btn-submit" style="background:#0284c7;">Guardar</button>
                 </form>
-
-                <h3 style="font-size:0.8rem; font-weight:800; color:#1e1b4b; margin-bottom:0.5rem;">Registrados</h3>
                 <div class="table-responsive">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Correo</th>
-                                <th>WhatsApp</th>
-                                <th>Jornada</th>
-                                <th style="text-align:center;">Acciones</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Nombre</th><th>Correo</th><th>WhatsApp</th><th>Jornada</th><th style="text-align:center;">Acciones</th></tr></thead>
                         <tbody id="coords-table-body"></tbody>
                     </table>
                 </div>
@@ -410,163 +280,47 @@ A<!DOCTYPE html>
 
             <!-- VISTA CONFIGURACIÓN -->
             <section id="view-config" class="card hidden">
-                <div class="card-header">
-                    <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración</h2>
-                    <p>Datos del colegio y rector.</p>
-                </div>
-
+                <div class="card-header"><h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración</h2><p>Datos institucionales</p></div>
                 <form onsubmit="saveSchoolConfig(event)">
-                    <h3 style="font-size:0.8rem; font-weight:800; color:#1e1b4b; margin-bottom:0.5rem; border-bottom:1px solid #e2e8f0; padding-bottom:0.25rem;">Institución</h3>
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label>Nombre</label>
-                            <input type="text" id="cfg_nombre" required>
-                        </div>
-                        <div class="form-group">
-                            <label>NIT</label>
-                            <input type="text" id="cfg_nit" required placeholder="NIT">
-                        </div>
-                    </div>
-
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label>Dirección</label>
-                            <input type="text" id="cfg_direccion" required placeholder="Dirección">
-                        </div>
-                        <div class="form-group">
-                            <label>Teléfono</label>
-                            <input type="tel" id="cfg_telefono" required placeholder="Teléfono">
-                        </div>
-                    </div>
-
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label>Correo</label>
-                            <input type="text" id="cfg_correo" required placeholder="Correo">
-                        </div>
-                        <div class="form-group">
-                            <label>Logotipo</label>
-                            <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.25rem; background: white;">
-                        </div>
-                    </div>
-
-                    <div style="background:#eef2ff; padding:0.75rem; border:1px solid #c7d2fe; border-radius:6px; margin-bottom:0.75rem; margin-top:0.75rem;">
-                        <h3 style="font-size:0.8rem; font-weight:800; color:#312e81; margin-bottom:0.5rem;"><i class="fa-solid fa-user-shield"></i> Credenciales Rector</h3>
-                        
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label>Nombres</label>
-                                <input type="text" id="cfg_rector_nombres" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Apellidos</label>
-                                <input type="text" id="cfg_rector_apellidos" required>
-                            </div>
-                        </div>
-
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label>Teléfono</label>
-                                <input type="tel" id="cfg_rector_tel" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Correo</label>
-                                <input type="email" id="cfg_rector_email" required>
-                            </div>
-                        </div>
-
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label>Usuario Login</label>
-                                <input type="text" id="cfg_rector_user" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Contraseña</label>
-                                <input type="text" id="cfg_rector_pass" required>
-                            </div>
-                        </div>
-
-                        <div style="background:white; padding:0.5rem; border-radius:6px; border:1px solid #c7d2fe; margin-top:0.5rem;">
-                            <label style="font-weight:800; color:#312e81; margin-bottom:0.3rem; font-size:0.65rem;"><i class="fa-solid fa-check-to-slot"></i> Mostrar en documentos:</label>
-                            <div style="display:flex; gap:0.6rem; flex-wrap:wrap; font-size:0.7rem;">
-                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.2rem; cursor:pointer;"><input type="checkbox" id="chk_show_nombre" style="width:auto;"> Nombre</label>
-                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.2rem; cursor:pointer;"><input type="checkbox" id="chk_show_tel" style="width:auto;"> Teléfono</label>
-                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.2rem; cursor:pointer;"><input type="checkbox" id="chk_show_email" style="width:auto;"> Correo</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="background:#f8fafc; padding:0.6rem; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:0.75rem;">
-                        <label style="color:#1e293b; font-weight:bold; margin-bottom:0.25rem; font-size:0.7rem;">
-                            <i class="fa-solid fa-signature" style="color:#4f46e5;"></i> Firma Digital (PNG)
-                        </label>
-                        <input type="file" id="cfg_firma_file" accept="image/*" style="padding: 0.25rem; background: white; border:none;">
-                    </div>
-
+                    <div class="grid-2"><div class="form-group"><label>Nombre</label><input type="text" id="cfg_nombre" required></div><div class="form-group"><label>NIT</label><input type="text" id="cfg_nit" required></div></div>
+                    <div class="grid-2"><div class="form-group"><label>Dirección</label><input type="text" id="cfg_direccion" required></div><div class="form-group"><label>Teléfono</label><input type="tel" id="cfg_telefono" required></div></div>
+                    <div class="form-group"><label>Correo</label><input type="text" id="cfg_correo" required></div>
+                    <div class="grid-2"><div class="form-group"><label>Logotipo</label><input type="file" id="cfg_logo_file" accept="image/*"></div><div class="form-group"><label>Firma Rector</label><input type="file" id="cfg_firma_file" accept="image/*"></div></div>
                     <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios</button>
                 </form>
             </section>
         </main>
     </div>
 
-    <!-- MODAL RESOLUCIÓN -->
+    <!-- MODALES -->
     <div id="permitModal" class="modal-bg hidden">
         <div class="modal-card">
-            <div style="display: flex; align-items: center; gap: 0.4rem; border-bottom: 2px solid #0f172a; padding-bottom: 0.5rem; margin-bottom: 0.6rem;">
-                <div id="modal-logo-box" style="width: 36px; height: 36px; border-radius: 6px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1rem; flex-shrink: 0;">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                </div>
-                <div style="flex-grow: 1; text-align: center; min-width: 0;">
-                    <h3 id="modal-school-title" style="font-size: 0.8rem; font-weight: 800; color: #0f172a; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">I.E. ANTONIA SANTOS</h3>
-                    <p id="modal-school-nit" style="font-size: 0.6rem; color: #475569; font-weight: 600;">NIT: 800000000-1 | Montería</p>
-                </div>
-            </div>
-
-            <div id="permit-modal-content" style="font-size: 0.7rem; color: #1e293b; line-height: 1.35; background: #ffffff; padding: 0.6rem; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 0.75rem;"></div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 0.3rem; flex-wrap: wrap;" id="modal-actions-container">
-                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.35rem 0.7rem; font-size: 0.7rem;"><i class="fa-solid fa-print"></i> Imprimir</button>
-                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.35rem 0.7rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem;">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL NEGACIÓN -->
-    <div id="rejectModal" class="modal-bg hidden">
-        <div class="modal-card" style="max-width: 340px;">
-            <h3 style="font-size: 0.85rem; font-weight: 800; color: #9f1239; margin-bottom: 0.5rem;"><i class="fa-solid fa-triangle-exclamation"></i> Negar Permiso</h3>
-            <p style="font-size: 0.7rem; color: #475569; margin-bottom: 0.5rem;">Especifique el motivo:</p>
-            <textarea id="reject_observacion" rows="3" style="width: 100%; padding: 0.4rem; border: 1.5px solid #cbd5e1; border-radius: 6px; margin-bottom: 0.6rem; font-size: 0.75rem;" placeholder="Razón..."></textarea>
-            <div style="display: flex; justify-content: flex-end; gap: 0.3rem;">
-                <button onclick="confirmReject()" class="btn-submit" style="background: #e11d48; width: auto; padding: 0.35rem 0.7rem; font-size: 0.7rem;">Confirmar</button>
-                <button onclick="closeRejectModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.35rem 0.7rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem;">Cancelar</button>
+            <div id="permit-modal-content" style="font-size: 0.75rem; margin-bottom: 0.75rem;"></div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.3rem;" id="modal-actions-container">
+                <button onclick="closeModal()" class="btn-submit" style="width: auto; background:#e2e8f0; color:#334155;">Cerrar</button>
             </div>
         </div>
     </div>
 
     <script>
+        // CONFIGURACIÓN DE SUPABASE (CONECTADO A LA NUBE)
+        const SUPABASE_URL = "https://ftrlvaxtgrgxvxodtqfl.supabase.co";
+        const SUPABASE_ANON_KEY = "TU_PUBLISHABLE_KEY_AQUI"; // <-- Pega aquí tu Publishable key de Supabase
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         (function(){
             emailjs.init("Fj3QdUv-Z9qIxjmnV");
         })();
 
         function toggleMobileMenu() {
-            let menu = document.getElementById('nav-actions-menu');
-            menu.classList.toggle('active');
+            document.getElementById('nav-actions-menu').classList.toggle('active');
         }
 
-        let permissions = JSON.parse(localStorage.getItem('antonia_santos_perms')) || [];
-        let teachers = JSON.parse(localStorage.getItem('antonia_santos_teachers')) || [];
-        
-        let coordinators = JSON.parse(localStorage.getItem('antonia_santos_coords'));
-        if (!coordinators) {
-            coordinators = [
-                { nombre: "Coordinador Mañana", correo: "coord.manana", whatsapp: "3001112233", jornada: "Mañana", pass: "MananaAntonia2026*" },
-                { nombre: "Coordinador Tarde", correo: "coord.tarde", whatsapp: "3004445566", jornada: "Tarde", pass: "TardeAntonia2026*" }
-            ];
-            localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
-        }
-
-        let schoolConfig = JSON.parse(localStorage.getItem('antonia_santos_school')) || {
+        let permissions = [];
+        let teachers = [];
+        let coordinators = [];
+        let schoolConfig = {
             nombre: "I.E. ANTONIA SANTOS",
             nit: "800000000-1",
             direccion: "Montería, Córdoba",
@@ -578,28 +332,36 @@ A<!DOCTYPE html>
             rectorPass: "RectorAntonia2026*",
             rectorNombres: "Álvaro",
             rectorApellidos: "González Contreras (ALGC)",
-            rectorTel: "3000000000",
-            rectorEmail: "rector@antoniasantos.edu.co",
             showNombre: true,
             showTel: false,
             showEmail: false
         };
 
-        if(!schoolConfig.rectorUser) schoolConfig.rectorUser = "rector";
-        if(!schoolConfig.rectorPass) schoolConfig.rectorPass = "RectorAntonia2026*";
-        if(!schoolConfig.rectorNombres) schoolConfig.rectorNombres = "Álvaro";
-        if(!schoolConfig.rectorApellidos) schoolConfig.rectorApellidos = "González Contreras (ALGC)";
-        if(!schoolConfig.rectorTel) schoolConfig.rectorTel = "3000000000";
-        if(!schoolConfig.rectorEmail) schoolConfig.rectorEmail = "rector@antoniasantos.edu.co";
-        if(schoolConfig.showNombre === undefined) schoolConfig.showNombre = true;
-        if(schoolConfig.showTel === undefined) schoolConfig.showTel = false;
-        if(schoolConfig.showEmail === undefined) schoolConfig.showEmail = false;
-
         let currentUser = null;
-        let pendingRejectId = null;
+
+        // CARGAR DATOS DESDE SUPABASE AL INICIAR
+        async function loadCloudData() {
+            try {
+                let { data: configData } = await supabaseClient.from('school_config').select('*').single();
+                if(configData && configData.data) schoolConfig = configData.data;
+
+                let { data: teachersData } = await supabaseClient.from('teachers').select('*');
+                if(teachersData) teachers = teachersData;
+
+                let { data: coordsData } = await supabaseClient.from('coordinators').select('*');
+                if(coordsData && coordsData.length > 0) coordinators = coordsData;
+
+                let { data: permsData } = await supabaseClient.from('permissions').select('*');
+                if(permsData) permissions = permsData;
+
+                applySchoolConfig();
+            } catch(e) {
+                console.error("Error conectando a Supabase:", e);
+            }
+        }
 
         window.onload = function() {
-            applySchoolConfig();
+            loadCloudData();
             setMinDate();
         };
 
@@ -609,46 +371,22 @@ A<!DOCTYPE html>
             let yyyy = today.getFullYear();
             let mm = String(today.getMonth() + 1).padStart(2, '0');
             let dd = String(today.getDate()).padStart(2, '0');
-            let minDateStr = `${yyyy}-${mm}-${dd}`;
             let dateInput = document.getElementById('sol_fecha');
-            if(dateInput) {
-                dateInput.min = minDateStr;
-            }
+            if(dateInput) dateInput.min = `${yyyy}-${mm}-${dd}`;
         }
 
         function applySchoolConfig() {
             document.getElementById('login-school-title').textContent = schoolConfig.nombre;
-            document.getElementById('login-hint-user').textContent = schoolConfig.rectorUser;
-            document.getElementById('login-hint-pass').textContent = schoolConfig.rectorPass;
-            
-            let loginLogo = document.getElementById('login-logo-container');
-            if(schoolConfig.logo) {
-                loginLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
-            } else {
-                loginLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
-            }
-
+            document.getElementById('login-hint-user').textContent = schoolConfig.rectorUser || "rector";
             document.getElementById('header-school-name').textContent = schoolConfig.nombre;
-            
-            let headerLogo = document.getElementById('header-logo-container');
-            if(schoolConfig.logo) {
-                headerLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
-            } else {
-                headerLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
-            }
         }
 
         function toggleRegister(show) {
-            if(show) {
-                document.getElementById('form-login').classList.add('hidden');
-                document.getElementById('form-register').classList.remove('hidden');
-            } else {
-                document.getElementById('form-register').classList.add('hidden');
-                document.getElementById('form-login').classList.remove('hidden');
-            }
+            document.getElementById('form-login').classList.toggle('hidden', show);
+            document.getElementById('form-register').classList.toggle('hidden', !show);
         }
 
-        function handleRegister(e) {
+        async function handleRegister(e) {
             e.preventDefault();
             let newDocente = {
                 nombres: document.getElementById('reg_nombres').value.trim(),
@@ -659,16 +397,16 @@ A<!DOCTYPE html>
                 pass: document.getElementById('reg_pass').value.trim()
             };
 
-            if(teachers.some(t => t.correo === newDocente.correo)) {
-                alert("Este correo ya está registrado.");
+            let { error } = await supabaseClient.from('teachers').insert([newDocente]);
+            if(error) {
+                alert("Error al registrar: " + error.message);
                 return;
             }
 
             teachers.push(newDocente);
-            localStorage.setItem('antonia_santos_teachers', JSON.stringify(teachers));
-            alert("¡Registro exitoso! Ya puede iniciar sesión.");
+            alert("¡Registro exitoso en la nube!");
             toggleRegister(false);
-            document.getElementById('form-register').reset();
+            e.target.reset();
         }
 
         function handleLogin(e) {
@@ -676,7 +414,7 @@ A<!DOCTYPE html>
             let user = document.getElementById('login_user').value.trim();
             let pass = document.getElementById('login_pass').value.trim();
 
-            if(user === schoolConfig.rectorUser && pass === schoolConfig.rectorPass) {
+            if(user === (schoolConfig.rectorUser || "rector") && pass === (schoolConfig.rectorPass || "RectorAntonia2026*")) {
                 currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", jornada: "Todas", isRector: true, correo: schoolConfig.rectorUser };
                 startApp('admin');
                 return;
@@ -684,28 +422,14 @@ A<!DOCTYPE html>
 
             let coord = coordinators.find(c => c.correo === user && c.pass === pass);
             if(coord) {
-                currentUser = {
-                    name: coord.nombre,
-                    role: "Coordinador",
-                    jornada: coord.jornada,
-                    correo: coord.correo,
-                    whatsapp: coord.whatsapp,
-                    isRector: false
-                };
+                currentUser = { name: coord.nombre, role: "Coordinador", jornada: coord.jornada, correo: coord.correo, whatsapp: coord.whatsapp, isRector: false };
                 startApp('admin');
                 return;
             }
 
             let docente = teachers.find(t => t.correo === user && t.pass === pass);
             if(docente) {
-                currentUser = {
-                    name: `${docente.nombres} ${docente.apellidos}`,
-                    role: "Docente",
-                    jornada: docente.jornada,
-                    correo: docente.correo,
-                    isRector: false,
-                    whatsapp: docente.telefono
-                };
+                currentUser = { name: `${docente.nombres} ${docente.apellidos}`, role: "Docente", jornada: docente.jornada, correo: docente.correo, isRector: false, whatsapp: docente.telefono };
                 startApp('docente');
                 return;
             }
@@ -718,295 +442,33 @@ A<!DOCTYPE html>
             if(type === 'docente') {
                 document.getElementById('view-solicitud').classList.remove('hidden');
                 document.getElementById('view-admin').classList.add('hidden');
-                document.getElementById('view-config').classList.add('hidden');
-                document.getElementById('view-coords').classList.add('hidden');
-                document.getElementById('view-reports').classList.add('hidden');
-                document.getElementById('rector-extra-nav').classList.add('hidden');
-                document.getElementById('coord-extra-nav').classList.add('hidden');
                 document.getElementById('sol_nombre').value = currentUser.name;
                 document.getElementById('sol_info_jornada').value = `Docente - Jornada ${currentUser.jornada}`;
-                document.getElementById('user-session-info').textContent = `Docente: ${currentUser.name} (${currentUser.jornada})`;
+                document.getElementById('user-session-info').textContent = `Docente: ${currentUser.name}`;
                 renderTeacherHistory();
-                setMinDate();
             } else {
                 document.getElementById('view-solicitud').classList.add('hidden');
                 document.getElementById('view-admin').classList.remove('hidden');
-                document.getElementById('view-config').classList.add('hidden');
-                document.getElementById('view-coords').classList.add('hidden');
-                document.getElementById('view-reports').classList.add('hidden');
                 document.getElementById('admin-title').textContent = `Panel - ${currentUser.name}`;
                 document.getElementById('user-session-info').textContent = `Rol: ${currentUser.role}`;
-                
-                if(currentUser.isRector) {
-                    document.getElementById('rector-extra-nav').classList.remove('hidden');
-                    document.getElementById('coord-extra-nav').classList.add('hidden');
-                } else {
-                    document.getElementById('rector-extra-nav').classList.add('hidden');
-                    document.getElementById('coord-extra-nav').classList.remove('hidden');
-                }
+                document.getElementById('rector-extra-nav').classList.toggle('hidden', !currentUser.isRector);
+                document.getElementById('coord-extra-nav').classList.toggle('hidden', currentUser.isRector);
                 renderTable();
             }
         }
 
         function switchView(view) {
-            document.getElementById('view-solicitud').classList.add('hidden');
-            document.getElementById('view-admin').classList.add('hidden');
-            document.getElementById('view-config').classList.add('hidden');
-            document.getElementById('view-coords').classList.add('hidden');
-            document.getElementById('view-reports').classList.add('hidden');
-
-            if(view === 'admin') {
-                document.getElementById('view-admin').classList.remove('hidden');
-                renderTable();
-            } else if(view === 'config') {
-                document.getElementById('view-config').classList.remove('hidden');
-                document.getElementById('cfg_nombre').value = schoolConfig.nombre;
-                document.getElementById('cfg_nit').value = schoolConfig.nit;
-                document.getElementById('cfg_direccion').value = schoolConfig.direccion;
-                document.getElementById('cfg_telefono').value = schoolConfig.telefono;
-                document.getElementById('cfg_correo').value = schoolConfig.correo;
-                document.getElementById('cfg_rector_nombres').value = schoolConfig.rectorNombres;
-                document.getElementById('cfg_rector_apellidos').value = schoolConfig.rectorApellidos;
-                document.getElementById('cfg_rector_tel').value = schoolConfig.rectorTel;
-                document.getElementById('cfg_rector_email').value = schoolConfig.rectorEmail;
-                document.getElementById('cfg_rector_user').value = schoolConfig.rectorUser;
-                document.getElementById('cfg_rector_pass').value = schoolConfig.rectorPass;
-                document.getElementById('chk_show_nombre').checked = schoolConfig.showNombre;
-                document.getElementById('chk_show_tel').checked = schoolConfig.showTel;
-                document.getElementById('chk_show_email').checked = schoolConfig.showEmail;
-            } else if(view === 'coords') {
-                document.getElementById('view-coords').classList.remove('hidden');
-                renderCoordsTable();
-            } else if(view === 'reports') {
-                document.getElementById('view-reports').classList.remove('hidden');
-                renderReports();
-            }
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            if(view === 'admin') { document.getElementById('view-admin').classList.remove('hidden'); renderTable(); }
+            else if(view === 'config') document.getElementById('view-config').classList.remove('hidden');
+            else if(view === 'coords') { document.getElementById('view-coords').classList.remove('hidden'); renderCoordsTable(); }
+            else if(view === 'reports') { document.getElementById('view-reports').classList.remove('hidden'); renderReports(); }
         }
 
-        function toggleModalidad() {
-            let modalidad = document.getElementById('sol_modalidad').value;
-            let sectionHoras = document.getElementById('section-horas');
-            let horaInicio = document.getElementById('sol_hora_inicio');
-            let horaFin = document.getElementById('sol_hora_fin');
-
-            if(modalidad === 'Por Horas') {
-                sectionHoras.classList.remove('hidden');
-                horaInicio.required = true;
-                horaFin.required = true;
-            } else {
-                sectionHoras.classList.add('hidden');
-                horaInicio.required = false;
-                horaFin.required = false;
-                horaInicio.value = "";
-                horaFin.value = "";
-            }
-        }
-
-        function saveCoordinator(e) {
-            e.preventDefault();
-            let editIdx = parseInt(document.getElementById('coord_edit_index').value);
-            let newC = {
-                nombre: document.getElementById('coord_nombre').value.trim(),
-                correo: document.getElementById('coord_correo').value.trim(),
-                whatsapp: document.getElementById('coord_whatsapp').value.trim(),
-                jornada: document.getElementById('coord_jornada').value,
-                pass: document.getElementById('coord_pass').value.trim()
-            };
-
-            if(editIdx === -1) {
-                if(coordinators.some(c => c.correo === newC.correo)) {
-                    alert("Ya existe un coordinador con este correo.");
-                    return;
-                }
-                coordinators.push(newC);
-                alert("¡Coordinador creado!");
-            } else {
-                coordinators[editIdx] = newC;
-                alert("¡Coordinador actualizado!");
-                document.getElementById('coord_edit_index').value = "-1";
-                document.getElementById('coord-form-title').textContent = "Nuevo Coordinador";
-                document.getElementById('coord_btn_submit').textContent = "Guardar";
-            }
-
-            localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
-            e.target.reset();
-            renderCoordsTable();
-        }
-
-        function editCoordinator(index) {
-            let c = coordinators[index];
-            document.getElementById('coord_edit_index').value = index;
-            document.getElementById('coord_nombre').value = c.nombre;
-            document.getElementById('coord_correo').value = c.correo;
-            document.getElementById('coord_whatsapp').value = c.whatsapp;
-            document.getElementById('coord_jornada').value = c.jornada;
-            document.getElementById('coord_pass').value = c.pass;
-            document.getElementById('coord-form-title').textContent = `Editar: ${c.nombre}`;
-            document.getElementById('coord_btn_submit').textContent = "Actualizar";
-        }
-
-        function renderCoordsTable() {
-            let tbody = document.getElementById('coords-table-body');
-            tbody.innerHTML = '';
-            if(coordinators.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:0.75rem;">No hay coordinadores.</td></tr>`;
-                return;
-            }
-            coordinators.forEach((c, idx) => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight:bold;">${c.nombre}</td>
-                    <td>${c.correo}</td>
-                    <td>📱 ${c.whatsapp}</td>
-                    <td><span style="color:#4f46e5; font-weight:700;">${c.jornada}</span></td>
-                    <td style="text-align:center;">
-                        <button onclick="editCoordinator(${idx})" style="background:#0284c7; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem; margin-right:2px;">Edit</button>
-                        <button onclick="deleteCoordinator(${idx})" style="background:#e11d48; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem;">Del</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function deleteCoordinator(index) {
-            if(confirm("¿Eliminar?")) {
-                coordinators.splice(index, 1);
-                localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
-                renderCoordsTable();
-            }
-        }
-
-        function saveSchoolConfig(e) {
-            e.preventDefault();
-            let fileInput = document.getElementById('cfg_logo_file');
-            let firmaInput = document.getElementById('cfg_firma_file');
-
-            schoolConfig.nombre = document.getElementById('cfg_nombre').value.trim();
-            schoolConfig.nit = document.getElementById('cfg_nit').value.trim();
-            schoolConfig.direccion = document.getElementById('cfg_direccion').value.trim();
-            schoolConfig.telefono = document.getElementById('cfg_telefono').value.trim();
-            schoolConfig.correo = document.getElementById('cfg_correo').value.trim();
-            schoolConfig.rectorNombres = document.getElementById('cfg_rector_nombres').value.trim();
-            schoolConfig.rectorApellidos = document.getElementById('cfg_rector_apellidos').value.trim();
-            schoolConfig.rectorTel = document.getElementById('cfg_rector_tel').value.trim();
-            schoolConfig.rectorEmail = document.getElementById('cfg_rector_email').value.trim();
-            schoolConfig.rectorUser = document.getElementById('cfg_rector_user').value.trim();
-            schoolConfig.rectorPass = document.getElementById('cfg_rector_pass').value.trim();
-            schoolConfig.showNombre = document.getElementById('chk_show_nombre').checked;
-            schoolConfig.showTel = document.getElementById('chk_show_tel').checked;
-            schoolConfig.showEmail = document.getElementById('chk_show_email').checked;
-
-            let pendingSaves = 0;
-            let checkDone = () => {
-                pendingSaves--;
-                if(pendingSaves <= 0) {
-                    localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
-                    applySchoolConfig();
-                    alert("¡Configuración guardada!");
-                    switchView('admin');
-                }
-            };
-
-            if(fileInput.files && fileInput.files[0]) {
-                pendingSaves++;
-                let reader = new FileReader();
-                reader.onload = function(uploadEvent) {
-                    schoolConfig.logo = uploadEvent.target.result;
-                    checkDone();
-                };
-                reader.readAsDataURL(fileInput.files[0]);
-            }
-
-            if(firmaInput.files && firmaInput.files[0]) {
-                pendingSaves++;
-                let readerFirma = new FileReader();
-                readerFirma.onload = function(uploadEvent) {
-                    schoolConfig.firma = uploadEvent.target.result;
-                    checkDone();
-                };
-                readerFirma.readAsDataURL(firmaInput.files[0]);
-            }
-
-            if(pendingSaves === 0) {
-                localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
-                applySchoolConfig();
-                alert("¡Configuración guardada!");
-                switchView('admin');
-            }
-        }
-
-        function logout() {
-            currentUser = null;
-            document.getElementById('auth-screen').style.display = 'flex';
-            document.getElementById('form-login').reset();
-        }
-
-        function checkSlots() {
-            let fecha = document.getElementById('sol_fecha').value;
-            let jornada = currentUser.jornada;
-            if(!fecha) return;
-
-            let count = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
-            let disponibles = 2 - count;
-            let badge = document.getElementById('slot-badge');
-            badge.textContent = `${disponibles} disponible(s)`;
-            badge.style.color = disponibles > 0 ? '#059669' : '#e11d48';
-        }
-
-        function handleFileUpload(e, targetKey) {
-            let file = e.target.files[0];
-            if(file) {
-                let reader = new FileReader();
-                reader.onload = function(uploadEvent) {
-                    window[targetKey] = { name: file.name, data: uploadEvent.target.result };
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function handleFormSubmit(e) {
+        async function handleFormSubmit(e) {
             e.preventDefault();
             let fecha = document.getElementById('sol_fecha').value;
             let jornada = currentUser.jornada;
-
-            let selectedDate = new Date(fecha);
-            let today = new Date();
-            today.setHours(0,0,0,0);
-            let diffTime = selectedDate - today;
-            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            if(diffDays < 3) {
-                alert("⚠️ Debe solicitarse con un mínimo de 3 días hábiles de anticipación.");
-                return;
-            }
-
-            let targetMonth = selectedDate.getMonth();
-            let targetYear = selectedDate.getFullYear();
-            let userMonthlyCount = permissions.filter(p => {
-                if(p.correo !== currentUser.correo || p.estado === 'Rechazado') return false;
-                let pDate = new Date(p.fecha);
-                return pDate.getMonth() === targetMonth && pDate.getFullYear() === targetYear;
-            }).length;
-
-            if(userMonthlyCount >= 3) {
-                alert("⚠️ Límite de 3 permisos alcanzado para este mes.");
-                return;
-            }
-
-            let count = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
-            if(count >= 2) {
-                alert("⚠️ Límite de 2 permisos alcanzado para esta jornada.");
-                return;
-            }
-
-            let modalidad = document.getElementById('sol_modalidad').value;
-            let motivoTipo = document.getElementById('sol_motivo_tipo').value;
-            let motivoDetalle = document.getElementById('sol_motivo_detalle').value.trim();
-            let horaInicio = document.getElementById('sol_hora_inicio').value;
-            let horaFin = document.getElementById('sol_hora_fin').value;
-
-            let detalleHoras = modalidad === 'Por Horas' ? ` [De ${horaInicio} a ${horaFin}]` : ' [Jornada Completa]';
-            let motivoCompleto = `[${motivoTipo}]${detalleHoras} ${motivoDetalle}`;
             let radicadoNum = "RAD-2026-" + Math.floor(10000 + Math.random() * 90000);
 
             let newP = {
@@ -1017,309 +479,49 @@ A<!DOCTYPE html>
                 whatsapp: currentUser.whatsapp || "3000000000",
                 jornada: jornada,
                 fecha: fecha,
-                modalidad: modalidad,
-                horaInicio: horaInicio,
-                horaFin: horaFin,
-                motivo: motivoCompleto,
-                soportePermiso: window.soportePermisoData?.name || "soporte.pdf",
-                soportePermisoBase64: window.soportePermisoData?.data || "",
-                soporteActividades: window.soporteActividadesData?.name || "actividades.pdf",
-                soporteActividadesBase64: window.soporteActividadesData?.data || "",
+                modalidad: document.getElementById('sol_modalidad').value,
+                hora_inicio: document.getElementById('sol_hora_inicio').value,
+                hora_fin: document.getElementById('sol_hora_fin').value,
+                motivo: `[${document.getElementById('sol_motivo_tipo').value}] ${document.getElementById('sol_motivo_detalle').value}`,
+                soporte_permiso: window.soportePermisoData?.name || "soporte.pdf",
+                soporte_permiso_b64: window.soportePermisoData?.data || "",
+                soporte_actividades: window.soporteActividadesData?.name || "actividades.pdf",
+                soporte_actividades_b64: window.soporteActividadesData?.data || "",
                 estado: "Pendiente",
-                observacionRechazo: ""
+                observacion_rechazo: ""
             };
 
+            let { error } = await supabaseClient.from('permissions').insert([newP]);
+            if(error) { alert("Error guardando permiso en la nube."); return; }
+
             permissions.push(newP);
-            localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
-
-            let coordAsignado = coordinators.find(c => c.jornada === jornada) || { whatsapp: "3001112233" };
-            let msgWa = encodeURIComponent(`Hola, permiso radicado ${radicadoNum} para el ${fecha} (${modalidad}) por ${currentUser.name}.`);
-            let waUrl = `https://wa.me/57${coordAsignado.whatsapp}?text=${msgWa}`;
-
-            if(confirm(`✅ [Registrado]\nRadicado: ${radicadoNum}\n\n¿Notificar por WhatsApp al Coordinador?`)) {
-                window.open(waUrl, '_blank');
-            }
-
-            document.getElementById('sol_motivo_detalle').value = '';
-            document.getElementById('sol_motivo_tipo').value = '';
-            document.getElementById('sol_modalidad').value = 'Jornada Completa';
-            toggleModalidad();
-            document.getElementById('sol_fecha').value = '';
-            document.getElementById('file_permiso').value = '';
-            document.getElementById('file_actividades').value = '';
-            document.getElementById('slot-badge').textContent = "Cupos: --";
-            window.soportePermisoData = null;
-            window.soporteActividadesData = null;
+            alert(`¡Solicitud enviada con éxito! Radicado: ${radicadoNum}`);
+            e.target.reset();
             renderTeacherHistory();
         }
 
-        function renderTeacherHistory() {
+        async function renderTeacherHistory() {
             let tbody = document.getElementById('teacher-history-body');
             tbody.innerHTML = '';
             let myPerms = permissions.filter(p => p.correo === currentUser.correo);
-
-            if(myPerms.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:0.75rem;">Sin solicitudes.</td></tr>`;
-                return;
-            }
-
+            if(myPerms.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Sin solicitudes.</td></tr>`; return; }
             myPerms.forEach(p => {
-                let badgeClass = p.estado === 'Aprobado' ? 'status-approved' : p.estado === 'Preaprobado' ? 'status-preapproved' : p.estado === 'Rechazado' ? 'status-rejected' : 'status-pending';
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
-                    <td>${p.fecha} <br><span style="font-size:0.6rem; color:#64748b; font-weight:bold;">${p.modalidad || 'Completa'}</span></td>
-                    <td>${p.motivo}</td>
-                    <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
-                    <td style="text-align:center;">
-                        ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem;">Ver</button>` : `<span style="font-size:0.6rem; color:#64748b;">Trámite</span>`}
-                    </td>
-                `;
-                tbody.appendChild(tr);
+                tbody.innerHTML += `<tr><td><b>${p.radicado}</b></td><td>${p.fecha}</td><td>${p.motivo}</td><td><span class="status-badge status-pending">${p.estado}</span></td><td style="text-align:center;">${p.estado}</td></tr>`;
             });
         }
 
-        function renderTable() {
+        async function renderTable() {
             let tbody = document.getElementById('admin-table-body');
             tbody.innerHTML = '';
-
-            let filtered = permissions.filter(p => {
-                if(currentUser.jornada !== 'Todas' && p.jornada !== currentUser.jornada) return false;
-                return true;
-            });
-
-            if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:1rem;">No hay solicitudes.</td></tr>`;
-                return;
-            }
-
+            let filtered = permissions.filter(p => currentUser.jornada === 'Todas' || p.jornada === currentUser.jornada);
+            if(filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No hay solicitudes.</td></tr>`; return; }
             filtered.forEach(p => {
-                let badgeClass = p.estado === 'Aprobado' ? 'status-approved' : p.estado === 'Preaprobado' ? 'status-preapproved' : p.estado === 'Rechazado' ? 'status-rejected' : 'status-pending';
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
-                    <td><strong style="display:block;">${p.nombre}</strong><span style="font-size:0.6rem; color:#64748b;">${p.correo}</span></td>
-                    <td>${p.fecha} <br><span style="color:#4f46e5; font-weight:700; font-size:0.6rem;">${p.jornada}</span></td>
-                    <td style="font-size:0.7rem; color:#475569;">
-                        <div><strong>Motivo:</strong> ${p.motivo}</div>
-                        <div style="font-size:0.6rem; margin-top:0.1rem;">
-                            📄 ${p.soportePermisoBase64 ? `<a href="${p.soportePermisoBase64}" download="${p.soportePermiso}" style="color:#4f46e5; font-weight:bold;">Soporte</a>` : p.soportePermiso} | 
-                            📁 ${p.soporteActividadesBase64 ? `<a href="${p.soporteActividadesBase64}" download="${p.soporteActividades}" style="color:#d97706; font-weight:bold;">Actividades</a>` : p.soporteActividades}
-                        </div>
-                    </td>
-                    <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
-                    <td style="text-align:center;">
-                        ${(currentUser.role === 'Coordinador' && p.estado === 'Pendiente') ? `<button onclick="updateStatus(${p.id}, 'Preaprobado')" style="background:#0284c7; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem;">Preaprobar</button>` : ''}
-                        
-                        ${(currentUser.isRector && p.estado === 'Preaprobado') ? `<button onclick="updateStatus(${p.id}, 'Aprobado')" style="background:#059669; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem;">Aprobar</button>` : ''}
-                        
-                        ${(currentUser.isRector && p.estado === 'Pendiente') ? `<span style="font-size:0.55rem; color:#d97706; font-weight:bold; display:block;">Falta Preaprobación</span>` : ''}
-
-                        <button onclick="promptReject(${p.id})" style="background:#e11d48; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem; margin-top:2px;">Negar</button>
-
-                        ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.6rem; display:block; margin:2px auto 0 auto;">Resolución</button>` : ''}
-                    </td>
-                `;
-                tbody.appendChild(tr);
+                tbody.innerHTML += `<tr><td><b>${p.radicado}</b></td><td>${p.nombre}</td><td>${p.jornada}</td><td>${p.motivo}</td><td>${p.estado}</td><td style="text-align:center;">Gestión</td></tr>`;
             });
         }
 
-        function promptReject(id) {
-            let p = permissions.find(x => x.id === id);
-            if(p) {
-                pendingRejectId = id;
-                document.getElementById('reject_observacion').value = "";
-                document.getElementById('rejectModal').classList.remove('hidden');
-            }
-        }
-
-        function closeRejectModal() {
-            pendingRejectId = null;
-            document.getElementById('rejectModal').classList.add('hidden');
-        }
-
-        function confirmReject() {
-            let obs = document.getElementById('reject_observacion').value.trim();
-            if(!obs) {
-                alert("Especifique la observación.");
-                return;
-            }
-
-            let p = permissions.find(x => x.id === pendingRejectId);
-            if(p) {
-                p.estado = "Rechazado";
-                p.observacionRechazo = obs;
-                localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
-
-                let templateParams = {
-                    to_email: p.correo,
-                    to_name: p.nombre,
-                    radicado: p.radicado,
-                    estado: "RECHAZADO",
-                    fecha: p.fecha,
-                    jornada: p.jornada,
-                    motivo: p.motivo + " | Obs: " + obs
-                };
-
-                emailjs.send("service_9hhf70g", "template_066a5sv", templateParams)
-                    .then(function(response) {
-                        alert("📨 [Enviado]");
-                    }, function(error) {
-                        console.error(error);
-                    });
-
-                closeRejectModal();
-                renderTable();
-            }
-        }
-
-        function updateStatus(id, newStatus) {
-            let p = permissions.find(x => x.id === id);
-            if(p) {
-                if(currentUser.isRector && newStatus === 'Aprobado' && p.estado !== 'Preaprobado') {
-                    alert("⚠️ Falta preaprobación del Coordinador.");
-                    return;
-                }
-
-                p.estado = newStatus;
-                localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
-                
-                if(newStatus === 'Aprobado') {
-                    let templateParams = {
-                        to_email: p.correo,
-                        to_name: p.nombre,
-                        radicado: p.radicado,
-                        estado: "APROBADO",
-                        fecha: p.fecha,
-                        jornada: p.jornada,
-                        motivo: p.motivo
-                    };
-
-                    emailjs.send("service_9hhf70g", "template_066a5sv", templateParams)
-                        .then(function(response) {
-                            alert("📨 [Enviado]");
-                        }, function(error) {
-                            console.error(error);
-                        });
-                } else if(newStatus === 'Preaprobado') {
-                    alert("🔔 [Preaprobado]");
-                }
-
-                renderTable();
-            }
-        }
-
-        function renderReports() {
-            let desde = document.getElementById('rep_desde').value;
-            let hasta = document.getElementById('rep_hasta').value;
-            let tbody = document.getElementById('reports-table-body');
-            tbody.innerHTML = '';
-
-            let filtered = permissions.filter(p => {
-                if(currentUser.jornada !== 'Todas' && p.jornada !== currentUser.jornada) return false;
-                if(desde && p.fecha < desde) return false;
-                if(hasta && p.fecha > hasta) return false;
-                return true;
-            });
-
-            if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:1rem;">Sin registros.</td></tr>`;
-                return;
-            }
-
-            filtered.forEach(p => {
-                let badgeClass = p.estado === 'Aprobado' ? 'status-approved' : p.estado === 'Preaprobado' ? 'status-preapproved' : p.estado === 'Rechazado' ? 'status-rejected' : 'status-pending';
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
-                    <td>${p.nombre}</td>
-                    <td>${p.jornada}</td>
-                    <td>${p.fecha}</td>
-                    <td>${p.motivo}</td>
-                    <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function openModal(id) {
-            let p = permissions.find(x => x.id === id);
-            if(!p) return;
-
-            document.getElementById('modal-school-title').textContent = schoolConfig.nombre;
-            document.getElementById('modal-school-nit').textContent = `NIT: ${schoolConfig.nit} | ${schoolConfig.direccion}`;
-            
-            let modalLogo = document.getElementById('modal-logo-box');
-            if(schoolConfig.logo) {
-                modalLogo.innerHTML = `<img src="${schoolConfig.logo}" style="width:100%; height:100%; object-fit:cover;">`;
-            } else {
-                modalLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
-            }
-
-            let isApproved = p.estado === 'Aprobado';
-            let estadoColor = isApproved ? '#065f46' : '#9f1239';
-            let estadoBg = isApproved ? '#d1fae5' : '#ffe4e6';
-            let resolucionTitulo = isApproved ? 'RESOLUCIÓN DE CONCESIÓN' : 'RESOLUCIÓN DE NEGACIÓN';
-            let resolucionVisto = 'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales, y';
-
-            let textoModalidad = p.modalidad === 'Por Horas' ? `por horas (de ${p.horaInicio} a ${p.horaFin})` : 'por jornada completa';
-
-            let resolucionConsiderando = isApproved ?
-                `Que el(la) docente <strong>${p.nombre}</strong> (${p.jornada}) presentó solicitud N° <strong>${p.radicado}</strong> para el <strong>${p.fecha}</strong>, motivo: "${p.motivo}".<br>Cumple con los requisitos.` :
-                `Que el(la) docente <strong>${p.nombre}</strong> (${p.jornada}) presentó solicitud N° <strong>${p.radicado}</strong> para el <strong>${p.fecha}</strong>.<br><strong>Motivo:</strong> ${p.observacionRechazo || 'No especificada.'}`;
-
-            let resolucionResuelve = isApproved ?
-                `<strong>ARTÍCULO PRIMERO: CONCEDER</strong> permiso remunerado al(la) docente <strong>${p.nombre}</strong> ${textoModalidad} para el día <strong>${p.fecha}</strong>.<br><strong>ARTÍCULO SEGUNDO:</strong> Comuníquese y cúmplase.` :
-                `<strong>ARTÍCULO PRIMERO: NEGAR</strong> la solicitud N° <strong>${p.radicado}</strong> para el día <strong>${p.fecha}</strong>.<br><strong>ARTÍCULO SEGUNDO:</strong> Comuníquese y cúmplase.`;
-
-            let firmaRectorHtml = schoolConfig.firma ? 
-                `<div style="margin-top: 6px;"><img src="${schoolConfig.firma}" style="max-height: 45px; max-width: 110px; object-fit: contain; display: block; margin: 0 auto 2px auto;"></div>` : 
-                `<div style="height: 20px;"></div>`;
-
-            let nombreRectorStr = schoolConfig.showNombre ? `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos}` : "ÁLVARO GONZÁLEZ CONTRERAS (ALGC)";
-            let infoExtraRector = "";
-            if(schoolConfig.showTel) infoExtraRector += `<br>Tel: ${schoolConfig.rectorTel}`;
-            if(schoolConfig.showEmail) infoExtraRector += `<br>Correo: ${schoolConfig.rectorEmail}`;
-
-            let msgWaDocente = encodeURIComponent(`Hola ${p.nombre}, su solicitud radicado ${p.radicado} ha sido: ${p.estado.toUpperCase()}. Revise su resolución.`);
-            let linkWaDocente = `https://wa.me/57${p.whatsapp || '3000000000'}?text=${msgWaDocente}`;
-
-            document.getElementById('permit-modal-content').innerHTML = `
-                <div style="text-align: center; margin-bottom: 0.4rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3rem;">
-                    <h4 style="font-size: 0.75rem; font-weight: 800; color: #0f172a; margin-bottom: 0.1rem;">${resolucionTitulo}</h4>
-                    <p style="font-size: 0.65rem; font-weight: 700; color: #4f46e5;">Radicado: ${p.radicado}</p>
-                </div>
-                <p style="margin-bottom: 0.3rem;"><strong>VISTOS:</strong> ${resolucionVisto}</p>
-                <p style="margin-bottom: 0.3rem;"><strong>CONSIDERANDO:</strong> ${resolucionConsiderando}</p>
-                <p style="margin-bottom: 0.4rem;"><strong>RESUELVE:</strong></p>
-                <div style="background: ${estadoBg}; border-left: 3px solid ${estadoColor}; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.6rem;">
-                    <p style="color: ${estadoColor}; font-weight: 600; margin: 0;">${resolucionResuelve}</p>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.65rem; border-top: 1px solid #cbd5e1; padding-top: 0.4rem;">
-                    <div>
-                        <p>Dada en Montería, a los ${new Date().toLocaleDateString()}.</p>
-                    </div>
-                    <div style="text-align: center;">
-                        ${firmaRectorHtml}
-                        <p style="font-weight: bold; color: #0f172a; border-top: 1px solid #475569; display: inline-block; padding-top: 2px; min-width: 110px;">${nombreRectorStr}</p>
-                        <p style="color: #64748b; font-size: 0.55rem; margin-top: 1px;">Rector - ${schoolConfig.nombre} ${infoExtraRector}</p>
-                    </div>
-                </div>
-            `;
-            
-            let actionsContainer = document.getElementById('modal-actions-container');
-            actionsContainer.innerHTML = `
-                <a href="${linkWaDocente}" target="_blank" class="btn-submit" style="background:#25d366; width: auto; padding: 0.35rem 0.7rem; font-size: 0.7rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.25rem;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
-                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.35rem 0.7rem; font-size: 0.7rem;"><i class="fa-solid fa-print"></i> Imprimir</button>
-                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.35rem 0.7rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem;">Cerrar</button>
-            `;
-
-            document.getElementById('permitModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('permitModal').classList.add('hidden');
-        }
+        function logout() { location.reload(); }
+        function closeModal() { document.getElementById('permitModal').classList.add('hidden'); }
     </script>
 </body>
 </html>

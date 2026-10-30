@@ -261,15 +261,30 @@
 
             <!-- VISTA COORDINADORES -->
             <section id="view-coords" class="card hidden">
-                <div class="card-header"><h2><i class="fa-solid fa-user-tie" style="color:#f59e0b;"></i> Coordinadores</h2><p>Gestión</p></div>
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-user-tie" style="color:#f59e0b;"></i> Gestionar Coordinadores</h2>
+                    <p>Agregue, edite o elimine coordinadores institucionales.</p>
+                </div>
+
                 <form onsubmit="saveCoordinator(event)" style="background:#f8fafc; padding:0.75rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:1rem;">
                     <h3 id="coord-form-title" style="font-size:0.8rem; font-weight:800; color:#1e1b4b; margin-bottom:0.5rem;">Nuevo Coordinador</h3>
-                    <input type="hidden" id="coord_edit_index" value="-1">
-                    <div class="grid-2"><div class="form-group"><label>Nombre</label><input type="text" id="coord_nombre" required></div><div class="form-group"><label>Correo</label><input type="text" id="coord_correo" required></div></div>
-                    <div class="grid-2"><div class="form-group"><label>WhatsApp</label><input type="tel" id="coord_whatsapp" required></div><div class="form-group"><label>Jornada</label><select id="coord_jornada" required><option value="">Seleccione...</option><option value="Mañana">Mañana</option><option value="Tarde">Tarde</option></select></div></div>
+                    <input type="hidden" id="coord_edit_id" value="">
+                    <div class="grid-2">
+                        <div class="form-group"><label>Nombre Completo</label><input type="text" id="coord_nombre" required></div>
+                        <div class="form-group"><label>Correo (Usuario)</label><input type="text" id="coord_correo" required></div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group"><label>WhatsApp</label><input type="tel" id="coord_whatsapp" required></div>
+                        <div class="form-group">
+                            <label>Jornada</label>
+                            <select id="coord_jornada" required><option value="">Seleccione...</option><option value="Mañana">Mañana</option><option value="Tarde">Tarde</option></select>
+                        </div>
+                    </div>
                     <div class="form-group"><label>Contraseña</label><input type="password" id="coord_pass" required></div>
-                    <button type="submit" id="coord_btn_submit" class="btn-submit" style="background:#0284c7;">Guardar</button>
+                    <button type="submit" id="coord_btn_submit" class="btn-submit" style="background:#0284c7;">Guardar Coordinador</button>
                 </form>
+
+                <h3 style="font-size:0.8rem; font-weight:800; color:#1e1b4b; margin-bottom:0.5rem;">Coordinadores Registrados</h3>
                 <div class="table-responsive">
                     <table>
                         <thead><tr><th>Nombre</th><th>Correo</th><th>WhatsApp</th><th>Jornada</th><th style="text-align:center;">Acciones</th></tr></thead>
@@ -278,11 +293,11 @@
                 </div>
             </section>
 
-            <!-- VISTA CONFIGURACIÓN (CON RECTOR RESTAURADO) -->
+            <!-- VISTA CONFIGURACIÓN -->
             <section id="view-config" class="card hidden">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración General y Rector</h2>
-                    <p>Actualice datos del colegio, credenciales del rector y visualización.</p>
+                    <p>Actualice datos del colegio y credenciales del rector.</p>
                 </div>
 
                 <form onsubmit="saveSchoolConfig(event)">
@@ -325,11 +340,11 @@
 
                     <div class="grid-2" style="margin-bottom:0.75rem;">
                         <div style="background:#f8fafc; padding:0.5rem; border:2px dashed #cbd5e1; border-radius:6px;">
-                            <label style="font-size:0.7rem; font-weight:bold;"><i class="fa-solid fa-image" style="color:#f59e0b;"></i> Logotipo</label>
+                            <label style="font-size:0.7rem; font-weight:bold;"><i class="fa-solid fa-image" style="color:#f59e0b;"></i> Logotipo (Opcional)</label>
                             <input type="file" id="cfg_logo_file" accept="image/*" style="font-size:0.65rem; border:none; padding:0; background:transparent;">
                         </div>
                         <div style="background:#f8fafc; padding:0.5rem; border:2px dashed #cbd5e1; border-radius:6px;">
-                            <label style="font-size:0.7rem; font-weight:bold;"><i class="fa-solid fa-signature" style="color:#4f46e5;"></i> Firma Digital (PNG)</label>
+                            <label style="font-size:0.7rem; font-weight:bold;"><i class="fa-solid fa-signature" style="color:#4f46e5;"></i> Firma Digital PNG (Opcional)</label>
                             <input type="file" id="cfg_firma_file" accept="image/*" style="font-size:0.65rem; border:none; padding:0; background:transparent;">
                         </div>
                     </div>
@@ -400,12 +415,19 @@
                 if(teachersData) teachers = teachersData;
 
                 let { data: coordsData } = await supabaseClient.from('coordinators').select('*');
-                if(coordsData && coordsData.length > 0) coordinators = coordsData;
+                if(coordsData) coordinators = coordsData;
 
                 let { data: permsData } = await supabaseClient.from('permissions').select('*');
                 if(permsData) permissions = permsData;
 
                 applySchoolConfig();
+
+                // Recuperar sesión persistente si existe
+                let savedUser = sessionStorage.getItem('antonia_current_user');
+                if(savedUser) {
+                    currentUser = JSON.parse(savedUser);
+                    startApp(currentUser.isRector || currentUser.role === 'Coordinador' ? 'admin' : 'docente');
+                }
             } catch(e) {
                 console.error("Error conectando a Supabase:", e);
             }
@@ -430,6 +452,20 @@
             document.getElementById('login-school-title').textContent = schoolConfig.nombre;
             document.getElementById('login-hint-user').textContent = schoolConfig.rectorUser || "rector";
             document.getElementById('header-school-name').textContent = schoolConfig.nombre;
+            
+            let loginLogo = document.getElementById('login-logo-container');
+            if(schoolConfig.logo) {
+                loginLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
+            } else {
+                loginLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+            }
+
+            let headerLogo = document.getElementById('header-logo-container');
+            if(schoolConfig.logo) {
+                headerLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
+            } else {
+                headerLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+            }
         }
 
         function toggleRegister(show) {
@@ -464,6 +500,7 @@
 
             if(user === (schoolConfig.rectorUser || "rector") && pass === (schoolConfig.rectorPass || "RectorAntonia2026*")) {
                 currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", jornada: "Todas", isRector: true, correo: schoolConfig.rectorUser };
+                sessionStorage.setItem('antonia_current_user', JSON.stringify(currentUser));
                 startApp('admin');
                 return;
             }
@@ -471,6 +508,7 @@
             let coord = coordinators.find(c => c.correo === user && c.pass === pass);
             if(coord) {
                 currentUser = { name: coord.nombre, role: "Coordinador", jornada: coord.jornada, correo: coord.correo, whatsapp: coord.whatsapp, isRector: false };
+                sessionStorage.setItem('antonia_current_user', JSON.stringify(currentUser));
                 startApp('admin');
                 return;
             }
@@ -478,6 +516,7 @@
             let docente = teachers.find(t => t.correo === user && t.pass === pass);
             if(docente) {
                 currentUser = { name: `${docente.nombres} ${docente.apellidos}`, role: "Docente", jornada: docente.jornada, correo: docente.correo, isRector: false, whatsapp: docente.telefono };
+                sessionStorage.setItem('antonia_current_user', JSON.stringify(currentUser));
                 startApp('docente');
                 return;
             }
@@ -529,6 +568,83 @@
             else if(view === 'reports') { document.getElementById('view-reports').classList.remove('hidden'); renderReports(); }
         }
 
+        async function saveCoordinator(e) {
+            e.preventDefault();
+            let editId = document.getElementById('coord_edit_id').value;
+            let newC = {
+                nombre: document.getElementById('coord_nombre').value.trim(),
+                correo: document.getElementById('coord_correo').value.trim(),
+                whatsapp: document.getElementById('coord_whatsapp').value.trim(),
+                jornada: document.getElementById('coord_jornada').value,
+                pass: document.getElementById('coord_pass').value.trim()
+            };
+
+            if(!editId) {
+                let { data, error } = await supabaseClient.from('coordinators').insert([newC]).select();
+                if(error) { alert("Error: " + error.message); return; }
+                if(data) coordinators.push(data[0]);
+                alert("¡Coordinador creado en la nube!");
+            } else {
+                let { error } = await supabaseClient.from('coordinators').update(newC).eq('id', editId);
+                if(error) { alert("Error: " + error.message); return; }
+                let idx = coordinators.findIndex(c => c.id == editId);
+                if(idx !== -1) coordinators[idx] = { id: editId, ...newC };
+                alert("¡Coordinador actualizado en la nube!");
+                document.getElementById('coord_edit_id').value = "";
+                document.getElementById('coord-form-title').textContent = "Nuevo Coordinador";
+                document.getElementById('coord_btn_submit').textContent = "Guardar Coordinador";
+            }
+
+            e.target.reset();
+            renderCoordsTable();
+        }
+
+        function editCoordinator(id) {
+            let c = coordinators.find(x => x.id == id);
+            if(!c) return;
+            document.getElementById('coord_edit_id').value = c.id;
+            document.getElementById('coord_nombre').value = c.nombre;
+            document.getElementById('coord_correo').value = c.correo;
+            document.getElementById('coord_whatsapp').value = c.whatsapp;
+            document.getElementById('coord_jornada').value = c.jornada;
+            document.getElementById('coord_pass').value = c.pass;
+            document.getElementById('coord-form-title').textContent = `Editar: ${c.nombre}`;
+            document.getElementById('coord_btn_submit').textContent = "Actualizar Coordinador";
+        }
+
+        async function deleteCoordinator(id) {
+            if(confirm("¿Está seguro de eliminar este coordinador?")) {
+                let { error } = await supabaseClient.from('coordinators').delete().eq('id', id);
+                if(error) { alert("Error al eliminar: " + error.message); return; }
+                coordinators = coordinators.filter(c => c.id != id);
+                renderCoordsTable();
+                alert("Coordinador eliminado.");
+            }
+        }
+
+        function renderCoordsTable() {
+            let tbody = document.getElementById('coords-table-body');
+            tbody.innerHTML = '';
+            if(coordinators.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:1rem;">No hay coordinadores.</td></tr>`;
+                return;
+            }
+            coordinators.forEach(c => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold;">${c.nombre}</td>
+                    <td>${c.correo}</td>
+                    <td>📱 ${c.whatsapp}</td>
+                    <td><span style="color:#4f46e5; font-weight:700;">${c.jornada}</span></td>
+                    <td style="text-align:center;">
+                        <button onclick="editCoordinator(${c.id})" style="background:#0284c7; color:white; border:none; padding:0.2rem 0.4rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.65rem; margin-right:2px;">Editar</button>
+                        <button onclick="deleteCoordinator(${c.id})" style="background:#e11d48; color:white; border:none; padding:0.2rem 0.4rem; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.65rem;">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
         async function saveSchoolConfig(e) {
             e.preventDefault();
             schoolConfig.nombre = document.getElementById('cfg_nombre').value.trim();
@@ -546,16 +662,45 @@
             schoolConfig.showTel = document.getElementById('chk_show_tel').checked;
             schoolConfig.showEmail = document.getElementById('chk_show_email').checked;
 
-            // Guardar en la nube (Supabase)
-            let { error } = await supabaseClient.from('school_config').upsert({ id: 1, data: schoolConfig });
-            if(error) {
-                alert("Error al guardar en la nube: " + error.message);
-                return;
+            let logoInput = document.getElementById('cfg_logo_file');
+            let firmaInput = document.getElementById('cfg_firma_file');
+
+            let processAndSave = async () => {
+                let { error } = await supabaseClient.from('school_config').upsert({ id: 1, data: schoolConfig });
+                if(error) { alert("Error al guardar en la nube: " + error.message); return; }
+
+                applySchoolConfig();
+                alert("¡Configuración institucional, logotipo y firma guardados con éxito en la nube!");
+                switchView('admin');
+            };
+
+            let pendingImages = 0;
+
+            if(logoInput.files && logoInput.files[0]) {
+                pendingImages++;
+                let reader = new FileReader();
+                reader.onload = async function(e) {
+                    schoolConfig.logo = e.target.result;
+                    pendingImages--;
+                    if(pendingImages === 0) await processAndSave();
+                };
+                reader.readAsDataURL(logoInput.files[0]);
             }
 
-            applySchoolConfig();
-            alert("¡Configuración institucional y del rector guardada con éxito en la nube!");
-            switchView('admin');
+            if(firmaInput.files && firmaInput.files[0]) {
+                pendingImages++;
+                let readerFirma = new FileReader();
+                readerFirma.onload = async function(e) {
+                    schoolConfig.firma = e.target.result;
+                    pendingImages--;
+                    if(pendingImages === 0) await processAndSave();
+                };
+                readerFirma.readAsDataURL(firmaInput.files[0]);
+            }
+
+            if(pendingImages === 0) {
+                await processAndSave();
+            }
         }
 
         async function handleFormSubmit(e) {
@@ -575,7 +720,7 @@
                 modalidad: document.getElementById('sol_modalidad').value,
                 hora_inicio: document.getElementById('sol_hora_inicio').value,
                 hora_fin: document.getElementById('sol_hora_fin').value,
-                motivo: `[${document.getElementById('sol_motivo_tipo').value}] ${document.getElementById('sol_motivo_detalle').value}`,
+                motivo: `[${document.getElementById('sol_motivo_tipo'].value}] ${document.getElementById('sol_motivo_detalle'].value}`,
                 soporte_permiso: window.soportePermisoData?.name || "soporte.pdf",
                 soporte_permiso_b64: window.soportePermisoData?.data || "",
                 soporte_actividades: window.soporteActividadesData?.name || "actividades.pdf",
@@ -585,7 +730,7 @@
             };
 
             let { error } = await supabaseClient.from('permissions').insert([newP]);
-            if(error) { alert("Error guardando permiso en la nube."); return; }
+            if(error) { alert("Error guardando permiso."); return; }
 
             permissions.push(newP);
             alert(`¡Solicitud enviada con éxito! Radicado: ${radicadoNum}`);
@@ -613,7 +758,10 @@
             });
         }
 
-        function logout() { location.reload(); }
+        function logout() { 
+            sessionStorage.removeItem('antonia_current_user');
+            location.reload(); 
+        }
         function closeModal() { document.getElementById('permitModal').classList.add('hidden'); }
     </script>
 </body>

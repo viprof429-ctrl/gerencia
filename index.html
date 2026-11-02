@@ -403,7 +403,7 @@
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Código DANE</label>
-                            <input type="text" id="cfg_dane" required placeholder="Ej. 123001000000">
+                            <input type="text" id="cfg_dane" placeholder="Ej. 123001000000">
                         </div>
                         <div class="form-group">
                             <label>Teléfono Institucional</label>
@@ -1238,8 +1238,8 @@
                         ${logoHtml}
                     </div>
                     <div style="flex-grow: 1;">
-                        <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">${schoolConfig.nombre}</h3>
-                        <p style="font-size: 0.7rem; color: #475569; font-weight: 600;">NIT: ${schoolConfig.nit} | DANE: ${schoolConfig.dane} | ${schoolConfig.direccion}</p>
+                        <h3 id="modal-school-title" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">${schoolConfig.nombre}</h3>
+                        <p id="modal-school-meta" style="font-size: 0.7rem; color: #475569; font-weight: 600;">NIT: ${schoolConfig.nit} | DANE: ${schoolConfig.dane || '123001000000'} | ${schoolConfig.direccion}</p>
                         <p style="font-size: 0.65rem; color: #64748b;">RECTORÍA - GESTIÓN DE TALENTO HUMANO Y PERMISOS LABORALES</p>
                     </div>
                 </div>

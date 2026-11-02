@@ -5,139 +5,129 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sistema de Permisos - I.E. Antonia Santos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-        body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         .hidden { display: none !important; }
-
         .auth-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
-        .auth-logo { width: 70px; height: 70px; background: #f59e0b; color: #0f172a; border-radius: 16px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; overflow: hidden; }
-
-        header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-        .brand { display: flex; align-items: center; gap: 1rem; }
-        .brand-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; overflow: hidden; background: #f59e0b; color: #0f172a; }
-        .brand-text h1 { font-size: 1.15rem; font-weight: 800; }
-        .brand-text p { font-size: 0.75rem; color: #cbd5e1; }
-
-        main { max-width: 1050px; width: 100%; margin: 2.5rem auto; padding: 0 1.5rem; flex-grow: 1; }
-        .card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
-        
-        .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; }
-        .card-header h2 { font-size: 1.35rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.75rem; }
-
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-        .form-group { margin-bottom: 1.25rem; text-align: left; }
-        label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.85rem; color: #334155; }
-        input, select, textarea { width: 100%; padding: 0.85rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 12px; font-size: 0.9rem; background: #f8fafc; color: #1e293b; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 4px rgba(79,70,229,0.1); }
-
-        .btn-submit { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; border: none; padding: 1rem 2rem; font-size: 0.95rem; font-weight: 700; border-radius: 12px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(79,70,229,0.35); }
-        .nav-admin-btn { background: #4f46e5; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem; }
-        .link-btn { background: none; border: none; color: #4f46e5; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-decoration: underline; padding: 0; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
-        th { background: #f8fafc; color: #475569; text-transform: uppercase; font-size: 0.75rem; font-weight: 800; }
-        .status-badge { padding: 0.35rem 0.85rem; border-radius: 99px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
-        .status-approved { background: #d1fae5; color: #065f46; }
-        
-        .modal-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
-        .modal-card { background: white; border-radius: 20px; padding: 2rem; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .auth-card { background: white; border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 380px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
+        .auth-logo { width: 60px; height: 60px; background: #f59e0b; color: #0f172a; border-radius: 12px; margin: 0 auto 0.5rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; overflow: hidden; }
+        header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: relative; width: 100%; z-index: 1000; }
+        .brand { display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex-grow: 1; }
+        .brand-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold; overflow: hidden; background: #f59e0b; color: #0f172a; flex-shrink: 0; }
+        .brand-text { min-width: 0; flex-grow: 1; }
+        .brand-text h1 { font-size: 0.85rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .brand-text p { font-size: 0.6rem; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .nav-actions { display: flex; align-items: center; gap: 0.3rem; }
+        .logout-btn { background: #e11d48; color: white; border: none; padding: 0.4rem 0.6rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 0.2rem; }
+        .menu-toggle { display: none; background: none; border: none; color: white; font-size: 1.4rem; cursor: pointer; padding: 0.3rem; flex-shrink: 0; }
+        main { max-width: 1000px; width: 100%; margin: 0.75rem auto; padding: 0 0.5rem; flex-grow: 1; }
+        .card { background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 4px 15px -3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 1rem; width: 100%; }
+        .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 0.6rem; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.2rem; }
+        .card-header h2 { font-size: 0.95rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.3rem; word-break: break-word; }
+        .form-group { margin-bottom: 0.6rem; width: 100%; text-align: left; }
+        label { display: block; font-weight: 700; margin-bottom: 0.25rem; font-size: 0.7rem; color: #334155; }
+        input, select { width: 100%; padding: 0.55rem; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #f8fafc; color: #1e293b; }
+        input:focus, select:focus { outline: none; border-color: #4f46e5; background: #fff; }
+        .btn-submit { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; border: none; padding: 0.65rem 0.85rem; font-size: 0.8rem; font-weight: 700; border-radius: 6px; cursor: pointer; width: 100%; box-shadow: 0 2px 8px rgba(79,70,229,0.25); display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
+        .link-btn { background: none; border: none; color: #4f46e5; font-weight: 700; font-size: 0.75rem; cursor: pointer; text-decoration: underline; padding: 0; }
+        @media (max-width: 768px) {
+            .menu-toggle { display: block !important; }
+            .nav-actions { display: none !important; position: absolute; top: 100%; left: 0; right: 0; background: #0f172a; flex-direction: column; gap: 0.4rem; padding: 0.75rem; z-index: 1000; }
+            .nav-actions.active { display: flex !important; }
+        }
     </style>
 </head>
 <body>
-
-    <!-- PANTALLA DE ACCESO -->
     <div id="auth-screen" class="auth-overlay">
         <div class="auth-card">
             <div class="auth-logo"><i class="fa-solid fa-graduation-cap"></i></div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem;">I.E. ANTONIA SANTOS</h2>
-            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 1.5rem;">Control de Permisos Cloud</p>
+            <h2 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">I.E. ANTONIA SANTOS</h2>
+            <p style="font-size: 0.65rem; color: #64748b; margin-bottom: 0.75rem;">Control de Permisos Cloud</p>
 
+            <!-- Formulario de Login -->
             <form id="form-login" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>Correo / Usuario</label>
-                    <input type="text" id="login_user" required placeholder="usuario" value="rector">
+                    <input type="text" id="login_user" required placeholder="rector o correo" value="rector">
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
                     <div style="position: relative; width: 100%;">
-                        <input type="password" id="login_pass" required placeholder="••••••••" value="123456" style="width: 100%; padding-right: 2.5rem;">
-                        <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; font-size: 1rem;"><i id="eye-icon" class="fa-solid fa-eye"></i></button>
+                        <input type="password" id="login_pass" required placeholder="••••••••" value="123456" style="width: 100%; padding-right: 2.2rem;">
+                        <button type="button" onclick="togglePasswordVisibility('login_pass', 'eye-icon')" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.85rem;"><i id="eye-icon" class="fa-solid fa-eye"></i></button>
                     </div>
                 </div>
-                <button type="submit" class="btn-submit">Ingresar al Sistema</button>
+                <button type="submit" class="btn-submit">Ingresar</button>
+                <div style="text-align: center; margin-top: 0.75rem;">
+                    <button type="button" class="link-btn" onclick="toggleRegisterView(true)">¿No tienes cuenta? Regístrate</button>
+                </div>
+            </form>
+
+            <!-- Formulario de Registro Docente -->
+            <form id="form-register" onsubmit="handleRegister(event)" class="hidden">
+                <div class="form-group">
+                    <label>Nombres</label>
+                    <input type="text" id="reg_nombres" required placeholder="Tus nombres">
+                </div>
+                <div class="form-group">
+                    <label>Apellidos</label>
+                    <input type="text" id="reg_apellidos" required placeholder="Tus apellidos">
+                </div>
+                <div class="form-group">
+                    <label>Correo / Usuario</label>
+                    <input type="text" id="reg_correo" required placeholder="correo@ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <div style="position: relative; width: 100%;">
+                        <input type="password" id="reg_pass" required placeholder="••••••••" style="width: 100%; padding-right: 2.2rem;">
+                        <button type="button" onclick="togglePasswordVisibility('reg_pass', 'eye-icon-reg')" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.85rem;"><i id="eye-icon-reg" class="fa-solid fa-eye"></i></button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" style="background: #059669;">Registrarse</button>
+                <div style="text-align: center; margin-top: 0.75rem;">
+                    <button type="button" class="link-btn" onclick="toggleRegisterView(false)">← Volver al Login</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- APLICACIÓN PRINCIPAL -->
     <div id="main-app" class="hidden" style="display:flex; flex-direction:column; flex-grow:1;">
         <header>
             <div class="brand">
                 <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
                 <div class="brand-text">
                     <h1>I.E. ANTONIA SANTOS</h1>
-                    <p id="user-session-info">Panel del Rector</p>
+                    <p id="user-session-info">Panel Institucional</p>
                 </div>
             </div>
-            <div style="display:flex; align-items:center;">
-                <button onclick="switchView('admin')" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
-                <button onclick="switchView('config')" class="nav-admin-btn"><i class="fa-solid fa-gear"></i> Configurar</button>
-                <button onclick="logout()" style="background:#e11d48; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.85rem;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+            <button class="menu-toggle" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></button>
+            <div class="nav-actions" id="nav-actions-menu">
+                <button onclick="logout()" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
             </div>
         </header>
-
         <main>
-            <!-- PANEL DIRECTIVO -->
             <section id="view-admin" class="card">
                 <div class="card-header">
-                    <h2><i class="fa-solid fa-shield-halved" style="color:#059669;"></i> Panel Directivo - Rectoría</h2>
+                    <h2>Panel Institucional</h2>
+                    <p id="welcome-msg">Bienvenido al sistema de permisos.</p>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Radicado</th>
-                            <th>Solicitante</th>
-                            <th>Fecha</th>
-                            <th>Motivo</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-table-body">
-                        <tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:2rem;">No hay solicitudes registradas.</td></tr>
-                    </tbody>
-                </table>
-            </section>
-
-            <!-- CONFIGURACIÓN -->
-            <section id="view-config" class="card hidden">
-                <div class="card-header">
-                    <h2><i class="fa-solid fa-gear" style="color:#f59e0b;"></i> Configuración General</h2>
+                <div style="padding: 1rem 0; text-align: center; color: #64748b;">
+                    <i class="fa-solid fa-shield-check" style="font-size: 2.5rem; color: #059669; margin-bottom: 0.5rem;"></i>
+                    <p>Sesión iniciada con éxito.</p>
                 </div>
-                <form onsubmit="saveSchoolConfig(event)">
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label>Nombre de la Institución</label>
-                            <input type="text" id="cfg_nombre" value="I.E. ANTONIA SANTOS" required>
-                        </div>
-                        <div class="form-group">
-                            <label>NIT</label>
-                            <input type="text" id="cfg_nit" value="800000000-1" required>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios</button>
-                </form>
             </section>
         </main>
     </div>
 
     <script>
-        function togglePasswordVisibility() {
-            let input = document.getElementById('login_pass');
-            let icon = document.getElementById('eye-icon');
+        // Base de datos local en memoria del navegador
+        let registeredTeachers = JSON.parse(localStorage.getItem('antonia_teachers')) || [];
+
+        function togglePasswordVisibility(inputId, iconId) {
+            let input = document.getElementById(inputId);
+            let icon = document.getElementById(iconId);
             if (input.type === "password") {
                 input.type = "text";
                 icon.classList.remove("fa-eye");
@@ -149,55 +139,90 @@
             }
         }
 
-        let currentUser = null;
+        function toggleRegisterView(show) {
+            if(show) {
+                document.getElementById('form-login').classList.add('hidden');
+                document.getElementById('form-register').classList.remove('hidden');
+            } else {
+                document.getElementById('form-register').classList.add('hidden');
+                document.getElementById('form-login').classList.remove('hidden');
+            }
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('nav-actions-menu').classList.toggle('active');
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            let nombres = document.getElementById('reg_nombres').value.trim();
+            let apellidos = document.getElementById('reg_apellidos').value.trim();
+            let correo = document.getElementById('reg_correo').value.trim().toLowerCase();
+            let pass = document.getElementById('reg_pass').value.trim();
+
+            // Verificar si ya existe
+            if(registeredTeachers.some(t => t.correo === correo)) {
+                alert("Este usuario o correo ya se encuentra registrado.");
+                return;
+            }
+
+            registeredTeachers.push({ nombres, apellidos, correo, pass });
+            localStorage.setItem('antonia_teachers', JSON.stringify(registeredTeachers));
+            
+            alert("¡Registro exitoso! Ahora puedes iniciar sesión con tus datos.");
+            document.getElementById('form-register').reset();
+            toggleRegisterView(false);
+        }
 
         function handleLogin(e) {
             e.preventDefault();
             let user = document.getElementById('login_user').value.trim().toLowerCase();
             let pass = document.getElementById('login_pass').value.trim();
 
+            // 1. Validar Rector
             if (user === "rector" && pass === "123456") {
-                currentUser = { name: "Álvaro González Contreras (Rector)", role: "Rector" };
                 sessionStorage.setItem('antonia_logged', 'true');
-                startApp();
+                sessionStorage.setItem('antonia_user_name', 'Álvaro González Contreras (Rector)');
+                activateAppSession("Álvaro González Contreras (Rector)");
                 return;
             }
-            alert("Usuario o contraseña incorrectos. Use rector / 123456");
-        }
 
-        function startApp() {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('main-app').classList.remove('hidden');
-            document.getElementById('main-app').style.display = 'flex';
-        }
-
-        function switchView(view) {
-            document.getElementById('view-admin').classList.add('hidden');
-            document.getElementById('view-config').classList.add('hidden');
-
-            if (view === 'admin') {
-                document.getElementById('view-admin').classList.remove('hidden');
-            } else if (view === 'config') {
-                document.getElementById('view-config').classList.remove('hidden');
+            // 2. Validar Docentes Registrados
+            let docente = registeredTeachers.find(t => t.correo === user && t.pass === pass);
+            if (docente) {
+                let fullName = `${docente.nombres} ${docente.apellidos} (Docente)`;
+                sessionStorage.setItem('antonia_logged', 'true');
+                sessionStorage.setItem('antonia_user_name', fullName);
+                activateAppSession(fullName);
+                return;
             }
+
+            alert("Usuario o contraseña incorrectos. Verifique sus datos.");
         }
 
-        function saveSchoolConfig(e) {
-            e.preventDefault();
-            alert("¡Configuración guardada con éxito!");
+        function activateAppSession(name) {
+            document.getElementById('auth-screen').style.display = 'none';
+            let mainApp = document.getElementById('main-app');
+            if (mainApp) {
+                mainApp.style.display = 'flex';
+                mainApp.classList.remove('hidden');
+            }
+            document.getElementById('user-session-info').textContent = name;
+            document.getElementById('welcome-msg').textContent = `Bienvenido, ${name}.`;
         }
 
         function logout() {
             sessionStorage.removeItem('antonia_logged');
+            sessionStorage.removeItem('antonia_user_name');
             location.reload();
         }
 
         window.onload = function() {
             if (sessionStorage.getItem('antonia_logged') === 'true') {
-                currentUser = { name: "Álvaro González Contreras (Rector)", role: "Rector" };
-                startApp();
+                let savedName = sessionStorage.getItem('antonia_user_name') || 'Usuario';
+                activateAppSession(savedName);
             }
         }
     </script>
 </body>
-</html> 
+</html>

@@ -5,244 +5,1308 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Permisos - I.E. Antonia Santos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SDK de EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
         .hidden { display: none !important; }
+
+        /* Pantalla de Acceso / Login y Registro */
         .auth-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .auth-card { background: white; border-radius: 16px; padding: 2rem; width: 100%; max-width: 380px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); text-align: center; }
-        .auth-logo { width: 60px; height: 60px; background: #f59e0b; color: #0f172a; border-radius: 12px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; }
-        header { background: #0f172a; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 1rem; text-align: left; }
-        label { display: block; font-weight: 700; margin-bottom: 0.3rem; font-size: 0.8rem; color: #334155; }
-        input, select, textarea { width: 100%; padding: 0.7rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; background: #f8fafc; }
-        input:focus, select:focus { outline: none; border-color: #4f46e5; background: #fff; }
-        .btn-action { background: #4f46e5; color: white; border: none; padding: 0.75rem; font-size: 0.9rem; font-weight: 700; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 0.5rem; transition: background 0.2s; }
-        .btn-action:hover { background: #4338ca; }
-        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; width: 100%; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
-        .card-module { background: white; padding: 1.8rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 5px solid #4f46e5; display: flex; flex-direction: column; justify-content: space-between; }
-        .card-module h3 { margin-bottom: 0.5rem; color: #0f172a; font-size: 1.1rem; }
-        .card-module p { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; }
-        .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; background: #e0e7ff; color: #3730a3; }
-        .view-section { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-top: 1rem; }
-        .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        .table th, .table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
-        .table th { background: #f8fafc; color: #475569; font-weight: 700; }
-        .btn-back { background: #64748b; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
+        .auth-logo { width: 70px; height: 70px; background: #f59e0b; color: #0f172a; border-radius: 16px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; overflow: hidden; }
+        .auth-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Navbar */
+        header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+        .brand { display: flex; align-items: center; gap: 1rem; }
+        .brand-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; overflow: hidden; background: #f59e0b; color: #0f172a; }
+        .brand-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .brand-text h1 { font-size: 1.15rem; font-weight: 800; }
+        .brand-text p { font-size: 0.75rem; color: #cbd5e1; }
+
+        /* Contenedor Principal */
+        main { max-width: 1050px; width: 100%; margin: 2.5rem auto; padding: 0 1.5rem; flex-grow: 1; }
+        .card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
+        
+        .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; }
+        .card-header h2 { font-size: 1.35rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.75rem; }
+        .card-header p { font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.85rem; color: #334155; }
+        input, select, textarea { width: 100%; padding: 0.85rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 12px; font-size: 0.9rem; background: #f8fafc; color: #1e293b; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 4px rgba(79,70,229,0.1); }
+
+        .banner-info { background: #eef2ff; border: 1.5px solid #c7d2fe; border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .badge-slot { background: white; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; color: #4338ca; border: 1px solid #c7d2fe; }
+
+        .btn-submit { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; border: none; padding: 1rem 2rem; font-size: 0.95rem; font-weight: 700; border-radius: 12px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(79,70,229,0.35); }
+        .btn-submit:hover { opacity: 0.95; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        th { background: #f8fafc; color: #475569; text-transform: uppercase; font-size: 0.75rem; font-weight: 800; }
+        
+        .status-badge { padding: 0.35rem 0.85rem; border-radius: 99px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-preapproved { background: #e0f2fe; color: #0369a1; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #ffe4e6; color: #9f1239; }
+
+        .link-btn { background: none; border: none; color: #4f46e5; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-decoration: underline; padding: 0; }
+        .nav-admin-btn { background: #4f46e5; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem; }
+
+        .modal-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
+        .modal-card { background: white; border-radius: 20px; padding: 2rem; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
     </style>
 </head>
 <body>
 
-    <!-- PANTALLA DE LOGIN -->
+    <!-- PANTALLA DE ACCESO / LOGIN Y REGISTRO -->
     <div id="auth-screen" class="auth-overlay">
         <div class="auth-card">
-            <div class="auth-logo"><i class="fa-solid fa-graduation-cap"></i></div>
-            <h2 style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">I.E. ANTONIA SANTOS</h2>
-            <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 1.5rem;">Control de Permisos Cloud</p>
+            <div class="auth-logo" id="login-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h2 id="login-school-title" style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem;">I.E. ANTONIA SANTOS</h2>
+            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 1.5rem;">Control de Permisos y Gestión Institucional</p>
 
-            <div class="form-group">
-                <label>Usuario / Correo</label>
-                <input type="text" id="l_user" value="rector">
+            <!-- Formulario Login -->
+            <form id="form-login" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Correo / Usuario</label>
+                    <input type="text" id="login_user" required placeholder="rector o correo del usuario">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="login_pass" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-submit">Ingresar al Sistema</button>
+                <div style="text-align: center; margin-top: 1.25rem;">
+                    <button type="button" class="link-btn" onclick="toggleRegister(true)">¿No tienes cuenta? Regístrate aquí</button>
+                </div>
+            </form>
+
+            <!-- Formulario Registro Docente en Línea -->
+            <form id="form-register" onsubmit="handleRegister(event)" class="hidden">
+                <h3 style="font-size: 1rem; font-weight: 800; color: #1e1b4b; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">Registro de Docente</h3>
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Nombres</label>
+                    <input type="text" id="reg_nombres" required placeholder="Ana Milena">
+                </div>
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Apellidos</label>
+                    <input type="text" id="reg_apellidos" required placeholder="Gómez Pérez">
+                </div>
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Correo Institucional</label>
+                    <input type="text" id="reg_correo" required placeholder="correo@colegio.edu.co">
+                </div>
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Teléfono / WhatsApp</label>
+                    <input type="tel" id="reg_tel" required placeholder="3001234567">
+                </div>
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Jornada Asignada</label>
+                    <select id="reg_jornada" required>
+                        <option value="">Seleccione jornada...</option>
+                        <option value="Mañana">Mañana</option>
+                        <option value="Tarde">Tarde</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:1rem;">
+                    <label>Contraseña</label>
+                    <input type="password" id="reg_pass" required placeholder="Mínimo 6 caracteres">
+                </div>
+                <button type="submit" class="btn-submit" style="background:#059669;">Completar Registro</button>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button type="button" class="link-btn" style="color:#64748b;" onclick="toggleRegister(false)">← Volver al inicio de sesión</button>
+                </div>
+            </form>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem; margin-top: 1.5rem; font-size: 0.75rem; color: #475569; text-align: left;">
+                <strong>Credencial Rector Inicial:</strong><br>
+                • Usuario: <code id="login-hint-user">rector</code> | Clave: <code id="login-hint-pass">123456</code>
             </div>
-            <div class="form-group">
-                <label>Contraseña</label>
-                <input type="password" id="l_pass" value="123456">
-            </div>
-            <button type="button" class="btn-action" onclick="ejecutarLogin()">Ingresar al Sistema</button>
         </div>
     </div>
 
-    <!-- PANEL PRINCIPAL CON MÓDULOS -->
-    <div id="main-app" class="hidden">
+    <!-- APLICACIÓN PRINCIPAL -->
+    <div id="main-app" style="display:flex; flex-direction:column; flex-grow:1;">
         <header>
-            <div>
-                <h1 style="font-size: 1.2rem;"><i class="fa-solid fa-school"></i> I.E. Antonia Santos</h1>
-                <p id="welcome-subtitle" style="font-size: 0.8rem; color: #cbd5e1;"></p>
+            <div class="brand">
+                <div class="brand-icon" id="header-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div class="brand-text">
+                    <h1 id="header-school-name">I.E. ANTONIA SANTOS</h1>
+                    <p id="user-session-info">Sistema Integral de Permisos</p>
+                </div>
             </div>
-            <button onclick="logout()" style="background:#e11d48; color:white; border:none; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size: 0.85rem;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+            <div style="display:flex; align-items:center;">
+                <div id="rector-extra-nav" class="hidden">
+                    <button onclick="switchView('config')" class="nav-admin-btn"><i class="fa-solid fa-gear"></i> Configurar Colegio</button>
+                    <button onclick="switchView('coords')" class="nav-admin-btn" style="background:#0284c7;"><i class="fa-solid fa-user-tie"></i> Coordinadores</button>
+                    <button onclick="switchView('reports')" class="nav-admin-btn" style="background:#d97706;"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
+                    <button onclick="switchView('admin')" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
+                </div>
+                <div id="coord-extra-nav" class="hidden">
+                    <button onclick="switchView('reports')" class="nav-admin-btn" style="background:#d97706;"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
+                    <button onclick="switchView('admin')" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
+                </div>
+                <button onclick="logout()" style="background:#e11d48; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.85rem;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+            </div>
         </header>
 
-        <div class="container">
-            <!-- MENÚ DE MÓDULOS -->
-            <div id="module-menu">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <div>
-                        <h2 style="color: #0f172a;">Panel Directivo</h2>
-                        <p style="color: #64748b; font-size: 0.9rem;">Sistema integrado de gestión institucional y permisos docentes.</p>
-                    </div>
-                    <span class="badge"><i class="fa-solid fa-shield-halved"></i> Modo Rectoría</span>
+        <main>
+            <!-- VISTA SOLICITUD DOCENTE -->
+            <section id="view-solicitud" class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-clipboard-user" style="color:#f59e0b;"></i> Solicitud de Permiso Laboral</h2>
+                    <p>Límite máximo permitido: <strong>3 días por mes</strong>. Mínimo 3 días hábiles de anticipación.</p>
                 </div>
 
-                <div class="grid">
-                    <div class="card-module">
-                        <div>
-                            <h3><i class="fa-solid fa-file-lines" style="color: #4f46e5;"></i> Solicitudes de Permisos</h3>
-                            <p>Revisar, aprobar o rechazar las solicitudes de permisos enviadas por el cuerpo docente.</p>
+                <form onsubmit="handleFormSubmit(event)">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre Completo del Solicitante</label>
+                            <input type="text" id="sol_nombre" readonly style="background:#e2e8f0; font-weight:bold;">
                         </div>
-                        <button class="btn-action" style="background: #4f46e5;" onclick="cambiarVista('permisos')">Gestionar Permisos</button>
+                        <div class="form-group">
+                            <label>Cargo / Jornada Registrada</label>
+                            <input type="text" id="sol_info_jornada" readonly style="background:#e2e8f0; font-weight:bold;">
+                        </div>
                     </div>
 
-                    <div class="card-module" style="border-left-color: #059669;">
+                    <div class="banner-info">
                         <div>
-                            <h3><i class="fa-solid fa-users" style="color: #059669;"></i> Gestión de Docentes</h3>
-                            <p>Administrar el personal docente registrado, áreas y control de asistencia institucional.</p>
+                            <label style="margin-bottom:0.2rem; color:#312e81;">Seleccione Fecha y Cupos</label>
+                            <span style="font-size:0.80rem; color:#4f46e5;">Verifique la disponibilidad del día.</span>
                         </div>
-                        <button class="btn-action" style="background: #059669;" onclick="cambiarVista('docentes')">Ver Docentes</button>
+                        <div style="display:flex; gap:1rem; align-items:center;">
+                            <input type="date" id="sol_fecha" onchange="checkSlots()" required style="width:180px; padding:0.5rem; background:white;">
+                            <div id="slot-badge" class="badge-slot">Cupos: --</div>
+                        </div>
                     </div>
 
-                    <div class="card-module" style="border-left-color: #d97706;">
-                        <div>
-                            <h3><i class="fa-solid fa-chart-pie" style="color: #d97706;"></i> Reportes y Estadísticas</h3>
-                            <p>Generar informes mensuales y consolidados de permisos y ausentismo por áreas.</p>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Modalidad del Permiso</label>
+                            <select id="sol_modalidad" onchange="toggleModalidad()" required>
+                                <option value="Jornada Completa">Jornada Completa</option>
+                                <option value="Por Horas">Por Horas</option>
+                            </select>
                         </div>
-                        <button class="btn-action" style="background: #d97706;" onclick="cambiarVista('reportes')">Ver Reportes</button>
+                        <div class="form-group">
+                            <label>Motivo Institucional (Selección)</label>
+                            <select id="sol_motivo_tipo" required>
+                                <option value="">Seleccione motivo...</option>
+                                <option value="Calamidad doméstica">Calamidad doméstica</option>
+                                <option value="Comisión de servicios">Comisión de servicios</option>
+                                <option value="Estudios / Capacitación">Estudios / Capacitación</option>
+                                <option value="Asuntos de salud">Asuntos de salud</option>
+                                <option value="Asuntos personales">Asuntos personales</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- VISTA: GESTIÓN DE PERMISOS -->
-            <div id="view-permisos" class="view-section hidden">
-                <button class="btn-back" onclick="cambiarVista('menu')"><i class="fa-solid fa-arrow-left"></i> Volver al Menú</button>
-                <h3 style="color: #0f172a; margin-bottom: 0.5rem;"><i class="fa-solid fa-file-lines"></i> Solicitudes de Permisos Pendientes</h3>
-                <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">Listado de permisos solicitados por los docentes de la institución.</p>
-                
-                <table class="table">
+                    <div id="section-horas" class="grid-2 hidden" style="background:#f8fafc; padding:1.25rem; border-radius:12px; border:1.5px dashed #cbd5e1; margin-bottom:1.25rem;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label><i class="fa-solid fa-clock" style="color:#4f46e5;"></i> Hora de Inicio</label>
+                            <input type="time" id="sol_hora_inicio">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label><i class="fa-solid fa-clock" style="color:#4f46e5;"></i> Hora de Finalización</label>
+                            <input type="time" id="sol_hora_fin">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción Adicional del Motivo</label>
+                        <input type="text" id="sol_motivo_detalle" required placeholder="Detalle breves razones...">
+                    </div>
+
+                    <div class="grid-2" style="margin-bottom: 1.5rem;">
+                        <div style="background:#f8fafc; padding:1rem; border:2px dashed #cbd5e1; border-radius:12px;">
+                            <label style="font-size: 0.8rem; font-weight: bold; color: #1e293b; margin-bottom: 0.5rem;">
+                                <i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> 1. Soporte del Permiso (PDF Obligatorio)
+                            </label>
+                            <input type="file" id="file_permiso" accept=".pdf" required style="font-size:0.8rem; border:none; padding:0; background:transparent;" onchange="handleFileUpload(event, 'soportePermisoData')">
+                        </div>
+                        <div style="background:#f8fafc; padding:1rem; border:2px dashed #cbd5e1; border-radius:12px;">
+                            <label style="font-size: 0.8rem; font-weight: bold; color: #1e293b; margin-bottom: 0.5rem;">
+                                <i class="fa-solid fa-file-lines" style="color:#d97706;"></i> 2. Material de Actividades (PDF Obligatorio)
+                            </label>
+                            <input type="file" id="file_actividades" accept=".pdf" required style="font-size:0.8rem; border:none; padding:0; background:transparent;" onchange="handleFileUpload(event, 'soporteActividadesData')">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud Oficial
+                    </button>
+                </form>
+
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: #1e1b4b; margin-top: 2.5rem; margin-bottom: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">Mi Historial de Solicitudes</h3>
+                <table>
                     <thead>
                         <tr>
-                            <th>Docente</th>
-                            <th>Motivo / Descripción</th>
+                            <th>Radicado</th>
+                            <th>Fecha y Modalidad</th>
+                            <th>Motivo</th>
+                            <th>Estado</th>
+                            <th style="text-align:center;">Acciones / Resolución</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacher-history-body"></tbody>
+                </table>
+            </section>
+
+            <!-- VISTA PANEL DIRECTIVO -->
+            <section id="view-admin" class="card hidden">
+                <div class="card-header">
+                    <h2 id="admin-title">Panel de Control Directivo</h2>
+                    <p>Gestión y doble aprobación de solicitudes institucionales</p>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Radicado</th>
+                            <th>Solicitante</th>
+                            <th>Jornada / Fecha</th>
+                            <th>Motivo / Soportes</th>
+                            <th>Estado</th>
+                            <th style="text-align:center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body"></tbody>
+                </table>
+            </section>
+
+            <!-- VISTA REPORTES (RECTOR Y COORDINADOR) -->
+            <section id="view-reports" class="card hidden">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-chart-pie" style="color:#d97706;"></i> Reportes de Permisos Institucionales</h2>
+                    <p>Filtre los permisos solicitados por rango de fechas para auditoría y control.</p>
+                </div>
+
+                <div style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;" class="grid-2">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Fecha Desde</label>
+                        <input type="date" id="rep_desde" onchange="renderReports()">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Fecha Hasta</label>
+                        <input type="date" id="rep_hasta" onchange="renderReports()">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+                    <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; background: #0284c7;"><i class="fa-solid fa-print"></i> Imprimir / Exportar Reporte</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Radicado</th>
+                            <th>Solicitante</th>
+                            <th>Jornada</th>
                             <th>Fecha</th>
+                            <th>Motivo</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="tabla-permisos-body">
-                        <tr>
-                            <td>Hernando Javier Castillo</td>
-                            <td>Cita médica especialista EPS</td>
-                            <td>03/11/2026</td>
-                            <td><span class="badge" style="background: #fef3c7; color: #92400e;">Pendiente</span></td>
-                            <td>
-                                <button onclick="alert('Permiso aprobado con éxito')" style="background: #059669; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Aprobar</button>
-                                <button onclick="alert('Permiso rechazado')" style="background: #e11d48; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Rechazar</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Jorge Luis Escobar</td>
-                            <td>Capacitación pedagógica municipal</td>
-                            <td>05/11/2026</td>
-                            <td><span class="badge" style="background: #fef3c7; color: #92400e;">Pendiente</span></td>
-                            <td>
-                                <button onclick="alert('Permiso aprobado con éxito')" style="background: #059669; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Aprobar</button>
-                                <button onclick="alert('Permiso rechazado')" style="background: #e11d48; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Rechazar</button>
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody id="reports-table-body"></tbody>
                 </table>
-            </div>
+            </section>
 
-            <!-- VISTA: GESTIÓN DE DOCENTES -->
-            <div id="view-docentes" class="view-section hidden">
-                <button class="btn-back" onclick="cambiarVista('menu')"><i class="fa-solid fa-arrow-left"></i> Volver al Menú</button>
-                <h3 style="color: #0f172a; margin-bottom: 0.5rem;"><i class="fa-solid fa-users"></i> Cuerpo Docente Registrado</h3>
-                <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">Personal activo en la I.E. Antonia Santos.</p>
-                
-                <table class="table">
+            <!-- VISTA GESTIÓN DE COORDINADORES (EXCLUSIVO RECTOR) -->
+            <section id="view-coords" class="card hidden">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-user-tie" style="color:#f59e0b;"></i> Crear y Gestionar Coordinadores</h2>
+                    <p>Agregue, edite o elimine coordinadores institucionales.</p>
+                </div>
+
+                <form onsubmit="saveCoordinator(event)" style="background:#f8fafc; padding:1.5rem; border-radius:14px; border:1px solid #e2e8f0; margin-bottom:2rem;">
+                    <h3 id="coord-form-title" style="font-size:0.95rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem;">Nuevo Coordinador</h3>
+                    <input type="hidden" id="coord_edit_index" value="-1">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="coord_nombre" required placeholder="Ej. Carlos Mendoza">
+                        </div>
+                        <div class="form-group">
+                            <label>Correo Institucional (Usuario)</label>
+                            <input type="text" id="coord_correo" required placeholder="carlos.mendoza@antoniasantos.edu.co">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Celular / WhatsApp (Para Notificaciones)</label>
+                            <input type="tel" id="coord_whatsapp" required placeholder="3001234567">
+                        </div>
+                        <div class="form-group">
+                            <label>Jornada a Cargo</label>
+                            <select id="coord_jornada" required>
+                                <option value="">Seleccione jornada...</option>
+                                <option value="Mañana">Mañana</option>
+                                <option value="Tarde">Tarde</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña de Acceso</label>
+                        <input type="password" id="coord_pass" required placeholder="Mínimo 6 caracteres">
+                    </div>
+                    <button type="submit" id="coord_btn_submit" class="btn-submit" style="background:#0284c7;">Guardar Coordinador</button>
+                </form>
+
+                <h3 style="font-size:1rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem;">Coordinadores Registrados</h3>
+                <table>
                     <thead>
                         <tr>
-                            <th>Nombres y Apellidos</th>
-                            <th>Área / Asignatura</th>
-                            <th>Correo Electrónico</th>
-                            <th>Estado</th>
+                            <th>Nombre</th>
+                            <th>Correo / Usuario</th>
+                            <th>WhatsApp</th>
+                            <th>Jornada</th>
+                            <th style="text-align:center;">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Hernando Javier Castillo Simanca</td>
-                            <td>Matemáticas / Tecnología</td>
-                            <td>hcastillo@antoniasantos.edu.co</td>
-                            <td><span class="badge" style="background: #d1fae5; color: #065f46;">Activo</span></td>
-                        </tr>
-                        <tr>
-                            <td>Jorge Luis Escobar Reynel</td>
-                            <td>Ciencias Naturales / Física</td>
-                            <td>jescobar@antoniasantos.edu.co</td>
-                            <td><span class="badge" style="background: #d1fae5; color: #065f46;">Activo</span></td>
-                        </tr>
-                    </tbody>
+                    <tbody id="coords-table-body"></tbody>
                 </table>
-            </div>
+            </section>
 
-            <!-- VISTA: REPORTES -->
-            <div id="view-reportes" class="view-section hidden">
-                <button class="btn-back" onclick="cambiarVista('menu')"><i class="fa-solid fa-arrow-left"></i> Volver al Menú</button>
-                <h3 style="color: #0f172a; margin-bottom: 0.5rem;"><i class="fa-solid fa-chart-pie"></i> Reportes y Estadísticas Institucionales</h3>
-                <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">Consolidado general del periodo académico actual.</p>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
-                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
-                        <h4 style="color: #64748b; font-size: 0.85rem; margin-bottom: 0.5rem;">Total Permisos Solicitados</h4>
-                        <p style="font-size: 1.8rem; font-weight: bold; color: #4f46e5;">14</p>
+            <!-- VISTA CONFIGURACIÓN DEL COLEGIO Y DATOS DEL RECTOR -->
+            <section id="view-config" class="card hidden">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración General y Datos del Rector</h2>
+                    <p>Actualice la información institucional, configure las credenciales del Rector y defina qué datos se muestran en los documentos.</p>
+                </div>
+
+                <form onsubmit="saveSchoolConfig(event)">
+                    <!-- DATOS INSTITUCIONALES -->
+                    <h3 style="font-size:0.95rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem; border-bottom:1px solid #e2e8f0; padding-bottom:0.5rem;">Datos Institucionales</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre de la Institución</label>
+                            <input type="text" id="cfg_nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>NIT</label>
+                            <input type="text" id="cfg_nit" required placeholder="Ej. 800123456-1">
+                        </div>
                     </div>
-                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
-                        <h4 style="color: #64748b; font-size: 0.85rem; margin-bottom: 0.5rem;">Aprobados este Mes</h4>
-                        <p style="font-size: 1.8rem; font-weight: bold; color: #059669;">12</p>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Dirección</label>
+                            <input type="text" id="cfg_direccion" required placeholder="Montería, Córdoba">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono Institucional</label>
+                            <input type="tel" id="cfg_telefono" required placeholder="3000000000">
+                        </div>
                     </div>
-                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
-                        <h4 style="color: #64748b; font-size: 0.85rem; margin-bottom: 0.5rem;">Pendientes de Revisión</h4>
-                        <p style="font-size: 1.8rem; font-weight: bold; color: #d97706;">2</p>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Correo del Colegio</label>
+                            <input type="text" id="cfg_correo" required placeholder="correo@colegio.edu.co">
+                        </div>
+                        <div class="form-group">
+                            <label>Logotipo del Colegio (Imagen)</label>
+                            <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.5rem; background: white;">
+                        </div>
                     </div>
+
+                    <!-- DATOS Y CREDENCIALES DEL RECTOR -->
+                    <div style="background:#eef2ff; padding:1.25rem; border:1.5px solid #c7d2fe; border-radius:12px; margin-bottom:1.5rem; margin-top:1.5rem;">
+                        <h3 style="font-size:0.95rem; font-weight:800; color:#312e81; margin-bottom:1rem;"><i class="fa-solid fa-user-shield"></i> Datos y Credenciales de Acceso del Rector</h3>
+                        
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Nombres del Rector</label>
+                                <input type="text" id="cfg_rector_nombres" required placeholder="Ej. Álvaro">
+                            </div>
+                            <div class="form-group">
+                                <label>Apellidos del Rector</label>
+                                <input type="text" id="cfg_rector_apellidos" required placeholder="Ej. González Contreras">
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Teléfono / Celular del Rector</label>
+                                <input type="tel" id="cfg_rector_tel" required placeholder="3001234567">
+                            </div>
+                            <div class="form-group">
+                                <label>Correo de Contacto del Rector</label>
+                                <input type="email" id="cfg_rector_email" required placeholder="rector@colegio.edu.co">
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Usuario de Inicio de Sesión</label>
+                                <input type="text" id="cfg_rector_user" required placeholder="Ej. rector">
+                            </div>
+                            <div class="form-group">
+                                <label>Contraseña de Acceso</label>
+                                <input type="text" id="cfg_rector_pass" required placeholder="Nueva contraseña">
+                            </div>
+                        </div>
+
+                        <!-- CHECKBOXES PARA CHULIAR QUE APARECE EN LOS DOCUMENTOS -->
+                        <div style="background:white; padding:1rem; border-radius:8px; border:1px solid #c7d2fe; margin-top:1rem;">
+                            <label style="font-weight:800; color:#312e81; margin-bottom:0.75rem;"><i class="fa-solid fa-check-to-slot"></i> Seleccione qué datos del Rector aparecen en los documentos y resoluciones:</label>
+                            <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                                    <input type="checkbox" id="chk_show_nombre" style="width:auto;"> Mostrar Nombre Completo
+                                </label>
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                                    <input type="checkbox" id="chk_show_tel" style="width:auto;"> Mostrar Teléfono
+                                </label>
+                                <label style="font-weight:normal; display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                                    <input type="checkbox" id="chk_show_email" style="width:auto;"> Mostrar Correo
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="background:#f8fafc; padding:1.25rem; border:2px dashed #cbd5e1; border-radius:12px; margin-bottom:1.5rem;">
+                        <label style="color:#1e293b; font-weight:bold; margin-bottom:0.5rem;">
+                            <i class="fa-solid fa-signature" style="color:#4f46e5;"></i> Firma Digital del Rector (Imagen PNG transparente recomendada)
+                        </label>
+                        <input type="file" id="cfg_firma_file" accept="image/*" style="padding: 0.5rem; background: white; border:none;">
+                    </div>
+
+                    <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios Institucionales y Credenciales</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL RESOLUCIÓN OFICIAL EN PDF / FORMATO LEGAL -->
+    <div id="permitModal" class="modal-bg hidden">
+        <div class="modal-card">
+            <!-- Encabezado Institucional Dinámico -->
+            <div style="display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #0f172a; padding-bottom: 1rem; margin-bottom: 1.25rem;">
+                <div id="modal-logo-box" style="width: 65px; height: 65px; border-radius: 10px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1.5rem; flex-shrink: 0;">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div style="flex-grow: 1; text-align: center;">
+                    <h3 id="modal-school-title" style="font-size: 1.15rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">I.E. ANTONIA SANTOS</h3>
+                    <p id="modal-school-nit" style="font-size: 0.75rem; color: #475569; font-weight: 600;">NIT: 800000000-1 | Montería, Córdoba</p>
+                    <p style="font-size: 0.70rem; color: #64748b;">RECTORÍA - GESTIÓN DE TALENTO HUMANO Y PERMISOS LABORALES</p>
                 </div>
             </div>
 
+            <!-- Contenido de la Resolución Legal -->
+            <div id="permit-modal-content" style="font-size: 0.85rem; color: #1e293b; line-height: 1.6; background: #ffffff; padding: 1.5rem; border-radius: 10px; border: 1px solid #cbd5e1; margin-bottom: 1.5rem;"></div>
+
+            <!-- Acciones del Modal -->
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap;" id="modal-actions-container">
+                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
+                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MOTIVO DE NEGACIÓN -->
+    <div id="rejectModal" class="modal-bg hidden">
+        <div class="modal-card" style="max-width: 450px;">
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: #9f1239; margin-bottom: 1rem;"><i class="fa-solid fa-triangle-exclamation"></i> Negar Permiso Laboral</h3>
+            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 1rem;">Por favor especifique la observación u motivo institucional por el cual se niega esta solicitud:</p>
+            <textarea id="reject_observacion" rows="4" style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 8px; margin-bottom: 1.25rem;" placeholder="Escriba la razón reglamentaria..."></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button onclick="confirmReject()" class="btn-submit" style="background: #e11d48; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;">Confirmar Negación</button>
+                <button onclick="closeRejectModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cancelar</button>
+            </div>
         </div>
     </div>
 
     <script>
-        function ejecutarLogin() {
-            let u = document.getElementById('l_user').value.trim().toLowerCase();
-            let p = document.getElementById('l_pass').value.trim();
+        // Inicialización de EmailJS con la llave pública
+        (function(){
+            emailjs.init("Fj3QdUv-Z9qIxjmnV");
+        })();
 
-            if (u === "rector" && p === "123456") {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-app').classList.remove('hidden');
-                document.getElementById('welcome-subtitle').textContent = "Álvaro González Contreras (Rector)";
-                sessionStorage.setItem('sesion_activa', 'Rector');
-            } else {
-                alert("Usuario o contraseña incorrectos.");
+        // Blindaje absoluto de datos en localStorage (persistencia garantizada sin borrados)
+        let permissions = JSON.parse(localStorage.getItem('antonia_santos_perms')) || [];
+        let teachers = JSON.parse(localStorage.getItem('antonia_santos_teachers')) || [];
+        
+        let coordinators = JSON.parse(localStorage.getItem('antonia_santos_coords'));
+        if (!coordinators) {
+            coordinators = [
+                { nombre: "Coordinador Mañana", correo: "coord.manana", whatsapp: "3001112233", jornada: "Mañana", pass: "MananaAntonia2026*" },
+                { nombre: "Coordinador Tarde", correo: "coord.tarde", whatsapp: "3004445566", jornada: "Tarde", pass: "TardeAntonia2026*" }
+            ];
+            localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
+        }
+
+        let schoolConfig = JSON.parse(localStorage.getItem('antonia_santos_school')) || {
+            nombre: "I.E. ANTONIA SANTOS",
+            nit: "800000000-1",
+            direccion: "Montería, Córdoba",
+            telefono: "3000000000",
+            correo: "contacto@antoniasantos.edu.co",
+            logo: "",
+            firma: "",
+            rectorUser: "rector",
+            rectorPass: "123456",
+            rectorNombres: "Álvaro",
+            rectorApellidos: "González Contreras (ALGC)",
+            rectorTel: "3000000000",
+            rectorEmail: "rector@antoniasantos.edu.co",
+            showNombre: true,
+            showTel: false,
+            showEmail: false
+        };
+
+        // Retrocompatibilidad por si faltan campos
+        if(!schoolConfig.rectorUser) schoolConfig.rectorUser = "rector";
+        if(!schoolConfig.rectorPass) schoolConfig.rectorPass = "123456";
+        if(!schoolConfig.rectorNombres) schoolConfig.rectorNombres = "Álvaro";
+        if(!schoolConfig.rectorApellidos) schoolConfig.rectorApellidos = "González Contreras (ALGC)";
+        if(!schoolConfig.rectorTel) schoolConfig.rectorTel = "3000000000";
+        if(!schoolConfig.rectorEmail) schoolConfig.rectorEmail = "rector@antoniasantos.edu.co";
+        if(schoolConfig.showNombre === undefined) schoolConfig.showNombre = true;
+        if(schoolConfig.showTel === undefined) schoolConfig.showTel = false;
+        if(schoolConfig.showEmail === undefined) schoolConfig.showEmail = false;
+
+        let currentUser = null;
+        let pendingRejectId = null;
+
+        window.onload = function() {
+            applySchoolConfig();
+            setMinDate();
+        };
+
+        function setMinDate() {
+            let today = new Date();
+            today.setDate(today.getDate() + 3);
+            let yyyy = today.getFullYear();
+            let mm = String(today.getMonth() + 1).padStart(2, '0');
+            let dd = String(today.getDate()).padStart(2, '0');
+            let minDateStr = `${yyyy}-${mm}-${dd}`;
+            let dateInput = document.getElementById('sol_fecha');
+            if(dateInput) {
+                dateInput.min = minDateStr;
             }
         }
 
-        function cambiarVista(vista) {
-            document.getElementById('module-menu').classList.add('hidden');
-            document.getElementById('view-permisos').classList.add('hidden');
-            document.getElementById('view-docentes').classList.add('hidden');
-            document.getElementById('view-reportes').classList.add('hidden');
+        function applySchoolConfig() {
+            document.getElementById('login-school-title').textContent = schoolConfig.nombre;
+            document.getElementById('login-hint-user').textContent = schoolConfig.rectorUser;
+            document.getElementById('login-hint-pass').textContent = schoolConfig.rectorPass;
+            
+            let loginLogo = document.getElementById('login-logo-container');
+            if(schoolConfig.logo) {
+                loginLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
+            } else {
+                loginLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+            }
 
-            if(vista === 'menu') {
-                document.getElementById('module-menu').classList.remove('hidden');
-            } else if(vista === 'permisos') {
-                document.getElementById('view-permisos').classList.remove('hidden');
-            } else if(vista === 'docentes') {
-                document.getElementById('view-docentes').classList.remove('hidden');
-            } else if(vista === 'reportes') {
-                document.getElementById('view-reportes').classList.remove('hidden');
+            document.getElementById('header-school-name').textContent = schoolConfig.nombre;
+            
+            let headerLogo = document.getElementById('header-logo-container');
+            if(schoolConfig.logo) {
+                headerLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
+            } else {
+                headerLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+            }
+        }
+
+        function toggleRegister(show) {
+            if(show) {
+                document.getElementById('form-login').classList.add('hidden');
+                document.getElementById('form-register').classList.remove('hidden');
+            } else {
+                document.getElementById('form-register').classList.add('hidden');
+                document.getElementById('form-login').classList.remove('hidden');
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            let newDocente = {
+                nombres: document.getElementById('reg_nombres').value.trim(),
+                apellidos: document.getElementById('reg_apellidos').value.trim(),
+                correo: document.getElementById('reg_correo').value.trim(),
+                telefono: document.getElementById('reg_tel').value.trim(),
+                jornada: document.getElementById('reg_jornada').value,
+                pass: document.getElementById('reg_pass').value.trim()
+            };
+
+            if(teachers.some(t => t.correo === newDocente.correo)) {
+                alert("Este correo ya se encuentra registrado.");
+                return;
+            }
+
+            teachers.push(newDocente);
+            localStorage.setItem('antonia_santos_teachers', JSON.stringify(teachers));
+            alert("¡Registro exitoso! Ya puede iniciar sesión con su correo y contraseña.");
+            toggleRegister(false);
+            document.getElementById('form-register').reset();
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            let user = document.getElementById('login_user').value.trim();
+            let pass = document.getElementById('login_pass').value.trim();
+
+            // Validación con credenciales actualizadas del Rector
+            if(user === schoolConfig.rectorUser && pass === schoolConfig.rectorPass) {
+                currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", jornada: "Todas", isRector: true, correo: schoolConfig.rectorUser };
+                startApp('admin');
+                return;
+            }
+
+            let coord = coordinators.find(c => c.correo === user && c.pass === pass);
+            if(coord) {
+                currentUser = {
+                    name: coord.nombre,
+                    role: "Coordinador",
+                    jornada: coord.jornada,
+                    correo: coord.correo,
+                    whatsapp: coord.whatsapp,
+                    isRector: false
+                };
+                startApp('admin');
+                return;
+            }
+
+            let docente = teachers.find(t => t.correo === user && t.pass === pass);
+            if(docente) {
+                currentUser = {
+                    name: `${docente.nombres} ${docente.apellidos}`,
+                    role: "Docente",
+                    jornada: docente.jornada,
+                    correo: docente.correo,
+                    isRector: false,
+                    whatsapp: docente.telefono
+                };
+                startApp('docente');
+                return;
+            }
+
+            alert("Usuario o contraseña incorrectos.");
+        }
+
+        function startApp(type) {
+            document.getElementById('auth-screen').style.display = 'none';
+            if(type === 'docente') {
+                document.getElementById('view-solicitud').classList.remove('hidden');
+                document.getElementById('view-admin').classList.add('hidden');
+                document.getElementById('view-config').classList.add('hidden');
+                document.getElementById('view-coords').classList.add('hidden');
+                document.getElementById('view-reports').classList.add('hidden');
+                document.getElementById('rector-extra-nav').classList.add('hidden');
+                document.getElementById('coord-extra-nav').classList.add('hidden');
+                document.getElementById('sol_nombre').value = currentUser.name;
+                document.getElementById('sol_info_jornada').value = `Docente - Jornada ${currentUser.jornada}`;
+                document.getElementById('user-session-info').textContent = `Docente: ${currentUser.name} (${currentUser.jornada})`;
+                renderTeacherHistory();
+                setMinDate();
+            } else {
+                document.getElementById('view-solicitud').classList.add('hidden');
+                document.getElementById('view-admin').classList.remove('hidden');
+                document.getElementById('view-config').classList.add('hidden');
+                document.getElementById('view-coords').classList.add('hidden');
+                document.getElementById('view-reports').classList.add('hidden');
+                document.getElementById('admin-title').textContent = `Panel Directivo - ${currentUser.name}`;
+                document.getElementById('user-session-info').textContent = `Rol: ${currentUser.role}`;
+                
+                if(currentUser.isRector) {
+                    document.getElementById('rector-extra-nav').classList.remove('hidden');
+                    document.getElementById('coord-extra-nav').classList.add('hidden');
+                } else {
+                    document.getElementById('rector-extra-nav').classList.add('hidden');
+                    document.getElementById('coord-extra-nav').classList.remove('hidden');
+                }
+                renderTable();
+            }
+        }
+
+        function switchView(view) {
+            document.getElementById('view-solicitud').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-config').classList.add('hidden');
+            document.getElementById('view-coords').classList.add('hidden');
+            document.getElementById('view-reports').classList.add('hidden');
+
+            if(view === 'admin') {
+                document.getElementById('view-admin').classList.remove('hidden');
+                renderTable();
+            } else if(view === 'config') {
+                document.getElementById('view-config').classList.remove('hidden');
+                document.getElementById('cfg_nombre').value = schoolConfig.nombre;
+                document.getElementById('cfg_nit').value = schoolConfig.nit;
+                document.getElementById('cfg_direccion').value = schoolConfig.direccion;
+                document.getElementById('cfg_telefono').value = schoolConfig.telefono;
+                document.getElementById('cfg_correo').value = schoolConfig.correo;
+                document.getElementById('cfg_rector_nombres').value = schoolConfig.rectorNombres;
+                document.getElementById('cfg_rector_apellidos').value = schoolConfig.rectorApellidos;
+                document.getElementById('cfg_rector_tel').value = schoolConfig.rectorTel;
+                document.getElementById('cfg_rector_email').value = schoolConfig.rectorEmail;
+                document.getElementById('cfg_rector_user').value = schoolConfig.rectorUser;
+                document.getElementById('cfg_rector_pass').value = schoolConfig.rectorPass;
+                document.getElementById('chk_show_nombre').checked = schoolConfig.showNombre;
+                document.getElementById('chk_show_tel').checked = schoolConfig.showTel;
+                document.getElementById('chk_show_email').checked = schoolConfig.showEmail;
+            } else if(view === 'coords') {
+                document.getElementById('view-coords').classList.remove('hidden');
+                renderCoordsTable();
+            } else if(view === 'reports') {
+                document.getElementById('view-reports').classList.remove('hidden');
+                renderReports();
+            }
+        }
+
+        function toggleModalidad() {
+            let modalidad = document.getElementById('sol_modalidad').value;
+            let sectionHoras = document.getElementById('section-horas');
+            let horaInicio = document.getElementById('sol_hora_inicio');
+            let horaFin = document.getElementById('sol_hora_fin');
+
+            if(modalidad === 'Por Horas') {
+                sectionHoras.classList.remove('hidden');
+                horaInicio.required = true;
+                horaFin.required = true;
+            } else {
+                sectionHoras.classList.add('hidden');
+                horaInicio.required = false;
+                horaFin.required = false;
+                horaInicio.value = "";
+                horaFin.value = "";
+            }
+        }
+
+        function saveCoordinator(e) {
+            e.preventDefault();
+            let editIdx = parseInt(document.getElementById('coord_edit_index').value);
+            let newC = {
+                nombre: document.getElementById('coord_nombre').value.trim(),
+                correo: document.getElementById('coord_correo').value.trim(),
+                whatsapp: document.getElementById('coord_whatsapp').value.trim(),
+                jornada: document.getElementById('coord_jornada').value,
+                pass: document.getElementById('coord_pass').value.trim()
+            };
+
+            if(editIdx === -1) {
+                if(coordinators.some(c => c.correo === newC.correo)) {
+                    alert("Ya existe un coordinador registrado con este correo.");
+                    return;
+                }
+                coordinators.push(newC);
+                alert("¡Coordinador creado con éxito!");
+            } else {
+                coordinators[editIdx] = newC;
+                alert("¡Coordinador actualizado con éxito!");
+                document.getElementById('coord_edit_index').value = "-1";
+                document.getElementById('coord-form-title').textContent = "Nuevo Coordinador";
+                document.getElementById('coord_btn_submit').textContent = "Guardar Coordinador";
+            }
+
+            localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
+            e.target.reset();
+            renderCoordsTable();
+        }
+
+        function editCoordinator(index) {
+            let c = coordinators[index];
+            document.getElementById('coord_edit_index').value = index;
+            document.getElementById('coord_nombre').value = c.nombre;
+            document.getElementById('coord_correo').value = c.correo;
+            document.getElementById('coord_whatsapp').value = c.whatsapp;
+            document.getElementById('coord_jornada').value = c.jornada;
+            document.getElementById('coord_pass').value = c.pass;
+            document.getElementById('coord-form-title').textContent = `Editar Coordinador: ${c.nombre}`;
+            document.getElementById('coord_btn_submit').textContent = "Actualizar Coordinador";
+        }
+
+        function renderCoordsTable() {
+            let tbody = document.getElementById('coords-table-body');
+            tbody.innerHTML = '';
+            if(coordinators.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:1.5rem;">No hay coordinadores creados.</td></tr>`;
+                return;
+            }
+            coordinators.forEach((c, idx) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold;">${c.nombre}</td>
+                    <td>${c.correo}</td>
+                    <td>📱 ${c.whatsapp}</td>
+                    <td><span style="color:#4f46e5; font-weight:700;">${c.jornada}</span></td>
+                    <td style="text-align:center;">
+                        <button onclick="editCoordinator(${idx})" style="background:#0284c7; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-right:4px;">Editar</button>
+                        <button onclick="deleteCoordinator(${idx})" style="background:#e11d48; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteCoordinator(index) {
+            if(confirm("¿Está seguro de eliminar este coordinador?")) {
+                coordinators.splice(index, 1);
+                localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
+                renderCoordsTable();
+            }
+        }
+
+        function saveSchoolConfig(e) {
+            e.preventDefault();
+            let fileInput = document.getElementById('cfg_logo_file');
+            let firmaInput = document.getElementById('cfg_firma_file');
+
+            schoolConfig.nombre = document.getElementById('cfg_nombre').value.trim();
+            schoolConfig.nit = document.getElementById('cfg_nit').value.trim();
+            schoolConfig.direccion = document.getElementById('cfg_direccion').value.trim();
+            schoolConfig.telefono = document.getElementById('cfg_telefono').value.trim();
+            schoolConfig.correo = document.getElementById('cfg_correo').value.trim();
+            schoolConfig.rectorNombres = document.getElementById('cfg_rector_nombres').value.trim();
+            schoolConfig.rectorApellidos = document.getElementById('cfg_rector_apellidos').value.trim();
+            schoolConfig.rectorTel = document.getElementById('cfg_rector_tel').value.trim();
+            schoolConfig.rectorEmail = document.getElementById('cfg_rector_email').value.trim();
+            schoolConfig.rectorUser = document.getElementById('cfg_rector_user').value.trim();
+            schoolConfig.rectorPass = document.getElementById('cfg_rector_pass').value.trim();
+            schoolConfig.showNombre = document.getElementById('chk_show_nombre').checked;
+            schoolConfig.showTel = document.getElementById('chk_show_tel').checked;
+            schoolConfig.showEmail = document.getElementById('chk_show_email').checked;
+
+            let pendingSaves = 0;
+            let checkDone = () => {
+                pendingSaves--;
+                if(pendingSaves <= 0) {
+                    localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
+                    applySchoolConfig();
+                    alert("¡Configuración institucional y credenciales del Rector actualizadas con éxito!");
+                    switchView('admin');
+                }
+            };
+
+            if(fileInput.files && fileInput.files[0]) {
+                pendingSaves++;
+                let reader = new FileReader();
+                reader.onload = function(uploadEvent) {
+                    schoolConfig.logo = uploadEvent.target.result;
+                    checkDone();
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+
+            if(firmaInput.files && firmaInput.files[0]) {
+                pendingSaves++;
+                let readerFirma = new FileReader();
+                readerFirma.onload = function(uploadEvent) {
+                    schoolConfig.firma = uploadEvent.target.result;
+                    checkDone();
+                };
+                readerFirma.readAsDataURL(firmaInput.files[0]);
+            }
+
+            if(pendingSaves === 0) {
+                localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
+                applySchoolConfig();
+                alert("¡Configuración institucional y credenciales del Rector actualizadas con éxito!");
+                switchView('admin');
             }
         }
 
         function logout() {
-            sessionStorage.removeItem('sesion_activa');
-            location.reload();
+            currentUser = null;
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('form-login').reset();
         }
 
-        window.onload = function() {
-            if(sessionStorage.getItem('sesion_activa')) {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-app').classList.remove('hidden');
-                document.getElementById('welcome-subtitle').textContent = "Álvaro González Contreras (Rector)";
+        function checkSlots() {
+            let fecha = document.getElementById('sol_fecha').value;
+            let jornada = currentUser.jornada;
+            if(!fecha) return;
+
+            let count = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
+            let disponibles = 2 - count;
+            let badge = document.getElementById('slot-badge');
+            badge.textContent = `${disponibles} disponible(s)`;
+            badge.style.color = disponibles > 0 ? '#059669' : '#e11d48';
+        }
+
+        function handleFileUpload(e, targetKey) {
+            let file = e.target.files[0];
+            if(file) {
+                let reader = new FileReader();
+                reader.onload = function(uploadEvent) {
+                    window[targetKey] = { name: file.name, data: uploadEvent.target.result };
+                };
+                reader.readAsDataURL(file);
             }
-        };
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            let fecha = document.getElementById('sol_fecha').value;
+            let jornada = currentUser.jornada;
+
+            let selectedDate = new Date(fecha);
+            let today = new Date();
+            today.setHours(0,0,0,0);
+            let diffTime = selectedDate - today;
+            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if(diffDays < 3) {
+                alert("⚠️ Error: El permiso debe solicitarse con un mínimo de tres (3) días hábiles de anticipación.");
+                return;
+            }
+
+            let targetMonth = selectedDate.getMonth();
+            let targetYear = selectedDate.getFullYear();
+            let userMonthlyCount = permissions.filter(p => {
+                if(p.correo !== currentUser.correo || p.estado === 'Rechazado') return false;
+                let pDate = new Date(p.fecha);
+                return pDate.getMonth() === targetMonth && pDate.getFullYear() === targetYear;
+            }).length;
+
+            if(userMonthlyCount >= 3) {
+                alert("⚠️ [Límite Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
+                return;
+            }
+
+            let count = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
+            if(count >= 2) {
+                alert("Límite de 2 permisos alcanzado para esta jornada.");
+                return;
+            }
+
+            let modalidad = document.getElementById('sol_modalidad').value;
+            let motivoTipo = document.getElementById('sol_motivo_tipo').value;
+            let motivoDetalle = document.getElementById('sol_motivo_detalle').value.trim();
+            let horaInicio = document.getElementById('sol_hora_inicio').value;
+            let horaFin = document.getElementById('sol_hora_fin').value;
+
+            let detalleHoras = modalidad === 'Por Horas' ? ` [De ${horaInicio} a ${horaFin}]` : ' [Jornada Completa]';
+            let motivoCompleto = `[${motivoTipo}]${detalleHoras} ${motivoDetalle}`;
+            let radicadoNum = "RAD-2026-" + Math.floor(10000 + Math.random() * 90000);
+
+            let newP = {
+                id: Date.now(),
+                radicado: radicadoNum,
+                nombre: currentUser.name,
+                correo: currentUser.correo,
+                whatsapp: currentUser.whatsapp || "3000000000",
+                jornada: jornada,
+                fecha: fecha,
+                modalidad: modalidad,
+                horaInicio: horaInicio,
+                horaFin: horaFin,
+                motivo: motivoCompleto,
+                soportePermiso: window.soportePermisoData?.name || "soporte.pdf",
+                soportePermisoBase64: window.soportePermisoData?.data || "",
+                soporteActividades: window.soporteActividadesData?.name || "actividades.pdf",
+                soporteActividadesBase64: window.soporteActividadesData?.data || "",
+                estado: "Pendiente",
+                observacionRechazo: ""
+            };
+
+            permissions.push(newP);
+            localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
+
+            let coordAsignado = coordinators.find(c => c.jornada === jornada) || { whatsapp: "3001112233" };
+            let msgWa = encodeURIComponent(`Hola, se ha iniciado el proceso de permiso radicado ${radicadoNum} para la fecha ${fecha} (${modalidad}) por el docente ${currentUser.name}. Por favor revise el panel.`);
+            let waUrl = `https://wa.me/57${coordAsignado.whatsapp}?text=${msgWa}`;
+
+            if(confirm(`✅ [Solicitud Registrada]\nRadicado: ${radicadoNum}\n\n¿Desea enviar la notificación inmediata por WhatsApp al Coordinador de la jornada ${jornada}?`)) {
+                window.open(waUrl, '_blank');
+            }
+
+            document.getElementById('sol_motivo_detalle').value = '';
+            document.getElementById('sol_motivo_tipo').value = '';
+            document.getElementById('sol_modalidad').value = 'Jornada Completa';
+            toggleModalidad();
+            document.getElementById('sol_fecha').value = '';
+            document.getElementById('file_permiso').value = '';
+            document.getElementById('file_actividades').value = '';
+            document.getElementById('slot-badge').textContent = "Cupos: --";
+            window.soportePermisoData = null;
+            window.soporteActividadesData = null;
+            renderTeacherHistory();
+        }
+
+        function renderTeacherHistory() {
+            let tbody = document.getElementById('teacher-history-body');
+            tbody.innerHTML = '';
+            let myPerms = permissions.filter(p => p.correo === currentUser.correo);
+
+            if(myPerms.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:1.5rem;">No ha realizado solicitudes de permiso.</td></tr>`;
+                return;
+            }
+
+            myPerms.forEach(p => {
+                let badgeClass = p.estado === 'Aprobado' ? 'status-approved' : p.estado === 'Preaprobado' ? 'status-preapproved' : p.estado === 'Rechazado' ? 'status-rejected' : 'status-pending';
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
+                    <td>${p.fecha} <br><span style="font-size:0.75rem; color:#64748b; font-weight:bold;">${p.modalidad || 'Jornada Completa'}</span></td>
+                    <td>${p.motivo}</td>
+                    <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
+                    <td style="text-align:center;">
+                        ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Ver Resolución</button>` : `<span style="font-size:0.75rem; color:#64748b;">En trámite</span>`}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderTable() {
+            let tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+
+            let filtered = permissions.filter(p => {
+                if(currentUser.jornada !== 'Todas' && p.jornada !== currentUser.jornada) return false;
+                return true;
+            });
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:2rem;">No hay solicitudes registradas.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                let badgeClass = p.estado === 'Aprobado' ? 'status-approved' : p.estado === 'Preaprobado' ? 'status-preapproved' : p.estado === 'Rechazado' ? 'status-rejected' : 'status-pending';
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
+                    <td><strong style="display:block;">${p.nombre}</strong><span style="font-size:0.75rem; color:#64748b;">${p.correo}</span></td>
+                    <td>${p.fecha} <br><span style="color:#4f46e5; font-weight:700; font-size:0.75rem;">${p.jornada} (${p.modalidad || 'Jornada Completa'})</span></td>
+                    <td style="font-size:0.85rem; color:#475569;">
+                        <div><strong>Motivo:</strong> ${p.motivo}</div>
+                        <div style="font-size:0.75rem; margin-top:0.25rem;">
+                            📄 ${p.soportePermisoBase64 ? `<a href="${p.soportePermisoBase64}" download="${p.soportePermiso}" style="color:#4f46e5; font-weight:bold;">Descargar Soporte</a>` : p.soportePermiso} | 
+                            📁 ${p.soporteActividadesBase64 ? `<a href="${p.soporteActividadesBase64}" download="${p.soporteActividades}" style="color:#d97706; font-weight:bold;">Descargar Actividades</a>` : p.soporteActividades}
+                        </div>
+                    </td>
+                    <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
+                    <td style="text-align:center;">
+                        ${(currentUser.role === 'Coordinador' && p.estado === 'Pendiente') ? `<button onclick="updateStatus(${p.id}, 'Preaprobado')" style="background:#0284c7; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Preaprobar</button>` : ''}
+                        
+                        ${(currentUser.isRector && p.estado === 'Preaprobado') ? `<button onclick="updateStatus(${p.id}, 'Aprobado')" style="background:#059669; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Aprobar Definitivo</button>` : ''}
+                        
+                        ${(currentUser.isRector && p.estado === 'Pendiente') ? `<span style="font-size:0.7rem; color:#d97706; font-weight:bold; display:block; margin-bottom:2px;">Pendiente Preaprobación</span>` : ''}
+
+                        <button onclick="promptReject(${p.id})" style="background:#e11d48; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-top:2px;">Negar</button>
+
+                        ${(p.estado === 'Aprobado' || p.estado === 'Rechazado') ? `<button onclick="openModal(${p.id})" style="background:#4f46e5; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; display:block; margin:4px auto 0 auto;">Ver Resolución</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function promptReject(id) {
+            let p = permissions.find(x => x.id === id);
+            if(p) {
+                pendingRejectId = id;
+                document.getElementById('reject_observacion').value = "";
+                document.getElementById('rejectModal').classList.remove('hidden');
+            }
+        }
+
+        function closeRejectModal() {
+            pendingRejectId = null;
+            document.getElementById('rejectModal').classList.add('hidden');
+        }
+
+        function confirmReject() {
+            let obs = document.getElementById('reject_observacion').value.trim();
+            if(!obs) {
+                alert("Por favor escriba la observación del motivo de negación.");
+                return;
+            }
+
+            let p = permissions.find(x => x.id === pendingRejectId);
+            if(p) {
+                p.estado = "Rechazado";
+                p.observacionRechazo = obs;
+                localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
+
+                let templateParams = {
+                    to_email: p.correo,
+                    to_name: p.nombre,
+                    radicado: p.radicado,
+                    estado: "RECHAZADO",
+                    fecha: p.fecha,
+                    jornada: p.jornada,
+                    motivo: p.motivo + " | Observación: " + obs
+                };
+
+                emailjs.send("service_9hhf70g", "template_066a5sv", templateParams)
+                    .then(function(response) {
+                        alert("📨 [Resolución de Negación Enviada]\nEl correo oficial ha sido despachado al docente.");
+                    }, function(error) {
+                        console.error("EmailJS Error:", error);
+                    });
+
+                closeRejectModal();
+                renderTable();
+            }
+        }
+
+        function updateStatus(id, newStatus) {
+            let p = permissions.find(x => x.id === id);
+            if(p) {
+                if(currentUser.isRector && newStatus === 'Aprobado' && p.estado !== 'Preaprobado') {
+                    alert("⚠️ [Acción No Permitida]\nEl Rector no puede aprobar definitivamente un permiso si el Coordinador de la jornada aún no lo ha preaprobado.");
+                    return;
+                }
+
+                p.estado = newStatus;
+                localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
+                
+                if(newStatus === 'Aprobado') {
+                    let templateParams = {
+                        to_email: p.correo,
+                        to_name: p.nombre,
+                        radicado: p.radicado,
+                        estado: "APROBADO",
+                        fecha: p.fecha,
+                        jornada: p.jornada,
+                        motivo: p.motivo
+                    };
+
+                    emailjs.send("service_9hhf70g", "template_066a5sv", templateParams)
+                        .then(function(response) {
+                            alert("📨 [Resolución Aprobada Enviada]\nEl correo oficial ha sido despachado al docente.");
+                        }, function(error) {
+                            console.error("EmailJS Error:", error);
+                        });
+                } else if(newStatus === 'Preaprobado') {
+                    alert("🔔 [Preaprobación Registrada]\nSe ha actualizado el estado de la solicitud.");
+                }
+
+                renderTable();
+            }
+        }
+
+        function renderReports() {
+            let desde = document.getElementById('rep_desde').value;
+            let hasta = document.getElementById('rep_hasta').value;
+            let tbody = document.getElementById('reports-table-body');
+            tbody.innerHTML = '';
+
+            let filtered = permissions.filter(p => {
+                if(currentUser.jornada !== 'Todas' && p.jornada !== currentUser.jornada) return false;
+                if(desde && p.fecha < desde) return false;
+                if(hasta && p.fecha > hasta) return false;
+                return true;
+            });
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:2rem;">No hay registros para este rango de fechas.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                let badgeClass = p.estado === 'Aprobado' ? 'status-approved' : p.estado === 'Preaprobado' ? 'status-preapproved' : p.estado === 'Rechazado' ? 'status-rejected' : 'status-pending';
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:#4f46e5;">${p.radicado}</td>
+                    <td>${p.nombre}</td>
+                    <td>${p.jornada} (${p.modalidad || 'Jornada Completa'})</td>
+                    <td>${p.fecha}</td>
+                    <td>${p.motivo}</td>
+                    <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openModal(id) {
+            let p = permissions.find(x => x.id === id);
+            if(!p) return;
+
+            document.getElementById('modal-school-title').textContent = schoolConfig.nombre;
+            document.getElementById('modal-school-nit').textContent = `NIT: ${schoolConfig.nit} | ${schoolConfig.direccion} | Tel: ${schoolConfig.telefono}`;
+            
+            let modalLogo = document.getElementById('modal-logo-box');
+            if(schoolConfig.logo) {
+                modalLogo.innerHTML = `<img src="${schoolConfig.logo}" style="width:100%; height:100%; object-fit:cover;">`;
+            } else {
+                modalLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+            }
+
+            let isApproved = p.estado === 'Aprobado';
+            let estadoColor = isApproved ? '#065f46' : '#9f1239';
+            let estadoBg = isApproved ? '#d1fae5' : '#ffe4e6';
+            let resolucionTitulo = isApproved ? 'RESOLUCIÓN DE CONCESIÓN DE PERMISO LABORAL' : 'RESOLUCIÓN DE NEGACIÓN DE PERMISO LABORAL';
+            let resolucionVisto = isApproved ? 
+                'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales, en especial las conferidas por la Ley 715 de 2001, el Decreto 2277 de 1979 / Decreto 1278 de 2002, y el Decreto Único Reglamentario del Sector Educación 1075 de 2015, y' :
+                'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales y reglamentarias en materia de administración de personal docente y directivo docente, y';
+
+            let textoModalidad = p.modalidad === 'Por Horas' ? `por horas (de ${p.horaInicio} a ${p.horaFin})` : 'por jornada completa';
+
+            let resolucionConsiderando = isApproved ?
+                `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral ${textoModalidad} con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>, invocando como motivo: "${p.motivo}".<br><br>
+                 Que la solicitud cumple con los requisitos de oportunidad (mínimo 3 días hábiles de anticipación), la verificación de disponibilidad de cupos en la jornada y cuenta con la respectiva preaprobación de Coordinación y la entrega del material pedagógico de reemplazo.` :
+                `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral ${textoModalidad} con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>.<br><br>
+                 <strong>Motivo de Negación / Observación Institucional:</strong> ${p.observacionRechazo || 'No especificada.'}`;
+
+            let resolucionResuelve = isApproved ?
+                `<strong>ARTÍCULO PRIMERO: CONCEDER</strong> permiso remunerado al(la) docente <strong>${p.nombre}</strong> ${textoModalidad} por el día <strong>${p.fecha}</strong> en la jornada <strong>${p.jornada}</strong>.<br><br>
+                 <strong>ARTÍCULO SEGUNDO:</strong> El(la) docente queda obligado(a) a garantizar el desarrollo de las actividades académicas programadas según el material adjunto en el radicado.<br><br>
+                 <strong>ARTÍCULO TERCERO:</strong> Comuníquese y cúmplase.` :
+                `<strong>ARTÍCULO PRIMERO: NEGAR</strong> la solicitud de permiso laboral presentada por el(la) docente <strong>${p.nombre}</strong> bajo el radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>.<br><br>
+                 <strong>ARTÍCULO SEGUNDO:</strong> El(la) docente deberá continuar con sus labores académicas habituales en la jornada correspondiente.<br><br>
+                 <strong>ARTÍCULO TERCERO:</strong> Comuníquese y cúmplase.`;
+
+            let firmaRectorHtml = schoolConfig.firma ? 
+                `<div style="margin-top: 15px;"><img src="${schoolConfig.firma}" style="max-height: 70px; max-width: 180px; object-fit: contain; display: block; margin: 0 auto 5px auto;"></div>` : 
+                `<div style="height: 40px;"></div>`;
+
+            let nombreRectorStr = schoolConfig.showNombre ? `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos}` : "ÁLVARO GONZÁLEZ CONTRERAS (ALGC)";
+            let infoExtraRector = "";
+            if(schoolConfig.showTel) infoExtraRector += `<br>Tel: ${schoolConfig.rectorTel}`;
+            if(schoolConfig.showEmail) infoExtraRector += `<br>Correo: ${schoolConfig.rectorEmail}`;
+
+            let msgWaDocente = encodeURIComponent(`Hola ${p.nombre}, su solicitud con radicado ${p.radicado} ha sido: ${p.estado.toUpperCase()}. Revise su formato institucional de resolución.`);
+            let linkWaDocente = `https://wa.me/57${p.whatsapp || '3000000000'}?text=${msgWaDocente}`;
+
+            document.getElementById('permit-modal-content').innerHTML = `
+                <div style="text-align: center; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.75rem;">
+                    <h4 style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-bottom: 0.2rem;">${resolucionTitulo}</h4>
+                    <p style="font-size: 0.8rem; font-weight: 700; color: #4f46e5;">Radicado N°: ${p.radicado}</p>
+                </div>
+                <p style="margin-bottom: 0.75rem;"><strong>VISTOS:</strong> ${resolucionVisto}</p>
+                <p style="margin-bottom: 0.75rem;"><strong>CONSIDERANDO:</strong> ${resolucionConsiderando}</p>
+                <p style="margin-bottom: 1rem;"><strong>RESUELVE:</strong></p>
+                <div style="background: ${estadoBg}; border-left: 4px solid ${estadoColor}; padding: 1rem; border-radius: 6px; margin-bottom: 1.25rem;">
+                    <p style="color: ${estadoColor}; font-weight: 600; margin: 0;">${resolucionResuelve}</p>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 2rem; font-size: 0.8rem; border-top: 1px solid #cbd5e1; padding-top: 1rem;">
+                    <div>
+                        <p>Dada en Montería (Córdoba), a los ${new Date().toLocaleDateString()}.</p>
+                    </div>
+                    <div style="text-align: center;">
+                        ${firmaRectorHtml}
+                        <p style="font-weight: bold; color: #0f172a; border-top: 1px solid #475569; display: inline-block; padding-top: 4px; min-width: 180px;">${nombreRectorStr}</p>
+                        <p style="color: #64748b; margin-top:2px;">Rector - ${schoolConfig.nombre} ${infoExtraRector}</p>
+                    </div>
+                </div>
+            `;
+            
+            let actionsContainer = document.getElementById('modal-actions-container');
+            actionsContainer.innerHTML = `
+                <a href="${linkWaDocente}" target="_blank" class="btn-submit" style="background:#25d366; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;"><i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp</a>
+                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
+                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cerrar</button>
+            `;
+
+            document.getElementById('permitModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('permitModal').classList.add('hidden');
+        }
     </script>
 </body>
-</html>
+</html> 

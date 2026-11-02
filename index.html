@@ -31,7 +31,7 @@
         .card-header h2 { font-size: 0.95rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.3rem; word-break: break-word; }
         .card-header p { font-size: 0.7rem; color: #64748b; word-break: break-word; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; width: 100%; }
-        .form-group { margin-bottom: 0.6rem; width: 100%; }
+        .form-group { margin-bottom: 0.6rem; width: 100%; text-align: left; }
         label { display: block; font-weight: 700; margin-bottom: 0.25rem; font-size: 0.7rem; color: #334155; }
         input, select, textarea { width: 100%; padding: 0.55rem; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #f8fafc; color: #1e293b; }
         input:focus, select:focus, textarea:focus { outline: none; border-color: #4f46e5; background: #fff; }
@@ -198,9 +198,14 @@
         }
 
         function startApp(type) {
-            document.getElementById('auth-screen').style.display = 'none';
+            let authScreen = document.getElementById('auth-screen');
+            if (authScreen) {
+                authScreen.classList.add('hidden');
+                authScreen.style.display = 'none';
+            }
             if(type === 'docente') {
                 document.getElementById('view-solicitud').classList.remove('hidden');
+                document.getElementById('view-admin').classList.add('hidden');
             } else {
                 document.getElementById('view-solicitud').classList.add('hidden');
                 document.getElementById('view-admin').classList.remove('hidden');
@@ -216,6 +221,19 @@
             sessionStorage.removeItem('antonia_current_user');
             location.reload(); 
         }
+
+        // Restaurar sesión si ya estaba activa
+        window.onload = function() {
+            let savedUser = sessionStorage.getItem('antonia_current_user');
+            if(savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    startApp(currentUser.isRector ? 'admin' : 'docente');
+                } catch(err) {
+                    logout();
+                }
+            }
+        }
     </script>
 </body>
-</html> 
+</html>

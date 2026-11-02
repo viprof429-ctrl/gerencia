@@ -14,15 +14,19 @@
 
         /* Pantalla de Acceso / Login GIE */
         .auth-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
-        .auth-logo { width: 90px; height: 90px; background: #0f172a; border-radius: 20px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid #f59e0b; }
-        .auth-logo img { width: 100%; height: 100%; object-fit: cover; }
+        .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 440px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
+        
+        /* Logotipo GIE Corporativo Estilizado */
+        .gie-logo-badge { width: 85px; height: 85px; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border-radius: 20px; margin: 0 auto 1rem auto; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2.5px solid #f59e0b; box-shadow: 0 4px 15px rgba(245,158,11,0.3); }
+        .gie-logo-badge span:first-child { font-size: 1.8rem; font-weight: 900; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 50%, #f59e0b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px; }
+        .gie-logo-badge span:last-child { font-size: 0.55rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 1px; }
 
         /* Navbar GIE */
         header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
         .brand { display: flex; align-items: center; gap: 1rem; cursor: pointer; }
-        .brand-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #f59e0b; border: 1.5px solid #fbbf24; }
-        .brand-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .brand-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; border: 1.5px solid #f59e0b; }
+        .brand-icon span:first-child { font-size: 1.1rem; font-weight: 900; color: #f59e0b; line-height: 1; }
+        .brand-icon span:last-child { font-size: 0.4rem; font-weight: 800; color: #cbd5e1; }
         .brand-text h1 { font-size: 1.15rem; font-weight: 800; color: #f8fafc; }
         .brand-text p { font-size: 0.75rem; color: #cbd5e1; }
 
@@ -82,17 +86,24 @@
 </head>
 <body>
 
-    <!-- PANTALLA DE ACCESO / LOGIN GIE -->
+    <!-- PANTALLA DE ACCESO / LOGIN GIE CON SELECTOR DE COLEGIO -->
     <div id="auth-screen" class="auth-overlay">
         <div class="auth-card">
-            <div class="auth-logo" id="login-logo-container">
-                <img src="https://i.imgur.com/8Q96C5k.png" alt="GIE Logo" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:#f59e0b; font-size:2rem;\'></i>'">
+            <div class="gie-logo-badge">
+                <span>GIE</span>
+                <span>Suite</span>
             </div>
-            <h2 id="login-school-title" style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 0.1rem;">GIE - Gerencia Integral Educativa</h2>
-            <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 1.5rem;">Plataforma de Gestión Institucional</p>
+            <h2 style="font-size: 1.3rem; font-weight: 800; color: #0f172a; margin-bottom: 0.1rem;">Gerencia Integral Educativa</h2>
+            <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 1.25rem;">Plataforma Multitenant Institucional</p>
 
             <!-- Formulario Login -->
             <form id="form-login" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Seleccione Institución / Colegio</label>
+                    <select id="login_colegio" required onchange="checkMagisterLogin(this.value)">
+                        <option value="">Cargando instituciones...</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Correo / Usuario</label>
                     <input type="text" id="login_user" required placeholder="Usuario o correo">
@@ -150,8 +161,9 @@
     <div id="main-app" style="display:flex; flex-direction:column; flex-grow:1;">
         <header>
             <div class="brand" onclick="goToDashboard()">
-                <div class="brand-icon" id="header-logo-container">
-                    <i class="fa-solid fa-graduation-cap" style="color:#0f172a;"></i>
+                <div class="brand-icon">
+                    <span>GIE</span>
+                    <span>Suite</span>
                 </div>
                 <div class="brand-text">
                     <h1 id="header-school-name">GIE - GERENCIA INTEGRAL EDUCATIVA</h1>
@@ -160,23 +172,107 @@
             </div>
             <div style="display:flex; align-items:center;">
                 <button onclick="goToDashboard()" id="btn-home-gie" class="nav-admin-btn hidden" style="background:#f59e0b; color:#0f172a;"><i class="fa-solid fa-house"></i> Menú Principal</button>
+                
+                <!-- Navegación Súper Admin (Magister) -->
+                <div id="magister-extra-nav" class="hidden">
+                    <button onclick="switchView('magister-panel')" class="nav-admin-btn" style="background:#7c3aed;"><i class="fa-solid fa-crown"></i> Panel Magister (Colegios)</button>
+                </div>
+
+                <!-- Navegación Rector -->
                 <div id="rector-extra-nav" class="hidden">
                     <button onclick="switchView('config')" class="nav-admin-btn"><i class="fa-solid fa-gear"></i> Configurar Colegio</button>
                     <button onclick="switchView('coords')" class="nav-admin-btn" style="background:#0284c7;"><i class="fa-solid fa-user-tie"></i> Coordinadores</button>
                     <button onclick="switchView('reports')" class="nav-admin-btn" style="background:#d97706;"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
                     <button onclick="switchView('admin')" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
                 </div>
+
+                <!-- Navegación Coordinador -->
                 <div id="coord-extra-nav" class="hidden">
                     <button onclick="switchView('reports')" class="nav-admin-btn" style="background:#d97706;"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
                     <button onclick="switchView('admin')" class="nav-admin-btn" style="background:#059669;"><i class="fa-solid fa-shield-halved"></i> Panel</button>
                 </div>
+
                 <button onclick="logout()" style="background:#e11d48; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.85rem;"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
             </div>
         </header>
 
         <main>
+            <!-- PANEL SÚPER ADMINISTRADOR (CÓDIGO MAGISTER) -->
+            <section id="view-magister-panel" class="card hidden">
+                <div class="card-header">
+                    <div>
+                        <h2><i class="fa-solid fa-crown" style="color:#7c3aed;"></i> Panel Global Magister (Súper Admin)</h2>
+                        <p>Gestión comercial y creación de nuevas instituciones educativas en la suite GIE.</p>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-bottom: 2rem;">
+                    <div style="background: #eef2ml; padding: 1.5rem; border-radius: 16px; border: 1.5px solid #c7d2fe; text-align: center; background:#eef2ff;">
+                        <span style="font-size: 2.2rem; font-weight: 900; color: #4338ca;" id="stats-total-schools">0</span>
+                        <h4 style="font-size: 0.9rem; color: #312e81; margin-top: 0.25rem;"><i class="fa-solid fa-school"></i> Colegios / Clientes Creados</h4>
+                    </div>
+                    <div style="background: #fef3c7; padding: 1.5rem; border-radius: 16px; border: 1.5px solid #fde68a; text-align: center;">
+                        <span style="font-size: 2.2rem; font-weight: 900; color: #92400e;" id="stats-active-modules">4</span>
+                        <h4 style="font-size: 0.9rem; color: #78350f; margin-top: 0.25rem;"><i class="fa-solid fa-cubes"></i> Módulos GIE Activos por Suite</h4>
+                    </div>
+                </div>
+
+                <form onsubmit="handleCreateSchool(event)" style="background:#f8fafc; padding:1.5rem; border-radius:14px; border:1px solid #e2e8f0; margin-bottom:2rem;">
+                    <h3 style="font-size:1rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem;"><i class="fa-solid fa-circle-plus"></i> Registrar Nueva Institución (Colegio)</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre del Colegio</label>
+                            <input type="text" id="mag_nombre" required placeholder="Ej. I.E. Simón Bolívar">
+                        </div>
+                        <div class="form-group">
+                            <label>NIT</label>
+                            <input type="text" id="mag_nit" required placeholder="Ej. 900123456-2">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Código DANE</label>
+                            <input type="text" id="mag_dane" required placeholder="Ej. 123001000000">
+                        </div>
+                        <div class="form-group">
+                            <label>Ciudad / Dirección</label>
+                            <input type="text" id="mag_direccion" required placeholder="Montería, Córdoba">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre del Rector (Usuario Administrador)</label>
+                            <input type="text" id="mag_rector" required placeholder="Ej. Juan Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label>Correo / Usuario de Acceso del Rector</label>
+                            <input type="text" id="mag_user" required placeholder="rector.simon@gie.edu.co">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña Inicial del Rector</label>
+                        <input type="text" id="mag_pass" required placeholder="Contraseña segura">
+                    </div>
+                    <button type="submit" class="btn-submit" style="background:#7c3aed;">Crear Institución y Habilitar GIE</button>
+                </form>
+
+                <h3 style="font-size:1.1rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem;">Instituciones Registradas en el Sistema</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Institución</th>
+                            <th>NIT / DANE</th>
+                            <th>Ubicación</th>
+                            <th>Rector Administrador</th>
+                            <th>Usuario / Contraseña</th>
+                        </tr>
+                    </thead>
+                    <tbody id="magister-schools-tbody"></tbody>
+                </table>
+            </section>
+
             <!-- DASHBOARD PRINCIPAL DE MÓDULOS GIE -->
-            <section id="view-dashboard" class="card">
+            <section id="view-dashboard" class="card hidden">
                 <div class="card-header">
                     <div>
                         <h2><i class="fa-solid fa-cubes" style="color:#f59e0b;"></i> Suite de Gerencia Integral Educativa</h2>
@@ -591,8 +687,8 @@
         <div class="modal-card">
             <!-- Encabezado Institucional Dinámico tomado de Configuración -->
             <div style="display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #0f172a; padding-bottom: 0.75rem; margin-bottom: 1rem; text-align: center;">
-                <div id="modal-logo-box" style="width: 55px; height: 55px; border-radius: 10px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1.3rem; flex-shrink: 0;">
-                    <i class="fa-solid fa-graduation-cap"></i>
+                <div id="modal-logo-box" style="width: 55px; height: 55px; border-radius: 10px; overflow: hidden; background:#0f172a; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#f59e0b; font-weight:bold; font-size:1.1rem; flex-shrink: 0; border: 1.5px solid #f59e0b;">
+                    <span style="font-size:1rem; line-height:1;">GIE</span>
                 </div>
                 <div style="flex-grow: 1;">
                     <h3 id="modal-school-title" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">I.E. ANTONIA SANTOS</h3>
@@ -620,7 +716,7 @@
             <textarea id="reject_observacion" rows="4" style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 8px; margin-bottom: 1.25rem;" placeholder="Escriba la razón reglamentaria..."></textarea>
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
                 <button onclick="confirmReject()" class="btn-submit" style="background: #e11d48; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;">Confirmar Negación</button>
-                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cancelar</button>
+                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
             </div>
         </div>
     </div>
@@ -631,74 +727,106 @@
             emailjs.init("Fj3QdUv-Z9qIxjmnV");
         })();
 
-        // Blindaje absoluto de datos en localStorage (persistencia garantizada sin borrados)
-        let permissions = JSON.parse(localStorage.getItem('antonia_santos_perms')) || [];
-        let teachers = JSON.parse(localStorage.getItem('antonia_santos_teachers')) || [];
+        // Base de Datos Multitenant de Colegios (SaaS GIE)
+        let schoolsDB = JSON.parse(localStorage.getItem('gie_schools_db')) || [
+            {
+                id: "antonia_santos",
+                nombre: "I.E. ANTONIA SANTOS",
+                nit: "800000000-1",
+                dane: "123001000000",
+                maxDailyPermits: 2,
+                direccion: "Montería, Córdoba",
+                telefono: "3000000000",
+                correo: "contacto@antoniasantos.edu.co",
+                logo: "",
+                firma: "",
+                rectorUser: "rector",
+                rectorPass: "123456",
+                rectorNombres: "Álvaro",
+                rectorApellidos: "González Contreras (ALGC)",
+                rectorTel: "3000000000",
+                rectorEmail: "rector@antoniasantos.edu.co",
+                showNombre: true,
+                showTel: false,
+                showEmail: false,
+                rolesAccess: {
+                    docente: { permisos: true, sau: false, mantenimiento: false, contable: false },
+                    coord: { permisos: true, sau: true, mantenimiento: true, contable: false },
+                    admin: { permisos: true, sau: true, mantenimiento: true, contable: true },
+                    public: { permisos: false, sau: true, mantenimiento: false, contable: false }
+                }
+            }
+        ];
+
+        let activeSchoolId = localStorage.getItem('gie_active_school_id') || "antonia_santos";
+        let schoolConfig = schoolsDB.find(s => s.id === activeSchoolId) || schoolsDB[0];
+
+        // Blindaje absoluto de datos en localStorage por colegio
+        let permissions = JSON.parse(localStorage.getItem(`gie_perms_${activeSchoolId}`)) || [];
+        let teachers = JSON.parse(localStorage.getItem(`gie_teachers_${activeSchoolId}`)) || [];
         
-        let coordinators = JSON.parse(localStorage.getItem('antonia_santos_coords'));
+        let coordinators = JSON.parse(localStorage.getItem(`gie_coords_${activeSchoolId}`));
         if (!coordinators) {
             coordinators = [
                 { nombre: "Coordinador Mañana", correo: "coord.manana", whatsapp: "3001112233", jornada: "Mañana", pass: "MananaAntonia2026*" },
                 { nombre: "Coordinador Tarde", correo: "coord.tarde", whatsapp: "3004445566", jornada: "Tarde", pass: "TardeAntonia2026*" }
             ];
-            localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
-        }
-
-        let schoolConfig = JSON.parse(localStorage.getItem('antonia_santos_school')) || {
-            nombre: "I.E. ANTONIA SANTOS",
-            nit: "800000000-1",
-            dane: "123001000000",
-            maxDailyPermits: 2,
-            direccion: "Montería, Córdoba",
-            telefono: "3000000000",
-            correo: "contacto@antoniasantos.edu.co",
-            logo: "",
-            firma: "",
-            rectorUser: "rector",
-            rectorPass: "123456",
-            rectorNombres: "Álvaro",
-            rectorApellidos: "González Contreras (ALGC)",
-            rectorTel: "3000000000",
-            rectorEmail: "rector@antoniasantos.edu.co",
-            showNombre: true,
-            showTel: false,
-            showEmail: false,
-            rolesAccess: {
-                docente: { permisos: true, sau: false, mantenimiento: false, contable: false },
-                coord: { permisos: true, sau: true, mantenimiento: true, contable: false },
-                admin: { permisos: true, sau: true, mantenimiento: true, contable: true },
-                public: { permisos: false, sau: true, mantenimiento: false, contable: false }
-            }
-        };
-
-        if(!schoolConfig.rectorUser) schoolConfig.rectorUser = "rector";
-        if(!schoolConfig.rectorPass) schoolConfig.rectorPass = "123456";
-        if(!schoolConfig.rectorNombres) schoolConfig.rectorNombres = "Álvaro";
-        if(!schoolConfig.rectorApellidos) schoolConfig.rectorApellidos = "González Contreras (ALGC)";
-        if(!schoolConfig.rectorTel) schoolConfig.rectorTel = "3000000000";
-        if(!schoolConfig.rectorEmail) schoolConfig.rectorEmail = "rector@antoniasantos.edu.co";
-        if(schoolConfig.showNombre === undefined) schoolConfig.showNombre = true;
-        if(schoolConfig.showTel === undefined) schoolConfig.showTel = false;
-        if(schoolConfig.showEmail === undefined) schoolConfig.showEmail = false;
-        if(!schoolConfig.dane) schoolConfig.dane = "123001000000";
-        if(!schoolConfig.correo) schoolConfig.correo = "contacto@antoniasantos.edu.co";
-        if(schoolConfig.maxDailyPermits === undefined) schoolConfig.maxDailyPermits = 2;
-        if(!schoolConfig.rolesAccess) {
-            schoolConfig.rolesAccess = {
-                docente: { permisos: true, sau: false, mantenimiento: false, contable: false },
-                coord: { permisos: true, sau: true, mantenimiento: true, contable: false },
-                admin: { permisos: true, sau: true, mantenimiento: true, contable: true },
-                public: { permisos: false, sau: true, mantenimiento: false, contable: false }
-            };
+            localStorage.setItem(`gie_coords_${activeSchoolId}`, JSON.stringify(coordinators));
         }
 
         let currentUser = null;
         let pendingRejectId = null;
 
         window.onload = function() {
+            populateSchoolsDropdown();
             applySchoolConfig();
             setMinDate();
         };
+
+        function populateSchoolsDropdown() {
+            let select = document.getElementById('login_colegio');
+            if(!select) return;
+            select.innerHTML = '';
+            schoolsDB.forEach(s => {
+                let opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.nombre} (NIT: ${s.nit})`;
+                if(s.id === activeSchoolId) opt.selected = true;
+                select.appendChild(opt);
+            });
+            // Añadir opción especial para Súper Admin Magister
+            let optMag = document.createElement('option');
+            optMag.value = "MAGISTER_GLOBAL";
+            optMag.textContent = "👑 [SÚPER ADMIN MAGISTER - GIE GLOBAL]";
+            select.appendChild(optMag);
+        }
+
+        function checkMagisterLogin(val) {
+            let uInput = document.getElementById('login_user');
+            let pInput = document.getElementById('login_pass');
+            if(val === "MAGISTER_GLOBAL") {
+                uInput.value = "ALGC";
+                pInput.value = "Mahela";
+                uInput.readOnly = true;
+                pInput.readOnly = true;
+            } else {
+                uInput.value = "";
+                pInput.value = "";
+                uInput.readOnly = false;
+                pInput.readOnly = false;
+            }
+        }
+
+        function switchActiveSchool(schoolId) {
+            activeSchoolId = schoolId;
+            localStorage.setItem('gie_active_school_id', activeSchoolId);
+            schoolConfig = schoolsDB.find(s => s.id === activeSchoolId) || schoolsDB[0];
+            
+            permissions = JSON.parse(localStorage.getItem(`gie_perms_${activeSchoolId}`)) || [];
+            teachers = JSON.parse(localStorage.getItem(`gie_teachers_${activeSchoolId}`)) || [];
+            coordinators = JSON.parse(localStorage.getItem(`gie_coords_${activeSchoolId}`)) || [];
+            applySchoolConfig();
+        }
 
         function setMinDate() {
             let today = new Date();
@@ -714,23 +842,14 @@
         }
 
         function applySchoolConfig() {
-            document.getElementById('login-school-title').textContent = "GIE - Gerencia Integral Educativa";
-            
-            let loginLogo = document.getElementById('login-logo-container');
-            if(schoolConfig.logo && schoolConfig.logo.trim() !== "") {
-                loginLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
-            } else {
-                loginLogo.innerHTML = `<img src="https://i.imgur.com/8Q96C5k.png" alt="GIE Logo" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:#f59e0b; font-size:2rem;\'></i>'">`;
-            }
-
-            document.getElementById('header-school-name').textContent = "GIE - " + schoolConfig.nombre;
-            
             let headerLogo = document.getElementById('header-logo-container');
             if(schoolConfig.logo && schoolConfig.logo.trim() !== "") {
                 headerLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
             } else {
-                headerLogo.innerHTML = `<img src="https://i.imgur.com/8Q96C5k.png" alt="GIE Logo" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:#0f172a;\'></i>'">`;
+                headerLogo.innerHTML = `<span>GIE</span><span>Suite</span>`;
             }
+            let schoolNameElem = document.getElementById('header-school-name');
+            if(schoolNameElem) schoolNameElem.textContent = "GIE - " + schoolConfig.nombre;
         }
 
         function toggleRegister(show) {
@@ -745,6 +864,13 @@
 
         function handleRegister(e) {
             e.preventDefault();
+            let selectedSchoolId = document.getElementById('login_colegio').value;
+            if(selectedSchoolId === "MAGISTER_GLOBAL") {
+                alert("Seleccione un colegio válido para registrarse como docente.");
+                return;
+            }
+            switchActiveSchool(selectedSchoolId);
+
             let newDocente = {
                 nombres: document.getElementById('reg_nombres').value.trim(),
                 apellidos: document.getElementById('reg_apellidos').value.trim(),
@@ -755,12 +881,12 @@
             };
 
             if(teachers.some(t => t.correo === newDocente.correo)) {
-                alert("Este correo ya se encuentra registrado.");
+                alert("Este correo ya se encuentra registrado en esta institución.");
                 return;
             }
 
             teachers.push(newDocente);
-            localStorage.setItem('antonia_santos_teachers', JSON.stringify(teachers));
+            localStorage.setItem(`gie_teachers_${activeSchoolId}`, JSON.stringify(teachers));
             alert("¡Registro exitoso! Ya puede iniciar sesión con su correo y contraseña.");
             toggleRegister(false);
             document.getElementById('form-register').reset();
@@ -768,8 +894,25 @@
 
         function handleLogin(e) {
             e.preventDefault();
+            let selectedSchoolId = document.getElementById('login_colegio').value;
             let user = document.getElementById('login_user').value.trim().toLowerCase();
             let pass = document.getElementById('login_pass').value.trim();
+
+            // 1. Acceso Súper Admin Magister
+            if(selectedSchoolId === "MAGISTER_GLOBAL" && user === "algc" && pass === "Mahela") {
+                currentUser = {
+                    name: "Súper Admin (Magister)",
+                    role: "Magister",
+                    roleKey: "magister",
+                    jornada: "Todas",
+                    isMagister: true,
+                    correo: "algc"
+                };
+                startApp();
+                return;
+            }
+
+            switchActiveSchool(selectedSchoolId);
 
             if(user === schoolConfig.rectorUser.toLowerCase() && pass === schoolConfig.rectorPass) {
                 currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", roleKey: "admin", jornada: "Todas", isRector: true, correo: schoolConfig.rectorUser.toLowerCase() };
@@ -807,13 +950,18 @@
                 return;
             }
 
-            alert("Usuario o contraseña incorrectos.");
+            alert("Usuario o contraseña incorrectos para la institución seleccionada.");
         }
 
         function startApp() {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('btn-home-gie').classList.remove('hidden');
-            goToDashboard();
+            
+            if(currentUser.isMagister) {
+                switchView('magister-panel');
+            } else {
+                goToDashboard();
+            }
         }
 
         function renderDashboardModules() {
@@ -821,12 +969,7 @@
             grid.innerHTML = '';
 
             let rKey = currentUser.isRector ? 'admin' : currentUser.roleKey;
-            let access = schoolConfig.rolesAccess || {
-                docente: { permisos: true, sau: false, mantenimiento: false, contable: false },
-                coord: { permisos: true, sau: true, mantenimiento: true, contable: false },
-                admin: { permisos: true, sau: true, mantenimiento: true, contable: true },
-                public: { permisos: false, sau: true, mantenimiento: false, contable: false }
-            };
+            let access = schoolConfig.rolesAccess || {};
 
             let modulesConfig = [
                 { key: 'permisos', name: 'Control de Permisos', desc: 'Gestión, solicitudes, preaprobaciones y resoluciones oficiales de permisos laborales.', icon: 'fa-clipboard-user', bg: '#eef2ff', color: '#4f46e5' },
@@ -865,10 +1008,12 @@
             document.getElementById('view-coords').classList.add('hidden');
             document.getElementById('view-reports').classList.add('hidden');
             document.getElementById('view-aux-module').classList.add('hidden');
+            document.getElementById('view-magister-panel').classList.add('hidden');
             
             document.getElementById('rector-extra-nav').classList.add('hidden');
             document.getElementById('coord-extra-nav').classList.add('hidden');
-            document.getElementById('user-session-info').textContent = `Usuario: ${currentUser.name} (${currentUser.role})`;
+            document.getElementById('magister-extra-nav').classList.add('hidden');
+            document.getElementById('user-session-info').textContent = `Institución: ${schoolConfig.nombre} | Usuario: ${currentUser.name}`;
             
             renderDashboardModules();
         }
@@ -897,6 +1042,7 @@
                 document.getElementById('view-aux-module').classList.remove('hidden');
                 document.getElementById('rector-extra-nav').classList.add('hidden');
                 document.getElementById('coord-extra-nav').classList.add('hidden');
+                document.getElementById('magister-extra-nav').classList.add('hidden');
             }
         }
 
@@ -908,8 +1054,14 @@
             document.getElementById('view-coords').classList.add('hidden');
             document.getElementById('view-reports').classList.add('hidden');
             document.getElementById('view-aux-module').classList.add('hidden');
+            document.getElementById('view-magister-panel').classList.add('hidden');
 
-            if(view === 'admin') {
+            if(view === 'magister-panel') {
+                document.getElementById('view-magister-panel').classList.remove('hidden');
+                document.getElementById('magister-extra-nav').classList.remove('hidden');
+                document.getElementById('user-session-info').textContent = `Súper Admin Magister`;
+                renderMagisterTable();
+            } else if(view === 'admin') {
                 document.getElementById('view-admin').classList.remove('hidden');
                 document.getElementById('admin-title').textContent = `Panel Directivo - ${currentUser.name}`;
                 document.getElementById('user-session-info').textContent = `Rol: ${currentUser.role}`;
@@ -941,7 +1093,6 @@
                 document.getElementById('chk_show_tel').checked = schoolConfig.showTel;
                 document.getElementById('chk_show_email').checked = schoolConfig.showEmail;
 
-                // Cargar Matriz de Accesos en el formulario
                 let acc = schoolConfig.rolesAccess || {};
                 ['docente', 'coord', 'admin', 'public'].forEach(r => {
                     let rObj = acc[r] || {};
@@ -962,6 +1113,61 @@
                 if(currentUser.isRector) document.getElementById('rector-extra-nav').classList.remove('hidden');
                 else document.getElementById('coord-extra-nav').classList.remove('hidden');
             }
+        }
+
+        function handleCreateSchool(e) {
+            e.preventDefault();
+            let newS = {
+                id: "school_" + Date.now(),
+                nombre: document.getElementById('mag_nombre').value.trim(),
+                nit: document.getElementById('mag_nit').value.trim(),
+                dane: document.getElementById('mag_dane').value.trim(),
+                maxDailyPermits: 2,
+                direccion: document.getElementById('mag_direccion').value.trim(),
+                telefono: "3000000000",
+                correo: "contacto@colegio.edu.co",
+                logo: "",
+                firma: "",
+                rectorUser: document.getElementById('mag_user').value.trim().toLowerCase(),
+                rectorPass: document.getElementById('mag_pass').value.trim(),
+                rectorNombres: document.getElementById('mag_rector').value.trim(),
+                rectorApellidos: "(Rector)",
+                rectorTel: "3000000000",
+                rectorEmail: "rector@colegio.edu.co",
+                showNombre: true,
+                showTel: false,
+                showEmail: false,
+                rolesAccess: {
+                    docente: { permisos: true, sau: false, mantenimiento: false, contable: false },
+                    coord: { permisos: true, sau: true, mantenimiento: true, contable: false },
+                    admin: { permisos: true, sau: true, mantenimiento: true, contable: true },
+                    public: { permisos: false, sau: true, mantenimiento: false, contable: false }
+                }
+            };
+
+            schoolsDB.push(newS);
+            localStorage.setItem('gie_schools_db', JSON.stringify(schoolsDB));
+            alert(`¡Institución "${newS.nombre}" creada con éxito!\nYa puede iniciar sesión con el usuario: ${newS.rectorUser} y contraseña asignada.`);
+            e.target.reset();
+            renderMagisterTable();
+            populateSchoolsDropdown();
+        }
+
+        function renderMagisterTable() {
+            document.getElementById('stats-total-schools').textContent = schoolsDB.length;
+            let tbody = document.getElementById('magister-schools-tbody');
+            tbody.innerHTML = '';
+            schoolsDB.forEach(s => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold;">${s.nombre}</td>
+                    <td>NIT: ${s.nit}<br><span style="font-size:0.75rem; color:#64748b;">DANE: ${s.dane}</span></td>
+                    <td>${s.direccion}</td>
+                    <td>${s.rectorNombres} ${s.rectorApellidos}</td>
+                    <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">User: ${s.rectorUser}</code><br><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">Pass: ${s.rectorPass}</code></td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
         function toggleModalidad() {
@@ -1009,7 +1215,7 @@
                 document.getElementById('coord_btn_submit').textContent = "Guardar Coordinador";
             }
 
-            localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
+            localStorage.setItem(`gie_coords_${activeSchoolId}`, JSON.stringify(coordinators));
             e.target.reset();
             renderCoordsTable();
         }
@@ -1052,7 +1258,7 @@
         function deleteCoordinator(index) {
             if(confirm("¿Está seguro de eliminar este coordinador?")) {
                 coordinators.splice(index, 1);
-                localStorage.setItem('antonia_santos_coords', JSON.stringify(coordinators));
+                localStorage.setItem(`gie_coords_${activeSchoolId}`, JSON.stringify(coordinators));
                 renderCoordsTable();
             }
         }
@@ -1079,7 +1285,6 @@
             schoolConfig.showTel = document.getElementById('chk_show_tel').checked;
             schoolConfig.showEmail = document.getElementById('chk_show_email').checked;
 
-            // Guardar matriz de accesos por rol
             schoolConfig.rolesAccess = {};
             ['docente', 'coord', 'admin', 'public'].forEach(r => {
                 schoolConfig.rolesAccess[r] = {
@@ -1097,7 +1302,10 @@
             if (firmaInput.files && firmaInput.files[0]) totalFiles++;
 
             let finalizeSave = () => {
-                localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
+                // Actualizar en schoolsDB
+                let sIdx = schoolsDB.findIndex(s => s.id === activeSchoolId);
+                if(sIdx !== -1) schoolsDB[sIdx] = schoolConfig;
+                localStorage.setItem('gie_schools_db', JSON.stringify(schoolsDB));
                 applySchoolConfig();
                 alert("¡Configuración institucional y matriz de accesos actualizadas con éxito[cite: 12]!");
                 goToDashboard();
@@ -1134,6 +1342,7 @@
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('btn-home-gie').classList.add('hidden');
             document.getElementById('form-login').reset();
+            populateSchoolsDropdown();
         }
 
         function checkSlots() {
@@ -1185,7 +1394,6 @@
                 return;
             }
 
-            // 1. VALIDACIÓN DEL LÍMITE MENSUAL ESTRICTO (MÁXIMO 3 PERMISOS POR MES CALENDARIO)
             let [targetYear, targetMonth] = fecha.split('-');
             let userMonthlyCount = permissions.filter(p => {
                 if(!p.correo || p.correo.toLowerCase() !== currentUser.correo.toLowerCase() || p.estado === 'Rechazado') return false;
@@ -1199,7 +1407,6 @@
                 return;
             }
 
-            // 2. VALIDACIÓN DEL LÍMITE DIARIO EXACTO PARA ESA JORNADA Y FECHA
             let dailyCount = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
             let maxDaily = schoolConfig.maxDailyPermits || 2;
 
@@ -1239,7 +1446,7 @@
             };
 
             permissions.push(newP);
-            localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
+            localStorage.setItem(`gie_perms_${activeSchoolId}`, JSON.stringify(permissions));
 
             let coordAsignado = coordinators.find(c => c.jornada === jornada) || { whatsapp: "3001112233" };
             let msgWa = encodeURIComponent(`Hola, se ha iniciado el proceso de permiso radicado ${radicadoNum} para la fecha ${fecha} (${modalidad}) por el docente ${currentUser.name}. Por favor revise el panel.`);
@@ -1359,7 +1566,7 @@
             if(p) {
                 p.estado = "Rechazado";
                 p.observacionRechazo = obs;
-                localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
+                localStorage.setItem(`gie_perms_${activeSchoolId}`, JSON.stringify(permissions));
 
                 let templateParams = {
                     to_email: p.correo,
@@ -1392,7 +1599,7 @@
                 }
 
                 p.estado = newStatus;
-                localStorage.setItem('antonia_santos_perms', JSON.stringify(permissions));
+                localStorage.setItem(`gie_perms_${activeSchoolId}`, JSON.stringify(permissions));
                 
                 if(newStatus === 'Aprobado') {
                     let templateParams = {
@@ -1456,7 +1663,7 @@
             let p = permissions.find(x => x.id === id);
             if(!p) return;
 
-            let logoHtml = schoolConfig.logo ? `<img src="${schoolConfig.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<img src="https://i.imgur.com/8Q96C5k.png" alt="GIE Logo" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\'></i>'">`;
+            let logoHtml = schoolConfig.logo ? `<img src="${schoolConfig.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="width:100%; height:100%; background:#0f172a; color:#f59e0b; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">GIE</div>`;
             
             let modalContainer = document.getElementById('permitModal');
             if(!modalContainer) {

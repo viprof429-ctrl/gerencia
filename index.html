@@ -76,7 +76,7 @@
             <form id="form-login" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>Correo / Usuario</label>
-                    <input type="text" id="login_user" required placeholder="rector o correo del usuario">
+                    <input type="text" id="login_user" required placeholder="Usuario o correo">
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
@@ -124,11 +124,6 @@
                     <button type="button" class="link-btn" style="color:#64748b;" onclick="toggleRegister(false)">← Volver al inicio de sesión</button>
                 </div>
             </form>
-
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem; margin-top: 1.5rem; font-size: 0.75rem; color: #475569; text-align: left;">
-                <strong>Credencial Rector Inicial:</strong><br>
-                • Usuario: <code id="login-hint-user">rector</code> | Clave: <code id="login-hint-pass">123456</code>
-            </div>
         </div>
     </div>
 
@@ -379,7 +374,7 @@
             <section id="view-config" class="card hidden">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración General y Datos del Rector</h2>
-                    <p>Actualice la información institucional, configure las credenciales del Rector y defina qué datos se muestran en los documentos.</p>
+                    <p>Actualice la información institucional, configure las credenciales del Rector y adjunte la hoja membretada y el logotipo.</p>
                 </div>
 
                 <form onsubmit="saveSchoolConfig(event)">
@@ -416,6 +411,15 @@
                             <label>Logotipo del Colegio (Imagen)</label>
                             <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.5rem; background: white;">
                         </div>
+                    </div>
+
+                    <!-- NUEVO CAMPO: HOJA MEMBRETADA -->
+                    <div class="form-group" style="background:#f8fafc; padding:1.25rem; border:2px dashed #4f46e5; border-radius:12px; margin-bottom:1.5rem;">
+                        <label style="color:#1e293b; font-weight:bold; margin-bottom:0.5rem;">
+                            <i class="fa-solid fa-file-invoice" style="color:#4f46e5;"></i> Hoja Membretada Institucional (Word, PDF o Imagen)
+                        </label>
+                        <p style="font-size:0.75rem; color:#64748b; margin-bottom:0.75rem;">Adjunte la plantilla oficial del colegio. Las resoluciones se plasmarán sobre este formato.</p>
+                        <input type="file" id="cfg_membrete_file" accept=".pdf,.doc,.docx,image/*" style="padding: 0.5rem; background: white; border:none;">
                     </div>
 
                     <!-- DATOS Y CREDENCIALES DEL RECTOR -->
@@ -488,15 +492,16 @@
     <!-- MODAL RESOLUCIÓN OFICIAL EN PDF / FORMATO LEGAL -->
     <div id="permitModal" class="modal-bg hidden">
         <div class="modal-card">
-            <!-- Encabezado Institucional Dinámico -->
-            <div style="display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #0f172a; padding-bottom: 1rem; margin-bottom: 1.25rem;">
-                <div id="modal-logo-box" style="width: 65px; height: 65px; border-radius: 10px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1.5rem; flex-shrink: 0;">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                </div>
-                <div style="flex-grow: 1; text-align: center;">
-                    <h3 id="modal-school-title" style="font-size: 1.15rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">I.E. ANTONIA SANTOS</h3>
-                    <p id="modal-school-nit" style="font-size: 0.75rem; color: #475569; font-weight: 600;">NIT: 800000000-1 | Montería, Córdoba</p>
-                    <p style="font-size: 0.70rem; color: #64748b;">RECTORÍA - GESTIÓN DE TALENTO HUMANO Y PERMISOS LABORALES</p>
+            <!-- Encabezado / Hoja Membretada Dinámica -->
+            <div id="modal-membrete-container" style="border-bottom: 2px solid #0f172a; padding-bottom: 1rem; margin-bottom: 1.25rem; text-align: center;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+                    <div id="modal-logo-box" style="width: 60px; height: 60px; border-radius: 10px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1.4rem; flex-shrink: 0;">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h3 id="modal-school-title" style="font-size: 1.15rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">I.E. ANTONIA SANTOS</h3>
+                        <p id="modal-school-nit" style="font-size: 0.75rem; color: #475569; font-weight: 600;">NIT: 800000000-1 | Montería, Córdoba</p>
+                    </div>
                 </div>
             </div>
 
@@ -550,6 +555,7 @@
             telefono: "3000000000",
             correo: "contacto@antoniasantos.edu.co",
             logo: "",
+            membrete: "",
             firma: "",
             rectorUser: "rector",
             rectorPass: "123456",
@@ -562,7 +568,6 @@
             showEmail: false
         };
 
-        // Retrocompatibilidad por si faltan campos
         if(!schoolConfig.rectorUser) schoolConfig.rectorUser = "rector";
         if(!schoolConfig.rectorPass) schoolConfig.rectorPass = "123456";
         if(!schoolConfig.rectorNombres) schoolConfig.rectorNombres = "Álvaro";
@@ -572,6 +577,7 @@
         if(schoolConfig.showNombre === undefined) schoolConfig.showNombre = true;
         if(schoolConfig.showTel === undefined) schoolConfig.showTel = false;
         if(schoolConfig.showEmail === undefined) schoolConfig.showEmail = false;
+        if(!schoolConfig.membrete) schoolConfig.membrete = "";
 
         let currentUser = null;
         let pendingRejectId = null;
@@ -596,11 +602,9 @@
 
         function applySchoolConfig() {
             document.getElementById('login-school-title').textContent = schoolConfig.nombre;
-            document.getElementById('login-hint-user').textContent = schoolConfig.rectorUser;
-            document.getElementById('login-hint-pass').textContent = schoolConfig.rectorPass;
             
             let loginLogo = document.getElementById('login-logo-container');
-            if(schoolConfig.logo) {
+            if(schoolConfig.logo && schoolConfig.logo.trim() !== "") {
                 loginLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
             } else {
                 loginLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
@@ -609,7 +613,7 @@
             document.getElementById('header-school-name').textContent = schoolConfig.nombre;
             
             let headerLogo = document.getElementById('header-logo-container');
-            if(schoolConfig.logo) {
+            if(schoolConfig.logo && schoolConfig.logo.trim() !== "") {
                 headerLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
             } else {
                 headerLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
@@ -654,7 +658,6 @@
             let user = document.getElementById('login_user').value.trim();
             let pass = document.getElementById('login_pass').value.trim();
 
-            // Validación con credenciales actualizadas del Rector
             if(user === schoolConfig.rectorUser && pass === schoolConfig.rectorPass) {
                 currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", jornada: "Todas", isRector: true, correo: schoolConfig.rectorUser };
                 startApp('admin');
@@ -858,6 +861,7 @@
         function saveSchoolConfig(e) {
             e.preventDefault();
             let fileInput = document.getElementById('cfg_logo_file');
+            let membreteInput = document.getElementById('cfg_membrete_file');
             let firmaInput = document.getElementById('cfg_firma_file');
 
             schoolConfig.nombre = document.getElementById('cfg_nombre').value.trim();
@@ -881,7 +885,7 @@
                 if(pendingSaves <= 0) {
                     localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
                     applySchoolConfig();
-                    alert("¡Configuración institucional y credenciales del Rector actualizadas con éxito!");
+                    alert("¡Configuración institucional, membrete y credenciales actualizadas con éxito!");
                     switchView('admin');
                 }
             };
@@ -894,6 +898,16 @@
                     checkDone();
                 };
                 reader.readAsDataURL(fileInput.files[0]);
+            }
+
+            if(membreteInput.files && membreteInput.files[0]) {
+                pendingSaves++;
+                let readerMem = new FileReader();
+                readerMem.onload = function(uploadEvent) {
+                    schoolConfig.membrete = { name: membreteInput.files[0].name, data: uploadEvent.target.result };
+                    checkDone();
+                };
+                readerMem.readAsDataURL(membreteInput.files[0]);
             }
 
             if(firmaInput.files && firmaInput.files[0]) {
@@ -1225,23 +1239,28 @@
             let p = permissions.find(x => x.id === id);
             if(!p) return;
 
-            document.getElementById('modal-school-title').textContent = schoolConfig.nombre;
-            document.getElementById('modal-school-nit').textContent = `NIT: ${schoolConfig.nit} | ${schoolConfig.direccion} | Tel: ${schoolConfig.telefono}`;
-            
-            let modalLogo = document.getElementById('modal-logo-box');
-            if(schoolConfig.logo) {
-                modalLogo.innerHTML = `<img src="${schoolConfig.logo}" style="width:100%; height:100%; object-fit:cover;">`;
+            // Renderizado del membrete o cabecera institucional limpia
+            let membreteContainer = document.getElementById('modal-membrete-container');
+            if(schoolConfig.membrete && schoolConfig.membrete.data) {
+                membreteContainer.innerHTML = `<img src="${schoolConfig.membrete.data}" style="max-width: 100%; max-height: 120px; object-fit: contain; display: block; margin: 0 auto;">`;
             } else {
-                modalLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+                membreteContainer.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+                        <div style="width: 60px; height: 60px; border-radius: 10px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1.4rem; flex-shrink: 0;">
+                            ${schoolConfig.logo ? `<img src="${schoolConfig.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fa-solid fa-graduation-cap"></i>`}
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">${schoolConfig.nombre}</h3>
+                            <p style="font-size: 0.75rem; color: #475569; font-weight: 600;">NIT: ${schoolConfig.nit} | ${schoolConfig.direccion}</p>
+                        </div>
+                    </div>
+                `;
             }
 
             let isApproved = p.estado === 'Aprobado';
             let estadoColor = isApproved ? '#065f46' : '#9f1239';
             let estadoBg = isApproved ? '#d1fae5' : '#ffe4e6';
             let resolucionTitulo = isApproved ? 'RESOLUCIÓN DE CONCESIÓN DE PERMISO LABORAL' : 'RESOLUCIÓN DE NEGACIÓN DE PERMISO LABORAL';
-            let resolucionVisto = isApproved ? 
-                'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales, en especial las conferidas por la Ley 715 de 2001, el Decreto 2277 de 1979 / Decreto 1278 de 2002, y el Decreto Único Reglamentario del Sector Educación 1075 de 2015, y' :
-                'El Rector de la Institución Educativa, en ejercicio de sus atribuciones legales y reglamentarias en materia de administración de personal docente y directivo docente, y';
 
             let textoModalidad = p.modalidad === 'Por Horas' ? `por horas (de ${p.horaInicio} a ${p.horaFin})` : 'por jornada completa';
 
@@ -1260,7 +1279,7 @@
                  <strong>ARTÍCULO TERCERO:</strong> Comuníquese y cúmplase.`;
 
             let firmaRectorHtml = schoolConfig.firma ? 
-                `<div style="margin-top: 15px;"><img src="${schoolConfig.firma}" style="max-height: 70px; max-width: 180px; object-fit: contain; display: block; margin: 0 auto 5px auto;"></div>` : 
+                `<div style="margin-top: 15px;"><img src="${schoolConfig.firma}" style="max-height: 70px; max-width: 180px; object-fit: contain; display: block; margin: 0 0 5px 0;"></div>` : 
                 `<div style="height: 40px;"></div>`;
 
             let nombreRectorStr = schoolConfig.showNombre ? `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos}` : "ÁLVARO GONZÁLEZ CONTRERAS (ALGC)";
@@ -1276,20 +1295,18 @@
                     <h4 style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-bottom: 0.2rem;">${resolucionTitulo}</h4>
                     <p style="font-size: 0.8rem; font-weight: 700; color: #4f46e5;">Radicado N°: ${p.radicado}</p>
                 </div>
-                <p style="margin-bottom: 0.75rem;"><strong>VISTOS:</strong> ${resolucionVisto}</p>
                 <p style="margin-bottom: 0.75rem;"><strong>CONSIDERANDO:</strong> ${resolucionConsiderando}</p>
                 <p style="margin-bottom: 1rem;"><strong>RESUELVE:</strong></p>
                 <div style="background: ${estadoBg}; border-left: 4px solid ${estadoColor}; padding: 1rem; border-radius: 6px; margin-bottom: 1.25rem;">
                     <p style="color: ${estadoColor}; font-weight: 600; margin: 0;">${resolucionResuelve}</p>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 2rem; font-size: 0.8rem; border-top: 1px solid #cbd5e1; padding-top: 1rem;">
-                    <div>
-                        <p>Dada en Montería (Córdoba), a los ${new Date().toLocaleDateString()}.</p>
-                    </div>
-                    <div style="text-align: center;">
+                <div style="margin-top: 2rem; font-size: 0.8rem; border-top: 1px solid #cbd5e1; padding-top: 1rem;">
+                    <p style="margin-bottom: 1.5rem;">Dada en Montería (Córdoba), a los ${new Date().toLocaleDateString()}.</p>
+                    <div style="text-align: left;">
                         ${firmaRectorHtml}
                         <p style="font-weight: bold; color: #0f172a; border-top: 1px solid #475569; display: inline-block; padding-top: 4px; min-width: 180px;">${nombreRectorStr}</p>
                         <p style="color: #64748b; margin-top:2px;">Rector - ${schoolConfig.nombre} ${infoExtraRector}</p>
+                        <p style="font-size: 0.75rem; color: #64748b; margin-top: 8px;">Visto bueno / Preaprobado por: Coordinación Jornada ${p.jornada}</p>
                     </div>
                 </div>
             `;
@@ -1309,4 +1326,4 @@
         }
     </script>
 </body>
-</html> 
+</html>

@@ -649,7 +649,7 @@
             let newDocente = {
                 nombres: document.getElementById('reg_nombres').value.trim(),
                 apellidos: document.getElementById('reg_apellidos').value.trim(),
-                correo: document.getElementById('reg_correo').value.trim(),
+                correo: document.getElementById('reg_correo').value.trim().toLowerCase(),
                 telefono: document.getElementById('reg_tel').value.trim(),
                 jornada: document.getElementById('reg_jornada').value,
                 pass: document.getElementById('reg_pass').value.trim()
@@ -669,22 +669,22 @@
 
         function handleLogin(e) {
             e.preventDefault();
-            let user = document.getElementById('login_user').value.trim();
+            let user = document.getElementById('login_user').value.trim().toLowerCase();
             let pass = document.getElementById('login_pass').value.trim();
 
-            if(user === schoolConfig.rectorUser && pass === schoolConfig.rectorPass) {
-                currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", jornada: "Todas", isRector: true, correo: schoolConfig.rectorUser };
+            if(user === schoolConfig.rectorUser.toLowerCase() && pass === schoolConfig.rectorPass) {
+                currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", jornada: "Todas", isRector: true, correo: schoolConfig.rectorUser.toLowerCase() };
                 startApp('admin');
                 return;
             }
 
-            let coord = coordinators.find(c => c.correo === user && c.pass === pass);
+            let coord = coordinators.find(c => c.correo.toLowerCase() === user && c.pass === pass);
             if(coord) {
                 currentUser = {
                     name: coord.nombre,
                     role: "Coordinador",
                     jornada: coord.jornada,
-                    correo: coord.correo,
+                    correo: coord.correo.toLowerCase(),
                     whatsapp: coord.whatsapp,
                     isRector: false
                 };
@@ -692,13 +692,13 @@
                 return;
             }
 
-            let docente = teachers.find(t => t.correo === user && t.pass === pass);
+            let docente = teachers.find(t => t.correo.toLowerCase() === user && t.pass === pass);
             if(docente) {
                 currentUser = {
                     name: `${docente.nombres} ${docente.apellidos}`,
                     role: "Docente",
                     jornada: docente.jornada,
-                    correo: docente.correo,
+                    correo: docente.correo.toLowerCase(),
                     isRector: false,
                     whatsapp: docente.telefono
                 };
@@ -805,14 +805,14 @@
             let editIdx = parseInt(document.getElementById('coord_edit_index').value);
             let newC = {
                 nombre: document.getElementById('coord_nombre').value.trim(),
-                correo: document.getElementById('coord_correo').value.trim(),
+                correo: document.getElementById('coord_correo').value.trim().toLowerCase(),
                 whatsapp: document.getElementById('coord_whatsapp').value.trim(),
                 jornada: document.getElementById('coord_jornada').value,
                 pass: document.getElementById('coord_pass').value.trim()
             };
 
             if(editIdx === -1) {
-                if(coordinators.some(c => c.correo === newC.correo)) {
+                if(coordinators.some(c => c.correo.toLowerCase() === newC.correo)) {
                     alert("Ya existe un coordinador registrado con este correo.");
                     return;
                 }
@@ -948,7 +948,7 @@
 
             let [targetYear, targetMonth] = fecha.split('-');
             let userMonthlyCount = permissions.filter(p => {
-                if(p.correo !== currentUser.correo || p.estado === 'Rechazado') return false;
+                if(!p.correo || p.correo.toLowerCase() !== currentUser.correo.toLowerCase() || p.estado === 'Rechazado') return false;
                 if(!p.fecha) return false;
                 let [pYear, pMonth] = p.fecha.split('-');
                 return pYear === targetYear && pMonth === targetMonth;
@@ -959,7 +959,7 @@
             let dailyAvailable = maxDaily - dailyCount;
 
             let badge = document.getElementById('slot-badge');
-            badge.textContent = `Mes: ${userMonthlyCount}/3 | Día: ${dailyAvailable} cupo(s) libre(s)`;
+            badge.textContent = `Mes: ${userMonthlyCount}/3 | Día: ${dailyAvailable >= 0 ? dailyAvailable : 0} cupo(s) libre(s)`;
             badge.style.color = (userMonthlyCount < 3 && dailyAvailable > 0) ? '#059669' : '#e11d48';
         }
 
@@ -990,10 +990,10 @@
                 return;
             }
 
-            // 1. VALIDACIÓN DEL LÍMITE MENSUAL (MÁXIMO 3 POR MES)
+            // 1. VALIDACIÓN DEL LÍMITE MENSUAL ESTRICTO (MÁXIMO 3 POR MES PARA EL DOCENTE ACTUAL)
             let [targetYear, targetMonth] = fecha.split('-');
             let userMonthlyCount = permissions.filter(p => {
-                if(p.correo !== currentUser.correo || p.estado === 'Rechazado') return false;
+                if(!p.correo || p.correo.toLowerCase() !== currentUser.correo.toLowerCase() || p.estado === 'Rechazado') return false;
                 if(!p.fecha) return false;
                 let [pYear, pMonth] = p.fecha.split('-');
                 return pYear === targetYear && pMonth === targetMonth;
@@ -1027,7 +1027,7 @@
                 id: Date.now(),
                 radicado: radicadoNum,
                 nombre: currentUser.name,
-                correo: currentUser.correo,
+                correo: currentUser.correo.toLowerCase(),
                 whatsapp: currentUser.whatsapp || "3000000000",
                 jornada: jornada,
                 fecha: fecha,
@@ -1070,7 +1070,7 @@
         function renderTeacherHistory() {
             let tbody = document.getElementById('teacher-history-body');
             tbody.innerHTML = '';
-            let myPerms = permissions.filter(p => p.correo === currentUser.correo);
+            let myPerms = permissions.filter(p => p.correo && p.correo.toLowerCase() === currentUser.correo.toLowerCase());
 
             if(myPerms.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:1.5rem;">No ha realizado solicitudes de permiso.</td></tr>`;

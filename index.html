@@ -535,7 +535,7 @@
             <textarea id="reject_observacion" rows="4" style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 8px; margin-bottom: 1.25rem;" placeholder="Escriba la razón reglamentaria..."></textarea>
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
                 <button onclick="confirmReject()" class="btn-submit" style="background: #e11d48; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;">Confirmar Negación</button>
-                <button onclick="closeRejectModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cancelar</button>
+                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cancelar</button>
             </div>
         </div>
     </div>
@@ -943,8 +943,8 @@
 
         function checkSlots() {
             let fecha = document.getElementById('sol_fecha').value;
-            let jornada = currentUser.jornada;
-            if(!fecha) return;
+            let jornada = currentUser ? currentUser.jornada : "";
+            if(!fecha || !currentUser) return;
 
             let [targetYear, targetMonth] = fecha.split('-');
             let userMonthlyCount = permissions.filter(p => {
@@ -990,7 +990,7 @@
                 return;
             }
 
-            // 1. VALIDACIÓN DEL LÍMITE MENSUAL ESTRICTO (MÁXIMO 3 POR MES PARA EL DOCENTE ACTUAL)
+            // 1. VALIDACIÓN DEL LÍMITE MENSUAL ESTRICTO (MÁXIMO 3 PERMISOS POR MES CALENDARIO)
             let [targetYear, targetMonth] = fecha.split('-');
             let userMonthlyCount = permissions.filter(p => {
                 if(!p.correo || p.correo.toLowerCase() !== currentUser.correo.toLowerCase() || p.estado === 'Rechazado') return false;
@@ -999,6 +999,7 @@
                 return pYear === targetYear && pMonth === targetMonth;
             }).length;
 
+            // CORRECCIÓN: Permitir estrictamente hasta 3. Si ya tiene 3 o más, bloquear al intentar el 4to.
             if(userMonthlyCount >= 3) {
                 alert("⚠️ [Límite Mensual Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
                 return;
@@ -1070,7 +1071,7 @@
         function renderTeacherHistory() {
             let tbody = document.getElementById('teacher-history-body');
             tbody.innerHTML = '';
-            let myPerms = permissions.filter(p => p.correo && p.correo.toLowerCase() === currentUser.correo.toLowerCase());
+            let myPerms = permissions.filter(p => p.correo && currentUser && p.correo.toLowerCase() === currentUser.correo.toLowerCase());
 
             if(myPerms.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:1.5rem;">No ha realizado solicitudes de permiso.</td></tr>`;
@@ -1098,7 +1099,7 @@
             tbody.innerHTML = '';
 
             let filtered = permissions.filter(p => {
-                if(currentUser.jornada !== 'Todas' && p.jornada !== currentUser.jornada) return false;
+                if(currentUser && currentUser.jornada !== 'Todas' && p.jornada !== currentUser.jornada) return false;
                 return true;
             });
 
@@ -1123,11 +1124,11 @@
                     </td>
                     <td><span class="status-badge ${badgeClass}">${p.estado}</span></td>
                     <td style="text-align:center;">
-                        ${(currentUser.role === 'Coordinador' && p.estado === 'Pendiente') ? `<button onclick="updateStatus(${p.id}, 'Preaprobado')" style="background:#0284c7; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Preaprobar</button>` : ''}
+                        ${(currentUser && currentUser.role === 'Coordinador' && p.estado === 'Pendiente') ? `<button onclick="updateStatus(${p.id}, 'Preaprobado')" style="background:#0284c7; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Preaprobar</button>` : ''}
                         
-                        ${(currentUser.isRector && p.estado === 'Preaprobado') ? `<button onclick="updateStatus(${p.id}, 'Aprobado')" style="background:#059669; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Aprobar Definitivo</button>` : ''}
+                        ${(currentUser && currentUser.isRector && p.estado === 'Preaprobado') ? `<button onclick="updateStatus(${p.id}, 'Aprobado')" style="background:#059669; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">Aprobar Definitivo</button>` : ''}
                         
-                        ${(currentUser.isRector && p.estado === 'Pendiente') ? `<span style="font-size:0.7rem; color:#d97706; font-weight:bold; display:block; margin-bottom:2px;">Pendiente Preaprobación</span>` : ''}
+                        ${(currentUser && currentUser.isRector && p.estado === 'Pendiente') ? `<span style="font-size:0.7rem; color:#d97706; font-weight:bold; display:block; margin-bottom:2px;">Pendiente Preaprobación</span>` : ''}
 
                         <button onclick="promptReject(${p.id})" style="background:#e11d48; color:white; border:none; padding:0.3rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-top:2px;">Negar</button>
 
@@ -1147,9 +1148,9 @@
             }
         }
 
-        function closeRejectModal() {
-            pendingRejectId = null;
+        function closeModal() {
             document.getElementById('rejectModal').classList.add('hidden');
+            document.getElementById('permitModal').classList.add('hidden');
         }
 
         function confirmReject() {
@@ -1182,7 +1183,7 @@
                         console.error("EmailJS Error:", error);
                     });
 
-                closeRejectModal();
+                closeModal();
                 renderTable();
             }
         }
@@ -1190,7 +1191,7 @@
         function updateStatus(id, newStatus) {
             let p = permissions.find(x => x.id === id);
             if(p) {
-                if(currentUser.isRector && newStatus === 'Aprobado' && p.estado !== 'Preaprobado') {
+                if(currentUser && currentUser.isRector && newStatus === 'Aprobado' && p.estado !== 'Preaprobado') {
                     alert("⚠️ [Acción No Permitida]\nEl Rector no puede aprobar definitivamente un permiso si el Coordinador de la jornada aún no lo ha preaprobado.");
                     return;
                 }
@@ -1230,7 +1231,7 @@
             tbody.innerHTML = '';
 
             let filtered = permissions.filter(p => {
-                if(currentUser.jornada !== 'Todas' && p.jornada !== currentUser.jornada) return false;
+                if(currentUser && currentUser.jornada !== 'Todas' && p.jornada !== currentUser.jornada) return false;
                 if(desde && p.fecha < desde) return false;
                 if(hasta && p.fecha > hasta) return false;
                 return true;
@@ -1344,10 +1345,6 @@
             `;
 
             document.getElementById('permitModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('permitModal').classList.add('hidden');
         }
     </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Permisos - I.E. Antonia Santos</title>
+    <title>GIE - Gerencia Integral Educativa</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SDK de EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -12,24 +12,32 @@
         body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
         .hidden { display: none !important; }
 
-        /* Pantalla de Acceso / Login y Registro */
+        /* Pantalla de Acceso / Login GIE */
         .auth-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
         .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
-        .auth-logo { width: 70px; height: 70px; background: #f59e0b; color: #0f172a; border-radius: 16px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; overflow: hidden; }
+        .auth-logo { width: 90px; height: 90px; background: #0f172a; border-radius: 20px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid #f59e0b; }
         .auth-logo img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Navbar */
+        /* Navbar GIE */
         header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-        .brand { display: flex; align-items: center; gap: 1rem; }
-        .brand-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; overflow: hidden; background: #f59e0b; color: #0f172a; }
+        .brand { display: flex; align-items: center; gap: 1rem; cursor: pointer; }
+        .brand-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #f59e0b; border: 1.5px solid #fbbf24; }
         .brand-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .brand-text h1 { font-size: 1.15rem; font-weight: 800; }
+        .brand-text h1 { font-size: 1.15rem; font-weight: 800; color: #f8fafc; }
         .brand-text p { font-size: 0.75rem; color: #cbd5e1; }
 
         /* Contenedor Principal */
-        main { max-width: 1050px; width: 100%; margin: 2.5rem auto; padding: 0 1.5rem; flex-grow: 1; }
-        .card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
+        main { max-width: 1100px; width: 100%; margin: 2.5rem auto; padding: 0 1.5rem; flex-grow: 1; }
         
+        /* Dashboard de Módulos GIE */
+        .gie-dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .gie-module-card { background: white; border-radius: 20px; padding: 2rem; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; transition: all 0.3s ease; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .gie-module-card:hover { transform: translateY(-5px); box-shadow: 0 20px 35px -10px rgba(79,70,229,0.15); border-color: #4f46e5; }
+        .gie-module-icon { width: 70px; height: 70px; border-radius: 16px; background: #eef2ff; color: #4f46e5; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; }
+        .gie-module-card h3 { font-size: 1.1rem; font-weight: 800; color: #1e1b4b; margin-bottom: 0.5rem; }
+        .gie-module-card p { font-size: 0.8rem; color: #64748b; line-height: 1.4; }
+
+        .card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
         .card-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; }
         .card-header h2 { font-size: 1.35rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.75rem; }
         .card-header p { font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; }
@@ -74,12 +82,14 @@
 </head>
 <body>
 
-    <!-- PANTALLA DE ACCESO / LOGIN Y REGISTRO -->
+    <!-- PANTALLA DE ACCESO / LOGIN GIE -->
     <div id="auth-screen" class="auth-overlay">
         <div class="auth-card">
-            <div class="auth-logo" id="login-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
-            <h2 id="login-school-title" style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem;">I.E. ANTONIA SANTOS</h2>
-            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 1.5rem;">Control de Permisos y Gestión Institucional</p>
+            <div class="auth-logo" id="login-logo-container">
+                <img src="https://i.imgur.com/8Q96C5k.png" alt="GIE Logo" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:#f59e0b; font-size:2rem;\'></i>'">
+            </div>
+            <h2 id="login-school-title" style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 0.1rem;">GIE - Gerencia Integral Educativa</h2>
+            <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 1.5rem;">Plataforma de Gestión Institucional</p>
 
             <!-- Formulario Login -->
             <form id="form-login" onsubmit="handleLogin(event)">
@@ -91,9 +101,9 @@
                     <label>Contraseña</label>
                     <input type="password" id="login_pass" required placeholder="••••••••">
                 </div>
-                <button type="submit" class="btn-submit">Ingresar al Sistema</button>
+                <button type="submit" class="btn-submit">Ingresar a GIE</button>
                 <div style="text-align: center; margin-top: 1.25rem;">
-                    <button type="button" class="link-btn" onclick="toggleRegister(true)">¿No tienes cuenta? Regístrate aquí</button>
+                    <button type="button" class="link-btn" onclick="toggleRegister(true)">¿No tienes cuenta? Regístrate como Docente</button>
                 </div>
             </form>
 
@@ -136,17 +146,20 @@
         </div>
     </div>
 
-    <!-- APLICACIÓN PRINCIPAL -->
+    <!-- APLICACIÓN PRINCIPAL GIE -->
     <div id="main-app" style="display:flex; flex-direction:column; flex-grow:1;">
         <header>
-            <div class="brand">
-                <div class="brand-icon" id="header-logo-container"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="brand" onclick="goToDashboard()">
+                <div class="brand-icon" id="header-logo-container">
+                    <i class="fa-solid fa-graduation-cap" style="color:#0f172a;"></i>
+                </div>
                 <div class="brand-text">
-                    <h1 id="header-school-name">I.E. ANTONIA SANTOS</h1>
-                    <p id="user-session-info">Sistema Integral de Permisos</p>
+                    <h1 id="header-school-name">GIE - GERENCIA INTEGRAL EDUCATIVA</h1>
+                    <p id="user-session-info">Portal Institucional</p>
                 </div>
             </div>
             <div style="display:flex; align-items:center;">
+                <button onclick="goToDashboard()" id="btn-home-gie" class="nav-admin-btn hidden" style="background:#f59e0b; color:#0f172a;"><i class="fa-solid fa-house"></i> Menú Principal</button>
                 <div id="rector-extra-nav" class="hidden">
                     <button onclick="switchView('config')" class="nav-admin-btn"><i class="fa-solid fa-gear"></i> Configurar Colegio</button>
                     <button onclick="switchView('coords')" class="nav-admin-btn" style="background:#0284c7;"><i class="fa-solid fa-user-tie"></i> Coordinadores</button>
@@ -162,8 +175,56 @@
         </header>
 
         <main>
-            <!-- VISTA SOLICITUD DOCENTE -->
-            <section id="view-solicitud" class="card">
+            <!-- DASHBOARD PRINCIPAL DE MÓDULOS GIE -->
+            <section id="view-dashboard" class="card">
+                <div class="card-header">
+                    <div>
+                        <h2><i class="fa-solid fa-cubes" style="color:#f59e0b;"></i> Suite de Gerencia Integral Educativa</h2>
+                        <p>Seleccione el módulo administrativo al que desea ingresar.</p>
+                    </div>
+                </div>
+
+                <div class="gie-dashboard-grid">
+                    <!-- Módulo 1: Control de Permisos -->
+                    <div class="gie-module-card" onclick="openModule('permisos')">
+                        <div class="gie-module-icon"><i class="fa-solid fa-clipboard-user"></i></div>
+                        <h3>Control de Permisos</h3>
+                        <p>Gestión, solicitudes, preaprobaciones y resoluciones oficiales de permisos laborales.</p>
+                    </div>
+
+                    <!-- Módulo 2: SAU (Sistema de Atención al Usuario) -->
+                    <div class="gie-module-card" onclick="openModule('sau')">
+                        <div class="gie-module-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fa-solid fa-headset"></i></div>
+                        <h3>SAU (Atención al Usuario)</h3>
+                        <p>Recepción, trámite y seguimiento de PQRS para padres de familia y comunidad.</p>
+                    </div>
+
+                    <!-- Módulo 3: Gestión de Mantenimiento -->
+                    <div class="gie-module-card" onclick="openModule('mantenimiento')">
+                        <div class="gie-module-icon" style="background:#fef3c7; color:#d97706;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                        <h3>Gestión de Mantenimiento</h3>
+                        <p>Reportes y control de reparaciones en infraestructura, equipos y mobiliario escolar.</p>
+                    </div>
+
+                    <!-- Módulo 4: Módulo Contable -->
+                    <div class="gie-module-card" onclick="openModule('contable')">
+                        <div class="gie-module-icon" style="background:#d1fae5; color:#059669;"><i class="fa-solid fa-wallet"></i></div>
+                        <h3>Módulo Contable</h3>
+                        <p>Control financiero institucional, fondos de servicios educativos y caja menor.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISTA MÓDULO AUXILIAR (PRÓXIMAMENTE / EN DESARROLLO) -->
+            <section id="view-aux-module" class="card hidden" style="text-align: center; padding: 4rem 2rem;">
+                <div style="font-size: 3rem; color: #4f46e5; margin-bottom: 1rem;"><i class="fa-solid fa-person-digging"></i></div>
+                <h2 id="aux-module-title" style="font-size: 1.5rem; font-weight: 800; color: #1e1b4b; margin-bottom: 0.5rem;">Módulo en Desarrollo</h2>
+                <p style="color: #64748b; margin-bottom: 2rem;">Este componente se integrará próximamente dentro de la suite GIE.</p>
+                <button onclick="goToDashboard()" class="btn-submit" style="width: auto; display: inline-block; padding: 0.75rem 2rem;">← Volver al Menú Principal</button>
+            </section>
+
+            <!-- VISTA SOLICITUD DOCENTE (CONTROL DE PERMISOS) -->
+            <section id="view-solicitud" class="card hidden">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-clipboard-user" style="color:#f59e0b;"></i> Solicitud de Permiso Laboral</h2>
                     <p>Límite máximo permitido: <strong>3 días por mes</strong>. Mínimo 3 días hábiles de anticipación.</p>
@@ -615,22 +676,22 @@
         }
 
         function applySchoolConfig() {
-            document.getElementById('login-school-title').textContent = schoolConfig.nombre;
+            document.getElementById('login-school-title').textContent = "GIE - Gerencia Integral Educativa";
             
             let loginLogo = document.getElementById('login-logo-container');
             if(schoolConfig.logo && schoolConfig.logo.trim() !== "") {
                 loginLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
             } else {
-                loginLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+                loginLogo.innerHTML = `<img src="https://i.imgur.com/8Q96C5k.png" alt="GIE Logo" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:#f59e0b; font-size:2rem;\'></i>'">`;
             }
 
-            document.getElementById('header-school-name').textContent = schoolConfig.nombre;
+            document.getElementById('header-school-name').textContent = "GIE - " + schoolConfig.nombre;
             
             let headerLogo = document.getElementById('header-logo-container');
             if(schoolConfig.logo && schoolConfig.logo.trim() !== "") {
                 headerLogo.innerHTML = `<img src="${schoolConfig.logo}" alt="Logo" style="width:100%; height:100%; object-fit:cover;">`;
             } else {
-                headerLogo.innerHTML = `<i class="fa-solid fa-graduation-cap"></i>`;
+                headerLogo.innerHTML = `<img src="https://i.imgur.com/8Q96C5k.png" alt="GIE Logo" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\' style=\'color:#0f172a;\'></i>'">`;
             }
         }
 
@@ -711,25 +772,70 @@
 
         function startApp(type) {
             document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('btn-home-gie').classList.remove('hidden');
+            
             if(type === 'docente') {
-                document.getElementById('view-solicitud').classList.remove('hidden');
-                document.getElementById('view-admin').classList.add('hidden');
-                document.getElementById('view-config').classList.add('hidden');
-                document.getElementById('view-coords').classList.add('hidden');
-                document.getElementById('view-reports').classList.add('hidden');
+                // Docente entra directamente al módulo de permisos
+                openModule('permisos');
+            } else {
+                // Rector o Coordinador entra al Dashboard Principal GIE
+                goToDashboard();
+            }
+        }
+
+        function goToDashboard() {
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            document.getElementById('view-solicitud').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-config').classList.add('hidden');
+            document.getElementById('view-coords').classList.add('hidden');
+            document.getElementById('view-reports').classList.add('hidden');
+            document.getElementById('view-aux-module').classList.add('hidden');
+            
+            document.getElementById('rector-extra-nav').classList.add('hidden');
+            document.getElementById('coord-extra-nav').classList.add('hidden');
+            document.getElementById('user-session-info').textContent = `Usuario: ${currentUser.name} (${currentUser.role})`;
+        }
+
+        function openModule(mod) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            
+            if(mod === 'permisos') {
+                if(currentUser.role === 'Docente') {
+                    document.getElementById('view-solicitud').classList.remove('hidden');
+                    document.getElementById('sol_nombre').value = currentUser.name;
+                    document.getElementById('sol_info_jornada').value = `Docente - Jornada ${currentUser.jornada}`;
+                    document.getElementById('user-session-info').textContent = `Docente: ${currentUser.name} (${currentUser.jornada})`;
+                    renderTeacherHistory();
+                    setMinDate();
+                } else {
+                    // Rector / Coordinador abre el panel administrativo de permisos
+                    switchView('admin');
+                }
+            } else {
+                let titles = {
+                    'sau': 'SAU (Sistema de Atención al Usuario - PQRS)',
+                    'mantenimiento': 'Gestión de Mantenimiento de Infraestructura',
+                    'contable': 'Módulo Contable y Fondos de Servicios Educativos'
+                };
+                document.getElementById('aux-module-title').textContent = titles[mod] || 'Módulo GIE';
+                document.getElementById('view-aux-module').classList.remove('hidden');
                 document.getElementById('rector-extra-nav').classList.add('hidden');
                 document.getElementById('coord-extra-nav').classList.add('hidden');
-                document.getElementById('sol_nombre').value = currentUser.name;
-                document.getElementById('sol_info_jornada').value = `Docente - Jornada ${currentUser.jornada}`;
-                document.getElementById('user-session-info').textContent = `Docente: ${currentUser.name} (${currentUser.jornada})`;
-                renderTeacherHistory();
-                setMinDate();
-            } else {
-                document.getElementById('view-solicitud').classList.add('hidden');
+            }
+        }
+
+        function switchView(view) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-solicitud').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-config').classList.add('hidden');
+            document.getElementById('view-coords').classList.add('hidden');
+            document.getElementById('view-reports').classList.add('hidden');
+            document.getElementById('view-aux-module').classList.add('hidden');
+
+            if(view === 'admin') {
                 document.getElementById('view-admin').classList.remove('hidden');
-                document.getElementById('view-config').classList.add('hidden');
-                document.getElementById('view-coords').classList.add('hidden');
-                document.getElementById('view-reports').classList.add('hidden');
                 document.getElementById('admin-title').textContent = `Panel Directivo - ${currentUser.name}`;
                 document.getElementById('user-session-info').textContent = `Rol: ${currentUser.role}`;
                 
@@ -740,19 +846,6 @@
                     document.getElementById('rector-extra-nav').classList.add('hidden');
                     document.getElementById('coord-extra-nav').classList.remove('hidden');
                 }
-                renderTable();
-            }
-        }
-
-        function switchView(view) {
-            document.getElementById('view-solicitud').classList.add('hidden');
-            document.getElementById('view-admin').classList.add('hidden');
-            document.getElementById('view-config').classList.add('hidden');
-            document.getElementById('view-coords').classList.add('hidden');
-            document.getElementById('view-reports').classList.add('hidden');
-
-            if(view === 'admin') {
-                document.getElementById('view-admin').classList.remove('hidden');
                 renderTable();
             } else if(view === 'config') {
                 document.getElementById('view-config').classList.remove('hidden');
@@ -772,12 +865,17 @@
                 document.getElementById('chk_show_nombre').checked = schoolConfig.showNombre;
                 document.getElementById('chk_show_tel').checked = schoolConfig.showTel;
                 document.getElementById('chk_show_email').checked = schoolConfig.showEmail;
+                
+                document.getElementById('rector-extra-nav').classList.remove('hidden');
             } else if(view === 'coords') {
                 document.getElementById('view-coords').classList.remove('hidden');
                 renderCoordsTable();
+                document.getElementById('rector-extra-nav').classList.remove('hidden');
             } else if(view === 'reports') {
                 document.getElementById('view-reports').classList.remove('hidden');
                 renderReports();
+                if(currentUser.isRector) document.getElementById('rector-extra-nav').classList.remove('hidden');
+                else document.getElementById('coord-extra-nav').classList.remove('hidden');
             }
         }
 
@@ -906,7 +1004,7 @@
                 localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
                 applySchoolConfig();
                 alert("¡Configuración institucional y credenciales actualizadas con éxito!");
-                switchView('admin');
+                goToDashboard();
             };
 
             if (totalFiles === 0) {
@@ -938,6 +1036,7 @@
         function logout() {
             currentUser = null;
             document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('btn-home-gie').classList.add('hidden');
             document.getElementById('form-login').reset();
         }
 
@@ -999,7 +1098,6 @@
                 return pYear === targetYear && pMonth === targetMonth;
             }).length;
 
-            // CORRECCIÓN: Permitir estrictamente hasta 3. Si ya tiene 3 o más, bloquear al intentar el 4to.
             if(userMonthlyCount >= 3) {
                 alert("⚠️ [Límite Mensual Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
                 return;
@@ -1261,27 +1359,37 @@
             let p = permissions.find(x => x.id === id);
             if(!p) return;
 
-            let logoHtml = schoolConfig.logo ? `<img src="${schoolConfig.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fa-solid fa-graduation-cap"></i>`;
+            let logoHtml = schoolConfig.logo ? `<img src="${schoolConfig.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<img src="https://i.imgur.com/8Q96C5k.png" alt="GIE Logo" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\'></i>'">`;
             
-            document.getElementById('permitModal').querySelector('.modal-card').innerHTML = `
-                <div style="display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #0f172a; padding-bottom: 0.75rem; margin-bottom: 1rem; text-align: center;">
-                    <div style="width: 55px; height: 55px; border-radius: 10px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1.3rem; flex-shrink: 0;">
-                        ${logoHtml}
+            let modalContainer = document.createElement('div');
+            modalContainer.id = 'permitModal';
+            modalContainer.className = 'modal-bg';
+            
+            modalContainer.innerHTML = `
+                <div class="modal-card">
+                    <div style="display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #0f172a; padding-bottom: 0.75rem; margin-bottom: 1rem; text-align: center;">
+                        <div style="width: 55px; height: 55px; border-radius: 10px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1.3rem; flex-shrink: 0;">
+                            ${logoHtml}
+                        </div>
+                        <div style="flex-grow: 1;">
+                            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">${schoolConfig.nombre}</h3>
+                            <p style="font-size: 0.7rem; color: #475569; font-weight: 600;">NIT: ${schoolConfig.nit} | DANE: ${schoolConfig.dane || '123001000000'} | ${schoolConfig.direccion}</p>
+                            <p style="font-size: 0.65rem; color: #64748b;">RECTORÍA - GESTIÓN DE TALENTO HUMANO Y PERMISOS LABORALES</p>
+                        </div>
                     </div>
-                    <div style="flex-grow: 1;">
-                        <h3 id="modal-school-title" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">${schoolConfig.nombre}</h3>
-                        <p id="modal-school-meta" style="font-size: 0.7rem; color: #475569; font-weight: 600;">NIT: ${schoolConfig.nit} | DANE: ${schoolConfig.dane || '123001000000'} | ${schoolConfig.direccion}</p>
-                        <p style="font-size: 0.65rem; color: #64748b;">RECTORÍA - GESTIÓN DE TALENTO HUMANO Y PERMISOS LABORALES</p>
+
+                    <div id="permit-modal-content" style="font-size: 0.8rem; color: #1e293b; line-height: 1.45; background: #ffffff; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 0.75rem;"></div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap;" id="modal-actions-container">
+                        <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
+                        <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Cerrar</button>
                     </div>
-                </div>
-
-                <div id="permit-modal-content" style="font-size: 0.8rem; color: #1e293b; line-height: 1.45; background: #ffffff; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 0.75rem;"></div>
-
-                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap;" id="modal-actions-container">
-                    <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
-                    <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Cerrar</button>
                 </div>
             `;
+
+            let existingModal = document.getElementById('permitModal');
+            if(existingModal) existingModal.remove();
+            document.body.appendChild(modalContainer);
 
             let isApproved = p.estado === 'Aprobado';
             let estadoColor = isApproved ? '#065f46' : '#9f1239';
@@ -1343,8 +1451,6 @@
                 <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
                 <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Cerrar</button>
             `;
-
-            document.getElementById('permitModal').classList.remove('hidden');
         }
     </script>
 </body>

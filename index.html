@@ -122,7 +122,6 @@
     </div>
 
     <script>
-        // Base de datos local en memoria del navegador
         let registeredTeachers = JSON.parse(localStorage.getItem('antonia_teachers')) || [];
 
         function togglePasswordVisibility(inputId, iconId) {
@@ -160,7 +159,6 @@
             let correo = document.getElementById('reg_correo').value.trim().toLowerCase();
             let pass = document.getElementById('reg_pass').value.trim();
 
-            // Verificar si ya existe
             if(registeredTeachers.some(t => t.correo === correo)) {
                 alert("Este usuario o correo ya se encuentra registrado.");
                 return;
@@ -179,7 +177,6 @@
             let user = document.getElementById('login_user').value.trim().toLowerCase();
             let pass = document.getElementById('login_pass').value.trim();
 
-            // 1. Validar Rector
             if (user === "rector" && pass === "123456") {
                 sessionStorage.setItem('antonia_logged', 'true');
                 sessionStorage.setItem('antonia_user_name', 'Álvaro González Contreras (Rector)');
@@ -187,7 +184,6 @@
                 return;
             }
 
-            // 2. Validar Docentes Registrados
             let docente = registeredTeachers.find(t => t.correo === user && t.pass === pass);
             if (docente) {
                 let fullName = `${docente.nombres} ${docente.apellidos} (Docente)`;

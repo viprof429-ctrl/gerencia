@@ -184,34 +184,8 @@
                     </div>
                 </div>
 
-                <div class="gie-dashboard-grid">
-                    <!-- Módulo 1: Control de Permisos -->
-                    <div class="gie-module-card" onclick="openModule('permisos')">
-                        <div class="gie-module-icon"><i class="fa-solid fa-clipboard-user"></i></div>
-                        <h3>Control de Permisos</h3>
-                        <p>Gestión, solicitudes, preaprobaciones y resoluciones oficiales de permisos laborales.</p>
-                    </div>
-
-                    <!-- Módulo 2: SAU (Sistema de Atención al Usuario) -->
-                    <div class="gie-module-card" onclick="openModule('sau')">
-                        <div class="gie-module-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fa-solid fa-headset"></i></div>
-                        <h3>SAU (Atención al Usuario)</h3>
-                        <p>Recepción, trámite y seguimiento de PQRS para padres de familia y comunidad.</p>
-                    </div>
-
-                    <!-- Módulo 3: Gestión de Mantenimiento -->
-                    <div class="gie-module-card" onclick="openModule('mantenimiento')">
-                        <div class="gie-module-icon" style="background:#fef3c7; color:#d97706;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-                        <h3>Gestión de Mantenimiento</h3>
-                        <p>Reportes y control de reparaciones en infraestructura, equipos y mobiliario escolar.</p>
-                    </div>
-
-                    <!-- Módulo 4: Módulo Contable -->
-                    <div class="gie-module-card" onclick="openModule('contable')">
-                        <div class="gie-module-icon" style="background:#d1fae5; color:#059669;"><i class="fa-solid fa-wallet"></i></div>
-                        <h3>Módulo Contable</h3>
-                        <p>Control financiero institucional, fondos de servicios educativos y caja menor.</p>
-                    </div>
+                <div class="gie-dashboard-grid" id="gie-modules-grid">
+                    <!-- Las tarjetas se cargan dinámicamente según la matriz de acceso del rol -->
                 </div>
             </section>
 
@@ -440,11 +414,11 @@
                 </table>
             </section>
 
-            <!-- VISTA CONFIGURACIÓN DEL COLEGIO Y DATOS DEL RECTOR -->
+            <!-- VISTA CONFIGURACIÓN DEL COLEGIO Y MATRIZ DE ACCESOS POR ROL -->
             <section id="view-config" class="card hidden">
                 <div class="card-header">
-                    <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración General y Datos del Rector</h2>
-                    <p>Actualice la información institucional, configure las credenciales del Rector, Código DANE, Límite Diario y Firma opcional.</p>
+                    <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración General y Control de Accesos GIE</h2>
+                    <p>Actualice la información institucional, configure las credenciales del Rector y administre los permisos por rol[cite: 12].</p>
                 </div>
 
                 <form onsubmit="saveSchoolConfig(event)">
@@ -491,6 +465,56 @@
                         <div class="form-group">
                             <label>Logotipo del Colegio (Imagen)</label>
                             <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.5rem; background: white;">
+                        </div>
+                    </div>
+
+                    <!-- MATRIZ DE CONTROL DE ACCESOS POR ROL -->
+                    <div style="background:#f8fafc; padding:1.5rem; border:1.5px solid #cbd5e1; border-radius:12px; margin-bottom:1.5rem; margin-top:1.5rem;">
+                        <h3 style="font-size:0.95rem; font-weight:800; color:#1e1b4b; margin-bottom:0.75rem;"><i class="fa-solid fa-users-gear" style="color:#4f46e5;"></i> Matriz de Control de Accesos por Rol[cite: 12]</h3>
+                        <p style="font-size:0.8rem; color:#64748b; margin-bottom:1rem;">Defina qué módulos de la suite GIE puede visualizar cada perfil institucional[cite: 12].</p>
+                        
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%; border-collapse:collapse; background:white;">
+                                <thead>
+                                    <tr>
+                                        <th style="padding:0.75rem;">Módulo GIE</th>
+                                        <th style="text-align:center; padding:0.75rem;">Docente</th>
+                                        <th style="text-align:center; padding:0.75rem;">Coordinador</th>
+                                        <th style="text-align:center; padding:0.75rem;">Administrativo</th>
+                                        <th style="text-align:center; padding:0.75rem;">Público</th>
+                                    </tr>
+                                </thead>
+                                <tbody style="font-size:0.85rem;">
+                                    <tr>
+                                        <td style="font-weight:bold;">Control de Permisos</td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_perm_docente" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_perm_coord" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_perm_admin" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_perm_public" style="width:auto;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight:bold;">SAU (Atención al Usuario)</td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_sau_docente" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_sau_coord" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_sau_admin" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_sau_public" style="width:auto;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight:bold;">Gestión de Mantenimiento</td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_mant_docente" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_mant_coord" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_mant_admin" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_mant_public" style="width:auto;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight:bold;">Módulo Contable</td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_cont_docente" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_cont_coord" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_cont_admin" style="width:auto;"></td>
+                                        <td style="text-align:center;"><input type="checkbox" id="role_cont_public" style="width:auto;"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -556,7 +580,7 @@
                         <input type="file" id="cfg_firma_file" accept="image/*" style="padding: 0.5rem; background: white; border:none;">
                     </div>
 
-                    <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios Institucionales y Credenciales</button>
+                    <button type="submit" class="btn-submit" style="background:#059669;">Guardar Cambios Institucionales y Matriz de Accesos</button>
                 </form>
             </section>
         </main>
@@ -638,7 +662,13 @@
             rectorEmail: "rector@antoniasantos.edu.co",
             showNombre: true,
             showTel: false,
-            showEmail: false
+            showEmail: false,
+            rolesAccess: {
+                docente: { permisos: true, sau: false, mantenimiento: false, contable: false },
+                coord: { permisos: true, sau: true, mantenimiento: true, contable: false },
+                admin: { permisos: true, sau: true, mantenimiento: true, contable: true },
+                public: { permisos: false, sau: true, mantenimiento: false, contable: false }
+            }
         };
 
         if(!schoolConfig.rectorUser) schoolConfig.rectorUser = "rector";
@@ -653,6 +683,14 @@
         if(!schoolConfig.dane) schoolConfig.dane = "123001000000";
         if(!schoolConfig.correo) schoolConfig.correo = "contacto@antoniasantos.edu.co";
         if(schoolConfig.maxDailyPermits === undefined) schoolConfig.maxDailyPermits = 2;
+        if(!schoolConfig.rolesAccess) {
+            schoolConfig.rolesAccess = {
+                docente: { permisos: true, sau: false, mantenimiento: false, contable: false },
+                coord: { permisos: true, sau: true, mantenimiento: true, contable: false },
+                admin: { permisos: true, sau: true, mantenimiento: true, contable: true },
+                public: { permisos: false, sau: true, mantenimiento: false, contable: false }
+            };
+        }
 
         let currentUser = null;
         let pendingRejectId = null;
@@ -734,8 +772,8 @@
             let pass = document.getElementById('login_pass').value.trim();
 
             if(user === schoolConfig.rectorUser.toLowerCase() && pass === schoolConfig.rectorPass) {
-                currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", jornada: "Todas", isRector: true, correo: schoolConfig.rectorUser.toLowerCase() };
-                startApp('admin');
+                currentUser = { name: `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos} (Rector)`, role: "Rector", roleKey: "admin", jornada: "Todas", isRector: true, correo: schoolConfig.rectorUser.toLowerCase() };
+                startApp();
                 return;
             }
 
@@ -744,12 +782,13 @@
                 currentUser = {
                     name: coord.nombre,
                     role: "Coordinador",
+                    roleKey: "coord",
                     jornada: coord.jornada,
                     correo: coord.correo.toLowerCase(),
                     whatsapp: coord.whatsapp,
                     isRector: false
                 };
-                startApp('admin');
+                startApp();
                 return;
             }
 
@@ -758,28 +797,63 @@
                 currentUser = {
                     name: `${docente.nombres} ${docente.apellidos}`,
                     role: "Docente",
+                    roleKey: "docente",
                     jornada: docente.jornada,
                     correo: docente.correo.toLowerCase(),
                     isRector: false,
                     whatsapp: docente.telefono
                 };
-                startApp('docente');
+                startApp();
                 return;
             }
 
             alert("Usuario o contraseña incorrectos.");
         }
 
-        function startApp(type) {
+        function startApp() {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('btn-home-gie').classList.remove('hidden');
-            
-            if(type === 'docente') {
-                // Docente entra directamente al módulo de permisos
-                openModule('permisos');
-            } else {
-                // Rector o Coordinador entra al Dashboard Principal GIE
-                goToDashboard();
+            goToDashboard();
+        }
+
+        function renderDashboardModules() {
+            let grid = document.getElementById('gie-modules-grid');
+            grid.innerHTML = '';
+
+            let rKey = currentUser.isRector ? 'admin' : currentUser.roleKey;
+            let access = schoolConfig.rolesAccess || {
+                docente: { permisos: true, sau: false, mantenimiento: false, contable: false },
+                coord: { permisos: true, sau: true, mantenimiento: true, contable: false },
+                admin: { permisos: true, sau: true, mantenimiento: true, contable: true },
+                public: { permisos: false, sau: true, mantenimiento: false, contable: false }
+            };
+
+            let modulesConfig = [
+                { key: 'permisos', name: 'Control de Permisos', desc: 'Gestión, solicitudes, preaprobaciones y resoluciones oficiales de permisos laborales.', icon: 'fa-clipboard-user', bg: '#eef2ff', color: '#4f46e5' },
+                { key: 'sau', name: 'SAU (Atención al Usuario)', desc: 'Recepción, trámite y seguimiento de PQRS para padres de familia y comunidad.', icon: 'fa-headset', bg: '#e0f2fe', color: '#0284c7' },
+                { key: 'mantenimiento', name: 'Gestión de Mantenimiento', desc: 'Reportes y control de reparaciones en infraestructura, equipos y mobiliario escolar.', icon: 'fa-screwdriver-wrench', bg: '#fef3c7', color: '#d97706' },
+                { key: 'contable', name: 'Módulo Contable', desc: 'Control financiero institucional, fondos de servicios educativos y caja menor.', icon: 'fa-wallet', bg: '#d1fae5', color: '#059669' }
+            ];
+
+            let allowedCount = 0;
+            modulesConfig.forEach(mod => {
+                let isAllowed = currentUser.isRector || (access[rKey] && access[rKey][mod.key]);
+                if(isAllowed) {
+                    allowedCount++;
+                    let card = document.createElement('div');
+                    card.className = 'gie-module-card';
+                    card.onclick = () => openModule(mod.key);
+                    card.innerHTML = `
+                        <div class="gie-module-icon" style="background:${mod.bg}; color:${mod.color};"><i class="fa-solid ${mod.icon}"></i></div>
+                        <h3>${mod.name}</h3>
+                        <p>${mod.desc}</p>
+                    `;
+                    grid.appendChild(card);
+                }
+            });
+
+            if(allowedCount === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#64748b; padding:2rem;">No tiene módulos autorizados para su rol actual[cite: 12]. Contacte al Rector.</div>`;
             }
         }
 
@@ -795,6 +869,8 @@
             document.getElementById('rector-extra-nav').classList.add('hidden');
             document.getElementById('coord-extra-nav').classList.add('hidden');
             document.getElementById('user-session-info').textContent = `Usuario: ${currentUser.name} (${currentUser.role})`;
+            
+            renderDashboardModules();
         }
 
         function openModule(mod) {
@@ -809,7 +885,6 @@
                     renderTeacherHistory();
                     setMinDate();
                 } else {
-                    // Rector / Coordinador abre el panel administrativo de permisos
                     switchView('admin');
                 }
             } else {
@@ -865,6 +940,16 @@
                 document.getElementById('chk_show_nombre').checked = schoolConfig.showNombre;
                 document.getElementById('chk_show_tel').checked = schoolConfig.showTel;
                 document.getElementById('chk_show_email').checked = schoolConfig.showEmail;
+
+                // Cargar Matriz de Accesos en el formulario
+                let acc = schoolConfig.rolesAccess || {};
+                ['docente', 'coord', 'admin', 'public'].forEach(r => {
+                    let rObj = acc[r] || {};
+                    if(document.getElementById(`role_perm_${r}`)) document.getElementById(`role_perm_${r}`).checked = !!rObj.permisos;
+                    if(document.getElementById(`role_sau_${r}`)) document.getElementById(`role_sau_${r}`).checked = !!rObj.sau;
+                    if(document.getElementById(`role_mant_${r}`)) document.getElementById(`role_mant_${r}`).checked = !!rObj.mantenimiento;
+                    if(document.getElementById(`role_cont_${r}`)) document.getElementById(`role_cont_${r}`).checked = !!rObj.contable;
+                });
                 
                 document.getElementById('rector-extra-nav').classList.remove('hidden');
             } else if(view === 'coords') {
@@ -994,6 +1079,17 @@
             schoolConfig.showTel = document.getElementById('chk_show_tel').checked;
             schoolConfig.showEmail = document.getElementById('chk_show_email').checked;
 
+            // Guardar matriz de accesos por rol
+            schoolConfig.rolesAccess = {};
+            ['docente', 'coord', 'admin', 'public'].forEach(r => {
+                schoolConfig.rolesAccess[r] = {
+                    permisos: document.getElementById(`role_perm_${r}`) ? document.getElementById(`role_perm_${r}`).checked : false,
+                    sau: document.getElementById(`role_sau_${r}`) ? document.getElementById(`role_sau_${r}`).checked : false,
+                    mantenimiento: document.getElementById(`role_mant_${r}`) ? document.getElementById(`role_mant_${r}`).checked : false,
+                    contable: document.getElementById(`role_cont_${r}`) ? document.getElementById(`role_cont_${r}`).checked : false
+                };
+            });
+
             let totalFiles = 0;
             let processedFiles = 0;
 
@@ -1003,7 +1099,7 @@
             let finalizeSave = () => {
                 localStorage.setItem('antonia_santos_school', JSON.stringify(schoolConfig));
                 applySchoolConfig();
-                alert("¡Configuración institucional y credenciales actualizadas con éxito!");
+                alert("¡Configuración institucional y matriz de accesos actualizadas con éxito[cite: 12]!");
                 goToDashboard();
             };
 
@@ -1248,7 +1344,8 @@
 
         function closeModal() {
             document.getElementById('rejectModal').classList.add('hidden');
-            document.getElementById('permitModal').classList.add('hidden');
+            let m = document.getElementById('permitModal');
+            if(m) m.classList.add('hidden');
         }
 
         function confirmReject() {
@@ -1361,9 +1458,13 @@
 
             let logoHtml = schoolConfig.logo ? `<img src="${schoolConfig.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<img src="https://i.imgur.com/8Q96C5k.png" alt="GIE Logo" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\'></i>'">`;
             
-            let modalContainer = document.createElement('div');
-            modalContainer.id = 'permitModal';
-            modalContainer.className = 'modal-bg';
+            let modalContainer = document.getElementById('permitModal');
+            if(!modalContainer) {
+                modalContainer = document.createElement('div');
+                modalContainer.id = 'permitModal';
+                modalContainer.className = 'modal-bg';
+                document.body.appendChild(modalContainer);
+            }
             
             modalContainer.innerHTML = `
                 <div class="modal-card">
@@ -1386,10 +1487,6 @@
                     </div>
                 </div>
             `;
-
-            let existingModal = document.getElementById('permitModal');
-            if(existingModal) existingModal.remove();
-            document.body.appendChild(modalContainer);
 
             let isApproved = p.estado === 'Aprobado';
             let estadoColor = isApproved ? '#065f46' : '#9f1239';
@@ -1445,12 +1542,7 @@
                 </div>
             `;
             
-            let actionsContainer = document.getElementById('modal-actions-container');
-            actionsContainer.innerHTML = `
-                <a href="${linkWaDocente}" target="_blank" class="btn-submit" style="background:#25d366; width: auto; padding: 0.5rem 1rem; font-size: 0.8rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;"><i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp</a>
-                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
-                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Cerrar</button>
-            `;
+            document.getElementById('permitModal').classList.remove('hidden');
         }
     </script>
 </body>

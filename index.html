@@ -61,6 +61,15 @@
 
         .modal-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
         .modal-card { background: white; border-radius: 20px; padding: 2rem; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+
+        /* ESTILOS DE IMPRESIÓN PARA UNA SOLA HOJA LIMPIA */
+        @media print {
+            body * { visibility: hidden; }
+            #permitModal, #permitModal * { visibility: visible; }
+            #permitModal { position: fixed; inset: 0; background: white !important; padding: 0 !important; }
+            .modal-card { box-shadow: none !important; max-height: none !important; width: 100% !important; max-width: 100% !important; padding: 10px !important; border: none !important; }
+            #modal-actions-container { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -506,7 +515,7 @@
             </div>
 
             <!-- Contenido de la Resolución Legal -->
-            <div id="permit-modal-content" style="font-size: 0.85rem; color: #1e293b; line-height: 1.6; background: #ffffff; padding: 1.5rem; border-radius: 10px; border: 1px solid #cbd5e1; margin-bottom: 1.5rem;"></div>
+            <div id="permit-modal-content" style="font-size: 0.85rem; color: #1e293b; line-height: 1.5; background: #ffffff; padding: 1rem; border-radius: 10px; border: 1px solid #cbd5e1; margin-bottom: 1rem;"></div>
 
             <!-- Acciones del Modal -->
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap;" id="modal-actions-container">
@@ -973,7 +982,6 @@
                 return;
             }
 
-            // CORRECCIÓN SEGURA DEL LÍMITE MENSUAL USANDO PARTES DE LA FECHA (YYYY-MM)
             let [targetYear, targetMonth] = fecha.split('-');
             let userMonthlyCount = permissions.filter(p => {
                 if(p.correo !== currentUser.correo || p.estado === 'Rechazado') return false;
@@ -1240,18 +1248,19 @@
             let p = permissions.find(x => x.id === id);
             if(!p) return;
 
+            // Renderizado seguro de la hoja membretada institucional
             let membreteContainer = document.getElementById('modal-membrete-container');
             if(schoolConfig.membrete && schoolConfig.membrete.data) {
-                membreteContainer.innerHTML = `<img src="${schoolConfig.membrete.data}" style="max-width: 100%; max-height: 120px; object-fit: contain; display: block; margin: 0 auto;">`;
+                membreteContainer.innerHTML = `<img src="${schoolConfig.membrete.data}" style="width: 100%; max-height: 100px; object-fit: contain; display: block; margin: 0 auto;">`;
             } else {
                 membreteContainer.innerHTML = `
                     <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
-                        <div style="width: 60px; height: 60px; border-radius: 10px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1.4rem; flex-shrink: 0;">
+                        <div style="width: 50px; height: 50px; border-radius: 10px; overflow: hidden; background:#f59e0b; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:bold; font-size:1.2rem; flex-shrink: 0;">
                             ${schoolConfig.logo ? `<img src="${schoolConfig.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fa-solid fa-graduation-cap"></i>`}
                         </div>
                         <div>
-                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">${schoolConfig.nombre}</h3>
-                            <p style="font-size: 0.75rem; color: #475569; font-weight: 600;">NIT: ${schoolConfig.nit} | ${schoolConfig.direccion}</p>
+                            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">${schoolConfig.nombre}</h3>
+                            <p style="font-size: 0.7rem; color: #475569; font-weight: 600;">NIT: ${schoolConfig.nit} | ${schoolConfig.direccion}</p>
                         </div>
                     </div>
                 `;
@@ -1279,8 +1288,8 @@
                  <strong>ARTÍCULO TERCERO:</strong> Comuníquese y cúmplase.`;
 
             let firmaRectorHtml = schoolConfig.firma ? 
-                `<div style="margin-top: 15px;"><img src="${schoolConfig.firma}" style="max-height: 70px; max-width: 180px; object-fit: contain; display: block; margin: 0 0 5px 0;"></div>` : 
-                `<div style="height: 40px;"></div>`;
+                `<div style="margin-top: 10px;"><img src="${schoolConfig.firma}" style="max-height: 55px; max-width: 150px; object-fit: contain; display: block; margin: 0 0 3px 0;"></div>` : 
+                `<div style="height: 30px;"></div>`;
 
             let nombreRectorStr = schoolConfig.showNombre ? `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos}` : "ÁLVARO GONZÁLEZ CONTRERAS (ALGC)";
             let infoExtraRector = "";
@@ -1291,31 +1300,31 @@
             let linkWaDocente = `https://wa.me/57${p.whatsapp || '3000000000'}?text=${msgWaDocente}`;
 
             document.getElementById('permit-modal-content').innerHTML = `
-                <div style="text-align: center; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.75rem;">
-                    <h4 style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-bottom: 0.2rem;">${resolucionTitulo}</h4>
-                    <p style="font-size: 0.8rem; font-weight: 700; color: #4f46e5;">Radicado N°: ${p.radicado}</p>
+                <div style="text-align: center; margin-bottom: 0.5rem; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 0.5rem;">
+                    <h4 style="font-size: 0.85rem; font-weight: 800; color: #0f172a; margin-bottom: 0.1rem;">${resolucionTitulo}</h4>
+                    <p style="font-size: 0.75rem; font-weight: 700; color: #4f46e5;">Radicado N°: ${p.radicado}</p>
                 </div>
-                <p style="margin-bottom: 0.75rem;"><strong>CONSIDERANDO:</strong> ${resolucionConsiderando}</p>
-                <p style="margin-bottom: 1rem;"><strong>RESUELVE:</strong></p>
-                <div style="background: ${estadoBg}; border-left: 4px solid ${estadoColor}; padding: 1rem; border-radius: 6px; margin-bottom: 1.25rem;">
+                <p style="margin-bottom: 0.5rem; font-size: 0.8rem;"><strong>CONSIDERANDO:</strong> ${resolucionConsiderando}</p>
+                <p style="margin-bottom: 0.5rem; font-size: 0.8rem;"><strong>RESUELVE:</strong></p>
+                <div style="background: ${estadoBg}; border-left: 4px solid ${estadoColor}; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.75rem; font-size: 0.8rem;">
                     <p style="color: ${estadoColor}; font-weight: 600; margin: 0;">${resolucionResuelve}</p>
                 </div>
-                <div style="margin-top: 2rem; font-size: 0.8rem; border-top: 1px solid #cbd5e1; padding-top: 1rem;">
-                    <p style="margin-bottom: 1.5rem;">Dada en Montería (Córdoba), a los ${new Date().toLocaleDateString()}.</p>
+                <div style="margin-top: 1rem; font-size: 0.75rem; border-top: 1px solid #cbd5e1; padding-top: 0.5rem;">
+                    <p style="margin-bottom: 1rem;">Dada en Montería (Córdoba), a los ${new Date().toLocaleDateString()}.</p>
                     <div style="text-align: left;">
                         ${firmaRectorHtml}
-                        <p style="font-weight: bold; color: #0f172a; border-top: 1px solid #475569; display: inline-block; padding-top: 4px; min-width: 180px;">${nombreRectorStr}</p>
-                        <p style="color: #64748b; margin-top:2px;">Rector - ${schoolConfig.nombre} ${infoExtraRector}</p>
-                        <p style="font-size: 0.75rem; color: #64748b; margin-top: 8px;">Visto bueno / Preaprobado por: Coordinación Jornada ${p.jornada}</p>
+                        <p style="font-weight: bold; color: #0f172a; border-top: 1px solid #475569; display: inline-block; padding-top: 3px; min-width: 160px;">${nombreRectorStr}</p>
+                        <p style="color: #64748b; margin-top:1px;">Rector - ${schoolConfig.nombre} ${infoExtraRector}</p>
+                        <p style="font-size: 0.7rem; color: #64748b; margin-top: 4px;">Visto bueno / Preaprobado por: Coordinación Jornada ${p.jornada}</p>
                     </div>
                 </div>
             `;
             
             let actionsContainer = document.getElementById('modal-actions-container');
             actionsContainer.innerHTML = `
-                <a href="${linkWaDocente}" target="_blank" class="btn-submit" style="background:#25d366; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;"><i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp</a>
-                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
-                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cerrar</button>
+                <a href="${linkWaDocente}" target="_blank" class="btn-submit" style="background:#25d366; width: auto; padding: 0.5rem 1rem; font-size: 0.8rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;"><i class="fa-brands fa-whatsapp"></i> Notificar por WhatsApp</a>
+                <button onclick="window.print()" class="btn-submit" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem;"><i class="fa-solid fa-print"></i> Imprimir / Guardar PDF</button>
+                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Cerrar</button>
             `;
 
             document.getElementById('permitModal').classList.remove('hidden');

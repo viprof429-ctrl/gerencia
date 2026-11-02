@@ -116,9 +116,17 @@
             let pass = document.getElementById('login_pass').value.trim();
 
             if (user === "rector" && pass === "RectorAntonia2026*") {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('main-app').classList.remove('hidden');
                 sessionStorage.setItem('antonia_logged', 'true');
+                let authScreen = document.getElementById('auth-screen');
+                let mainApp = document.getElementById('main-app');
+                if (authScreen) {
+                    authScreen.style.display = 'none';
+                    authScreen.classList.add('hidden');
+                }
+                if (mainApp) {
+                    mainApp.style.display = 'flex';
+                    mainApp.classList.remove('hidden');
+                }
                 return;
             }
             alert("Usuario o contraseña incorrectos. Verifique sus datos.");
@@ -131,8 +139,16 @@
 
         window.onload = function() {
             if (sessionStorage.getItem('antonia_logged') === 'true') {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('main-app').classList.remove('hidden');
+                let authScreen = document.getElementById('auth-screen');
+                let mainApp = document.getElementById('main-app');
+                if (authScreen) {
+                    authScreen.style.display = 'none';
+                    authScreen.classList.add('hidden');
+                }
+                if (mainApp) {
+                    mainApp.style.display = 'flex';
+                    mainApp.classList.remove('hidden');
+                }
             }
         }
     </script>

@@ -417,9 +417,14 @@
                             <input type="text" id="cfg_direccion" required placeholder="Montería, Córdoba">
                         </div>
                         <div class="form-group">
-                            <label>Logotipo del Colegio (Imagen)</label>
-                            <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.5rem; background: white;">
+                            <label>Correo del Colegio</label>
+                            <input type="text" id="cfg_correo" required placeholder="correo@colegio.edu.co">
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Logotipo del Colegio (Imagen)</label>
+                        <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.5rem; background: white;">
                     </div>
 
                     <!-- DATOS Y CREDENCIALES DEL RECTOR -->
@@ -578,6 +583,7 @@
         if(schoolConfig.showTel === undefined) schoolConfig.showTel = false;
         if(schoolConfig.showEmail === undefined) schoolConfig.showEmail = false;
         if(!schoolConfig.dane) schoolConfig.dane = "123001000000";
+        if(!schoolConfig.correo) schoolConfig.correo = "contacto@antoniasantos.edu.co";
 
         let currentUser = null;
         let pendingRejectId = null;
@@ -747,7 +753,7 @@
                 document.getElementById('cfg_dane').value = schoolConfig.dane || "";
                 document.getElementById('cfg_direccion').value = schoolConfig.direccion;
                 document.getElementById('cfg_telefono').value = schoolConfig.telefono;
-                document.getElementById('cfg_correo').value = schoolConfig.correo;
+                document.getElementById('cfg_correo').value = schoolConfig.correo || "";
                 document.getElementById('cfg_rector_nombres').value = schoolConfig.rectorNombres;
                 document.getElementById('cfg_rector_apellidos').value = schoolConfig.rectorApellidos;
                 document.getElementById('cfg_rector_tel').value = schoolConfig.rectorTel;

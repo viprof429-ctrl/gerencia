@@ -183,12 +183,12 @@
 
                     <div class="banner-info">
                         <div>
-                            <label style="margin-bottom:0.2rem; color:#312e81;">Seleccione Fecha y Cupos</label>
-                            <span style="font-size:0.80rem; color:#4f46e5;">Verifique la disponibilidad del día.</span>
+                            <label style="margin-bottom:0.2rem; color:#312e81;">Seleccione Fecha</label>
+                            <span style="font-size:0.80rem; color:#4f46e5;">Verifique la disponibilidad del mes y cupos del día.</span>
                         </div>
                         <div style="display:flex; gap:1rem; align-items:center;">
                             <input type="date" id="sol_fecha" onchange="checkSlots()" required style="width:180px; padding:0.5rem; background:white;">
-                            <div id="slot-badge" class="badge-slot">Cupos: --</div>
+                            <div id="slot-badge" class="badge-slot">Cupos libres</div>
                         </div>
                     </div>
 
@@ -383,12 +383,12 @@
             <section id="view-config" class="card hidden">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-school" style="color:#f59e0b;"></i> Configuración General y Datos del Rector</h2>
-                    <p>Actualice la información institucional, configure las credenciales del Rector, Código DANE y Firma opcional.</p>
+                    <p>Actualice la información institucional, configure las credenciales del Rector, Código DANE, Límite Diario y Firma opcional.</p>
                 </div>
 
                 <form onsubmit="saveSchoolConfig(event)">
                     <!-- DATOS INSTITUCIONALES -->
-                    <h3 style="font-size:0.95rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem; border-bottom:1px solid #e2e8f0; padding-bottom:0.5rem;">Datos Institucionales</h3>
+                    <h3 style="font-size:0.95rem; font-weight:800; color:#1e1b4b; margin-bottom:1rem; border-bottom:1px solid #e2e8f0; padding-bottom:0.5rem;">Datos Institucionales y Políticas</h3>
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Nombre de la Institución</label>
@@ -406,25 +406,31 @@
                             <input type="text" id="cfg_dane" placeholder="Ej. 123001000000">
                         </div>
                         <div class="form-group">
-                            <label>Teléfono Institucional</label>
-                            <input type="tel" id="cfg_telefono" required placeholder="3000000000">
+                            <label>Límite Máx. de Docentes Ausentes por Día y Jornada</label>
+                            <input type="number" id="cfg_max_daily" min="1" max="10" required value="2" placeholder="Ej. 2">
                         </div>
                     </div>
 
                     <div class="grid-2">
                         <div class="form-group">
+                            <label>Teléfono Institucional</label>
+                            <input type="tel" id="cfg_telefono" required placeholder="3000000000">
+                        </div>
+                        <div class="form-group">
                             <label>Dirección</label>
                             <input type="text" id="cfg_direccion" required placeholder="Montería, Córdoba">
                         </div>
+                    </div>
+
+                    <div class="grid-2">
                         <div class="form-group">
                             <label>Correo del Colegio</label>
                             <input type="text" id="cfg_correo" required placeholder="correo@colegio.edu.co">
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Logotipo del Colegio (Imagen)</label>
-                        <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.5rem; background: white;">
+                        <div class="form-group">
+                            <label>Logotipo del Colegio (Imagen)</label>
+                            <input type="file" id="cfg_logo_file" accept="image/*" style="padding: 0.5rem; background: white;">
+                        </div>
                     </div>
 
                     <!-- DATOS Y CREDENCIALES DEL RECTOR -->
@@ -557,6 +563,7 @@
             nombre: "I.E. ANTONIA SANTOS",
             nit: "800000000-1",
             dane: "123001000000",
+            maxDailyPermits: 2,
             direccion: "Montería, Córdoba",
             telefono: "3000000000",
             correo: "contacto@antoniasantos.edu.co",
@@ -584,6 +591,7 @@
         if(schoolConfig.showEmail === undefined) schoolConfig.showEmail = false;
         if(!schoolConfig.dane) schoolConfig.dane = "123001000000";
         if(!schoolConfig.correo) schoolConfig.correo = "contacto@antoniasantos.edu.co";
+        if(schoolConfig.maxDailyPermits === undefined) schoolConfig.maxDailyPermits = 2;
 
         let currentUser = null;
         let pendingRejectId = null;
@@ -751,6 +759,7 @@
                 document.getElementById('cfg_nombre').value = schoolConfig.nombre;
                 document.getElementById('cfg_nit').value = schoolConfig.nit;
                 document.getElementById('cfg_dane').value = schoolConfig.dane || "";
+                document.getElementById('cfg_max_daily').value = schoolConfig.maxDailyPermits || 2;
                 document.getElementById('cfg_direccion').value = schoolConfig.direccion;
                 document.getElementById('cfg_telefono').value = schoolConfig.telefono;
                 document.getElementById('cfg_correo').value = schoolConfig.correo || "";
@@ -873,6 +882,7 @@
             schoolConfig.nombre = document.getElementById('cfg_nombre').value.trim();
             schoolConfig.nit = document.getElementById('cfg_nit').value.trim();
             schoolConfig.dane = document.getElementById('cfg_dane').value.trim();
+            schoolConfig.maxDailyPermits = parseInt(document.getElementById('cfg_max_daily').value) || 2;
             schoolConfig.direccion = document.getElementById('cfg_direccion').value.trim();
             schoolConfig.telefono = document.getElementById('cfg_telefono').value.trim();
             schoolConfig.correo = document.getElementById('cfg_correo').value.trim();
@@ -936,11 +946,21 @@
             let jornada = currentUser.jornada;
             if(!fecha) return;
 
-            let count = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
-            let disponibles = 2 - count;
+            let [targetYear, targetMonth] = fecha.split('-');
+            let userMonthlyCount = permissions.filter(p => {
+                if(p.correo !== currentUser.correo || p.estado === 'Rechazado') return false;
+                if(!p.fecha) return false;
+                let [pYear, pMonth] = p.fecha.split('-');
+                return pYear === targetYear && pMonth === targetMonth;
+            }).length;
+
+            let dailyCount = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
+            let maxDaily = schoolConfig.maxDailyPermits || 2;
+            let dailyAvailable = maxDaily - dailyCount;
+
             let badge = document.getElementById('slot-badge');
-            badge.textContent = `${disponibles} disponible(s)`;
-            badge.style.color = disponibles > 0 ? '#059669' : '#e11d48';
+            badge.textContent = `Mes: ${userMonthlyCount}/3 | Día: ${dailyAvailable} cupo(s) libre(s)`;
+            badge.style.color = (userMonthlyCount < 3 && dailyAvailable > 0) ? '#059669' : '#e11d48';
         }
 
         function handleFileUpload(e, targetKey) {
@@ -970,6 +990,7 @@
                 return;
             }
 
+            // 1. VALIDACIÓN DEL LÍMITE MENSUAL (MÁXIMO 3 POR MES)
             let [targetYear, targetMonth] = fecha.split('-');
             let userMonthlyCount = permissions.filter(p => {
                 if(p.correo !== currentUser.correo || p.estado === 'Rechazado') return false;
@@ -979,13 +1000,16 @@
             }).length;
 
             if(userMonthlyCount >= 3) {
-                alert("⚠️ [Límite Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
+                alert("⚠️ [Límite Mensual Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
                 return;
             }
 
-            let count = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
-            if(count >= 2) {
-                alert("Límite de 2 permisos alcanzado para esta jornada.");
+            // 2. VALIDACIÓN DEL LÍMITE DIARIO EXACTO PARA ESA JORNADA Y FECHA
+            let dailyCount = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
+            let maxDaily = schoolConfig.maxDailyPermits || 2;
+
+            if(dailyCount >= maxDaily) {
+                alert(`⚠️ [Límite Diario Excedido]\nYa se ha alcanzado el límite máximo permitido de ${maxDaily} docentes ausentes para esta jornada en la fecha ${fecha}.`);
                 return;
             }
 
@@ -1037,7 +1061,7 @@
             document.getElementById('sol_fecha').value = '';
             document.getElementById('file_permiso').value = '';
             document.getElementById('file_actividades').value = '';
-            document.getElementById('slot-badge').textContent = "Cupos: --";
+            document.getElementById('slot-badge').textContent = "Cupos libres";
             window.soportePermisoData = null;
             window.soporteActividadesData = null;
             renderTeacherHistory();
@@ -1267,7 +1291,7 @@
 
             let resolucionConsiderando = isApproved ?
                 `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral ${textoModalidad} con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>, invocando como motivo: "${p.motivo}".<br><br>
-                 Que la solicitud cumple con los requisitos de oportunidad (mínimo 3 días hábiles de anticipación), la verificación de disponibilidad de cupos en la jornada y cuenta con la respectiva preaprobación de Coordinación y la entrega del material pedagógico de reemplazo.` :
+                 Que la solicitud cumple con los requisitos de oportunidad (mínimo 3 días hábiles de anticipación) y cuenta con la respectiva preaprobación de Coordinación y la entrega del material pedagógico de reemplazo.` :
                 `Que el(la) docente <strong>${p.nombre}</strong>, adscrito(a) a la jornada <strong>${p.jornada}</strong>, ha presentado solicitud de permiso laboral ${textoModalidad} con radicado N° <strong>${p.radicado}</strong> para la fecha <strong>${p.fecha}</strong>.<br><br>
                  <strong>Motivo de Negación / Observación Institucional:</strong> ${p.observacionRechazo || 'No especificada.'}`;
 

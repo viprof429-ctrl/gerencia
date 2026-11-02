@@ -413,7 +413,7 @@
                         </div>
                     </div>
 
-                    <!-- NUEVO CAMPO: HOJA MEMBRETADA -->
+                    <!-- HOJA MEMBRETADA -->
                     <div class="form-group" style="background:#f8fafc; padding:1.25rem; border:2px dashed #4f46e5; border-radius:12px; margin-bottom:1.5rem;">
                         <label style="color:#1e293b; font-weight:bold; margin-bottom:0.5rem;">
                             <i class="fa-solid fa-file-invoice" style="color:#4f46e5;"></i> Hoja Membretada Institucional (Word, PDF o Imagen)
@@ -973,12 +973,13 @@
                 return;
             }
 
-            let targetMonth = selectedDate.getMonth();
-            let targetYear = selectedDate.getFullYear();
+            // CORRECCIÓN SEGURA DEL LÍMITE MENSUAL USANDO PARTES DE LA FECHA (YYYY-MM)
+            let [targetYear, targetMonth] = fecha.split('-');
             let userMonthlyCount = permissions.filter(p => {
                 if(p.correo !== currentUser.correo || p.estado === 'Rechazado') return false;
-                let pDate = new Date(p.fecha);
-                return pDate.getMonth() === targetMonth && pDate.getFullYear() === targetYear;
+                if(!p.fecha) return false;
+                let [pYear, pMonth] = p.fecha.split('-');
+                return pYear === targetYear && pMonth === targetMonth;
             }).length;
 
             if(userMonthlyCount >= 3) {
@@ -1239,7 +1240,6 @@
             let p = permissions.find(x => x.id === id);
             if(!p) return;
 
-            // Renderizado del membrete o cabecera institucional limpia
             let membreteContainer = document.getElementById('modal-membrete-container');
             if(schoolConfig.membrete && schoolConfig.membrete.data) {
                 membreteContainer.innerHTML = `<img src="${schoolConfig.membrete.data}" style="max-width: 100%; max-height: 120px; object-fit: contain; display: block; margin: 0 auto;">`;

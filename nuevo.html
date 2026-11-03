@@ -71,8 +71,10 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       <label>Apellidos</label><input id="r_apellidos" required>
       <label>Correo</label><input type="email" id="r_mail" required>
       <label>Teléfono / WhatsApp</label><input type="tel" id="r_tel" required>
-      <label>Jornada (docentes y coordinadores)</label>
-      <select id="r_jornada"><option value="">No aplica (rector)</option><option>Mañana</option><option>Tarde</option></select>
+      <label>Tipo de usuario</label>
+      <select id="r_tipo" onchange="tipoReg()"><option value="docente">Docente</option><option value="administrativo">Administrativo</option><option value="publico">Público (padre de familia / comunidad)</option></select>
+      <div id="r_jwrap"><label>Jornada</label>
+      <select id="r_jornada" required><option value="">Seleccione…</option><option>Mañana</option><option>Tarde</option></select></div>
       <label>Contraseña</label><input type="password" id="r_pass" required minlength="6" placeholder="Mínimo 6 caracteres">
       <button class="btn green">Completar registro</button>
       <div id="r_msg" class="msg"></div>
@@ -163,9 +165,37 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       <p class="d">El coordinador preaprueba y el rector aprueba de forma definitiva.</p>
       <div class="wrap"><table><thead><tr><th>Radicado</th><th>Solicitante</th><th>Jornada / Fecha</th><th>Motivo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="b_body"></tbody></table></div></div></section>
 
-    <section id="v-usuarios" class="hidden"><div class="card"><h2>Usuarios del colegio</h2>
-      <p class="d">Active a los docentes que se registraron y nombre coordinadores.</p>
-      <div class="wrap"><table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Rol</th><th>Jornada</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="u_body"></tbody></table></div></div></section>
+    <section id="v-usuarios" class="hidden">
+      <div class="card">
+        <h2>Crear usuario</h2>
+        <p class="d">Cree coordinadores, docentes o administrativos: ingresan con el correo y la contraseña que digite aquí. Los docentes, administrativos y el público también pueden registrarse solos desde la pantalla de inicio.</p>
+        <form onsubmit="crearUsuario(event)">
+          <div class="g2">
+            <div><label>Nombres</label><input id="u_nom" required></div>
+            <div><label>Apellidos</label><input id="u_ape" required></div>
+            <div><label>Teléfono / WhatsApp</label><input type="tel" id="u_tel" required></div>
+            <div><label>Correo (usuario de ingreso)</label><input type="email" id="u_mail" required autocomplete="off"></div>
+            <div><label>Rol</label><select id="u_rol"><option value="coordinador">Coordinador</option><option value="docente">Docente</option><option value="administrativo">Administrativo</option></select></div>
+            <div><label>Jornada (obligatoria para coordinadores y docentes)</label><select id="u_jor"><option value="">No aplica</option><option>Mañana</option><option>Tarde</option></select></div>
+            <div><label>Contraseña inicial</label><input id="u_pass" required minlength="6" autocomplete="off" placeholder="Mínimo 6 caracteres"></div>
+          </div>
+          <button class="btn" id="u_btn">Crear usuario</button>
+          <div id="u_msg" class="msg"></div>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Usuarios del colegio</h2>
+        <p class="d">Active a quienes se registraron solos y cambie su rol o jornada cuando lo necesite.</p>
+        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Rol</th><th>Jornada</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="u_body"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h2>Accesos por rol</h2>
+        <p class="d">Marque a qué módulos puede entrar cada tipo de usuario. El rector siempre tiene acceso a todo.</p>
+        <div class="wrap"><table><thead><tr><th>Módulo</th><th>Docente</th><th>Coordinador</th><th>Administrativo</th><th>Público</th></tr></thead><tbody id="a_body"></tbody></table></div>
+        <button class="btn green" onclick="guardarMatriz()">Guardar accesos</button>
+        <div id="a_msg" class="msg"></div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -175,10 +205,16 @@ const SUPABASE_KEY = 'sb_publishable_BevO5oiQAphvZeVKzIQH8Q_tj0-8hBz'; // clave 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const ROLES = { magister:'Súper Admin', rector:'Rector', coordinador:'Coordinador', docente:'Docente' };
+const ROLES = { magister:'Súper Admin', rector:'Rector', coordinador:'Coordinador', docente:'Docente', administrativo:'Administrativo', publico:'Público' };
 let me = null, colegio = null;
 
 function msg(id, t, ok) { const e = $(id); e.textContent = t; e.className = 'msg' + (ok ? ' ok' : ''); }
+function tipoReg() {
+  const t = $('r_tipo').value;
+  $('r_jwrap').classList.toggle('hidden', t === 'publico');
+  $('r_jornada').required = t === 'docente';
+  if (t === 'publico') $('r_jornada').value = '';
+}
 function toggle(reg) { $('f-login').classList.toggle('hidden', reg); $('f-reg').classList.toggle('hidden', !reg); }
 const VIEWS = ['home','magister','permisos','bandeja','usuarios'];
 function showView(v) { VIEWS.forEach(x => $('v-' + x).classList.toggle('hidden', x !== v)); $('btn-home').classList.toggle('hidden', v === 'home' || v === 'magister'); }
@@ -199,7 +235,7 @@ async function login(e) {
 
 async function register(e) {
   e.preventDefault();
-  const form = e.target;
+  const form = e.target, tipo = $('r_tipo').value;
   if (!$('r_colegio').value) return msg('r_msg', 'Seleccione una institución.');
   const { error } = await db.auth.signUp({
     email: $('r_mail').value.trim(),
@@ -209,14 +245,15 @@ async function register(e) {
       nombres: $('r_nombres').value.trim(),
       apellidos: $('r_apellidos').value.trim(),
       telefono: $('r_tel').value.trim(),
-      jornada: $('r_jornada').value || null
+      jornada: $('r_jornada').value || null,
+      rol: $('r_tipo').value
     } }
   });
   if (error) return msg('r_msg', error.message);
   await db.auth.signOut();
   form.reset();
   toggle(false);
-  msg('l_msg', 'Registro exitoso. Su cuenta quedará lista cuando el rector la active.', true);
+  msg('l_msg', tipo === 'publico' ? 'Registro exitoso. Ya puede ingresar con su correo y contraseña.' : 'Registro exitoso. Su cuenta quedará lista cuando el rector la active.', true);
 }
 
 async function enter() {
@@ -234,7 +271,7 @@ async function enter() {
   $('app').classList.remove('hidden');
   $('who').textContent = `${p.nombres} ${p.apellidos || ''} · ${ROLES[p.rol]}` + (colegio ? ' · ' + colegio.nombre : '');
   if (p.rol === 'magister') { showView('magister'); formModo('crear'); loadMagister(); }
-  else goHome();
+  else { await cargarAccesos(); goHome(); }
 }
 
 async function logout() { await db.auth.signOut(); location.reload(); }
@@ -353,13 +390,31 @@ async function setPerfil(id, campos) {
 }
 
 /* ---------- MENÚ ---------- */
+let ACCESOS = {};
+const MODS = [
+  { k:'permisos', t:'Control de Permisos', i:'📋' },
+  { k:'sau', t:'SAU (Atención al Usuario)', i:'🎧' },
+  { k:'mantenimiento', t:'Gestión de Mantenimiento', i:'🛠️' },
+  { k:'contable', t:'Módulo Contable', i:'💰' }
+];
+async function cargarAccesos() {
+  ACCESOS = {};
+  const { data } = await db.from('accesos_rol').select('rol,modulo,permitido');
+  (data || []).forEach(x => { ACCESOS[x.rol] = ACCESOS[x.rol] || {}; ACCESOS[x.rol][x.modulo] = x.permitido; });
+}
 function goHome() {
-  const r = me.rol, mods = [];
-  mods.push({ t:'Control de Permisos', i:'📋', go: r === 'docente' ? 'permisos' : 'bandeja',
-    d: r === 'docente' ? 'Solicite permisos y consulte su historial.' : 'Revise, preapruebe y apruebe solicitudes.' });
-  if (r === 'rector') mods.push({ t:'Usuarios del colegio', i:'👥', go:'usuarios', d:'Active docentes y nombre coordinadores.' });
-  [['SAU (Atención al Usuario)','🎧'],['Gestión de Mantenimiento','🛠️'],['Módulo Contable','💰']].forEach(m => mods.push({ t:m[0], i:m[1], go:null, d:'Próximamente.' }));
-  $('mods').innerHTML = mods.map(m => `<div class="mod ${m.go ? '' : 'off'}" ${m.go ? `onclick="openMod('${m.go}')"` : ''}><div class="ico">${m.i}</div><h3>${esc(m.t)}</h3><p>${esc(m.d)}</p></div>`).join('');
+  const r = me.rol;
+  const puede = k => r === 'rector' || !!(ACCESOS[r] && ACCESOS[r][k]);
+  const cards = [];
+  MODS.filter(m => puede(m.k)).forEach(m => {
+    if (m.k === 'permisos') {
+      const go = ['docente','administrativo'].includes(r) ? 'permisos' : (['coordinador','rector'].includes(r) ? 'bandeja' : null);
+      cards.push({ t:m.t, i:m.i, go, d: go === 'permisos' ? 'Solicite permisos y consulte su historial.' : go ? 'Revise, preapruebe y apruebe solicitudes.' : 'Próximamente.' });
+    } else cards.push({ t:m.t, i:m.i, go:null, d:'Próximamente.' });
+  });
+  if (r === 'rector') cards.push({ t:'Usuarios y accesos', i:'👥', go:'usuarios', d:'Cree usuarios, asigne roles y defina a qué módulos entra cada rol.' });
+  $('mods').innerHTML = cards.map(m => `<div class="mod ${m.go ? '' : 'off'}" ${m.go ? `onclick="openMod('${m.go}')"` : ''}><div class="ico">${m.i}</div><h3>${esc(m.t)}</h3><p>${esc(m.d)}</p></div>`).join('')
+    || '<p class="d">No tiene módulos habilitados todavía. Contacte al rector de su institución.</p>';
   showView('home');
 }
 function openMod(v) {
@@ -467,20 +522,63 @@ async function verPdf(path) {
 }
 
 /* ---------- USUARIOS (RECTOR) ---------- */
+const ROLES_USR = [['docente','Docente'],['coordinador','Coordinador'],['administrativo','Administrativo'],['publico','Público']];
+const JORNADAS = [['','—'],['Mañana','Mañana'],['Tarde','Tarde']];
+const opts = (list, cur) => list.map(([v, t]) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${t}</option>`).join('');
+
 async function loadUsuarios() {
+  loadMatriz();
   const { data } = await db.from('perfiles').select('id,nombres,apellidos,telefono,rol,jornada,activo').order('creado_en', { ascending: false });
   $('u_body').innerHTML = (data || []).map(x => {
     const fijo = x.id === me.id || x.rol === 'rector';
-    return `<tr><td>${esc(x.nombres)} ${esc(x.apellidos)}</td><td>${esc(x.telefono || '')}</td><td>${esc(ROLES[x.rol] || x.rol)}</td><td>${esc(x.jornada || '—')}</td>
+    return `<tr><td>${esc(x.nombres)} ${esc(x.apellidos)}</td><td>${esc(x.telefono || '')}</td>
+      <td>${fijo ? esc(ROLES[x.rol] || x.rol) : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{rol:this.value})">${opts(ROLES_USR, x.rol)}</select>`}</td>
+      <td>${fijo ? esc(x.jornada || '—') : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{jornada:this.value||null})">${opts(JORNADAS, x.jornada || '')}</select>`}</td>
       <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Pendiente'}</span></td>
-      <td>${fijo ? '' : `<button class="btn sm green" onclick="setUsr('${x.id}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>
-        <button class="btn sm" onclick="setUsr('${x.id}',{rol:'${x.rol === 'docente' ? 'coordinador' : 'docente'}'})">Hacer ${x.rol === 'docente' ? 'coordinador' : 'docente'}</button>`}</td></tr>`;
+      <td>${fijo ? '' : `<button class="btn sm green" onclick="setUsr('${x.id}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>`}</td></tr>`;
   }).join('') || '<tr><td colspan="6">Sin usuarios.</td></tr>';
 }
 async function setUsr(id, campos) {
   const { error } = await db.from('perfiles').update(campos).eq('id', id);
   if (error) alert(error.message);
   loadUsuarios();
+}
+async function crearUsuario(e) {
+  e.preventDefault();
+  const form = e.target, btn = $('u_btn');
+  btn.disabled = true; msg('u_msg', 'Creando…', true);
+  try {
+    const rol = $('u_rol').value, jor = $('u_jor').value || null;
+    if (['docente','coordinador'].includes(rol) && !jor) throw new Error('Seleccione la jornada.');
+    const aux = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'gie-aux' } });
+    const { data, error } = await aux.auth.signUp({
+      email: val('u_mail'), password: $('u_pass').value,
+      options: { data: { colegio_id: me.colegio_id, nombres: val('u_nom'), apellidos: val('u_ape'), telefono: val('u_tel'), jornada: jor, rol: rol === 'coordinador' ? 'docente' : rol } }
+    });
+    if (error) throw new Error(/already/i.test(error.message) ? 'Ese correo ya está registrado.' : error.message);
+    if (!data.user) throw new Error('No se pudo crear el usuario.');
+    const { error: e2 } = await db.from('perfiles').update({ rol, activo: true }).eq('id', data.user.id);
+    if (e2) throw new Error('Usuario creado, pero no se pudo activar: ' + e2.message);
+    form.reset();
+    msg('u_msg', 'Usuario creado. Ya puede ingresar con su correo y contraseña.', true);
+    loadUsuarios();
+  } catch (err) { msg('u_msg', err.message); }
+  finally { btn.disabled = false; }
+}
+
+/* ---------- ACCESOS POR ROL ---------- */
+const ROLES_ACC = [['docente','Docente'],['coordinador','Coordinador'],['administrativo','Administrativo'],['publico','Público']];
+async function loadMatriz() {
+  const { data } = await db.from('accesos_rol').select('rol,modulo,permitido');
+  const A = {};
+  (data || []).forEach(x => { A[x.rol] = A[x.rol] || {}; A[x.rol][x.modulo] = x.permitido; });
+  $('a_body').innerHTML = MODS.map(m => `<tr><td><b>${esc(m.t)}</b></td>${ROLES_ACC.map(r =>
+    `<td style="text-align:center"><input type="checkbox" style="width:auto" data-rol="${r[0]}" data-mod="${m.k}" ${A[r[0]] && A[r[0]][m.k] ? 'checked' : ''}></td>`).join('')}</tr>`).join('');
+}
+async function guardarMatriz() {
+  const filas = [...document.querySelectorAll('#a_body input')].map(i => ({ colegio_id: me.colegio_id, rol: i.dataset.rol, modulo: i.dataset.mod, permitido: i.checked }));
+  const { error } = await db.from('accesos_rol').upsert(filas, { onConflict: 'colegio_id,rol,modulo' });
+  msg('a_msg', error ? error.message : 'Accesos guardados.', !error);
 }
 
 /* ---------- INICIO ---------- */

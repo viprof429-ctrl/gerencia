@@ -397,6 +397,15 @@
                     <p>Gestión y doble aprobación de solicitudes institucionales</p>
                 </div>
 
+                <!-- Botón de Reinicio Rápido para Pruebas (Solo borra permisos/contadores de este colegio) -->
+                <div style="background: #f8fafc; padding: 1rem 1.25rem; border-radius: 12px; border: 1px solid #cbd5e1; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; font-weight: 800; color: #1e293b;"><i class="fa-solid fa-rotate-left" style="color:#d97706;"></i> Herramienta de Pruebas</h4>
+                        <p style="font-size: 0.75rem; color: #64748b;">Reinicie los contadores e historial de permisos de este colegio manteniendo intactos los docentes y coordinadores.</p>
+                    </div>
+                    <button onclick="resetSchoolCounters()" class="btn-submit" style="width: auto; background: #d97706; padding: 0.5rem 1rem; font-size: 0.8rem;"><i class="fa-solid fa-trash-can"></i> Reiniciar Contadores de Pruebas</button>
+                </div>
+
                 <table>
                     <thead>
                         <tr>
@@ -981,7 +990,6 @@
             }
         }
 
-        // Helper robusto para extraer año y mes sin importar el formato de fecha
         function extractYearMonth(dateStr) {
             if (!dateStr) return { year: '', month: '' };
             if (dateStr.includes('/')) {
@@ -996,7 +1004,6 @@
             return { year: '', month: '' };
         }
 
-        // Helper robusto para verificar si el permiso pertenece al usuario actual (por correo o nombre)
         function isCurrentuserPermission(p) {
             if (!currentUser) return false;
             let cEmail = currentUser.correo ? currentUser.correo.toLowerCase() : "";
@@ -1157,6 +1164,20 @@
             } else if(view === 'reports') {
                 document.getElementById('view-reports').classList.remove('hidden');
                 renderReports();
+            }
+        }
+
+        // FUNCIÓN NUEVA: Reiniciar contadores e historial de permisos de la institución activa para pruebas
+        function resetSchoolCounters() {
+            if(confirm("¿Desea reiniciar y borrar todo el historial de permisos y contadores para este colegio? (Los docentes y coordinadores se mantendrán a salvo).")) {
+                localStorage.removeItem(`gie_perms_${activeSchoolId}`);
+                loadActiveSchoolData();
+                alert("¡Contadores e historial de permisos reiniciados con éxito para las pruebas!");
+                if(currentUser && currentUser.role === 'Docente') {
+                    renderTeacherHistory();
+                } else {
+                    renderTable();
+                }
             }
         }
 
@@ -1446,7 +1467,6 @@
                 return pYM.year === targetYM.year && pYM.month === targetYM.month;
             }).length;
 
-            // REGLA EXACTA: Permite el 1er, 2do y 3er permiso. Bloquea estrictamente al intentar el 4to.
             if(userMonthlyCount >= 3) {
                 alert("⚠️ [Límite Mensual Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
                 return;

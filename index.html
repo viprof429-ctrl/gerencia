@@ -16,7 +16,7 @@
         .auth-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
         .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 440px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center; }
         
-        /* Logotipo GIE Nativo Dorado y Plateado (Sin errores externos) */
+        /* Logotipo GIE Nativo Dorado y Plateado */
         .gie-logo-box { width: 95px; height: 95px; background: radial-gradient(circle, #1e1b4b 0%, #0f172a 100%); border-radius: 22px; margin: 0 auto 1rem auto; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2.5px solid #f59e0b; box-shadow: 0 6px 20px rgba(245,158,11,0.35); position: relative; overflow: hidden; }
         .gie-logo-box .gie-text-g { font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #f59e0b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
         .gie-logo-box .gie-text-sub { font-size: 0.55rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
@@ -682,7 +682,7 @@
         <div class="modal-card">
             <!-- Encabezado Institucional Dinámico tomado de Configuración -->
             <div style="display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #0f172a; padding-bottom: 0.75rem; margin-bottom: 1rem; text-align: center;">
-                <div id="modal-logo-box" style="width: 55px; height: 55px; border-radius: 10px; overflow: hidden; background:#0f172a; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#f59e0b; font-weight:bold; font-size:1.1rem; flex-shrink: 0; border: 1.5px solid #f59e0b;">
+                <div id="modal-logo-box" style="width: 55px; height: 55px; border-radius: 10px; overflow: hidden; background:#0f172a; display:flex; align-items:center; justify-content:center; color:#f59e0b; font-weight:bold; font-size:1.1rem; flex-shrink: 0; border: 1.5px solid #f59e0b;">
                     <span>GiE</span>
                 </div>
                 <div style="flex-grow: 1;">
@@ -711,7 +711,7 @@
             <textarea id="reject_observacion" rows="4" style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 8px; margin-bottom: 1.25rem;" placeholder="Escriba la razón reglamentaria..."></textarea>
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
                 <button onclick="confirmReject()" class="btn-submit" style="background: #e11d48; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;">Confirmar Negación</button>
-                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
+                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cancelar</button>
             </div>
         </div>
     </div>
@@ -722,7 +722,7 @@
             emailjs.init("Fj3QdUv-Z9qIxjmnV");
         })();
 
-        // Base de Datos Multitenant de Colegios (SaaS GIE)
+        // Base de Datos Multitenant de Colegios (SaaS GIE) - Sin ALGC
         let defaultAntoniaSantos = {
             id: "antonia_santos",
             nombre: "I.E. ANTONIA SANTOS",
@@ -737,7 +737,7 @@
             rectorUser: "rector",
             rectorPass: "123456",
             rectorNombres: "Álvaro",
-            rectorApellidos: "González Contreras (ALGC)",
+            rectorApellidos: "González Contreras",
             rectorTel: "3000000000",
             rectorEmail: "rector@antoniasantos.edu.co",
             showNombre: true,
@@ -760,6 +760,7 @@
             if(idx !== -1) {
                 schoolsDB[idx].rectorUser = "rector";
                 schoolsDB[idx].rectorPass = "123456";
+                schoolsDB[idx].rectorApellidos = "González Contreras";
             } else {
                 schoolsDB.unshift(defaultAntoniaSantos);
             }
@@ -834,7 +835,7 @@
                 uInput.value = "";
                 pInput.value = "";
                 uInput.readOnly = false;
-                uInput.readOnly = false;
+                pInput.readOnly = false;
             }
         }
 
@@ -1379,6 +1380,7 @@
             let dailyAvailable = maxDaily - dailyCount;
 
             let badge = document.getElementById('slot-badge');
+            // CORRECCIÓN: Permitir hasta 3 solicitudes antes de marcar cupos agotados en el mes
             badge.textContent = `Mes: ${userMonthlyCount}/3 | Día: ${dailyAvailable >= 0 ? dailyAvailable : 0} cupo(s) libre(s)`;
             badge.style.color = (userMonthlyCount < 3 && dailyAvailable > 0) ? '#059669' : '#e11d48';
         }
@@ -1418,7 +1420,8 @@
                 return pYear === targetYear && pMonth === targetMonth;
             }).length;
 
-            if(userMonthlyCount >= 3) {
+            // CORRECCIÓN ESTRICTA: Permitir 1, 2 y 3. Bloquear únicamente al intentar pedir el 4to.
+            if(userMonthlyCount > 3 || (userMonthlyCount === 3)) {
                 alert("⚠️ [Límite Mensual Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
                 return;
             }
@@ -1693,7 +1696,7 @@
                 <div class="modal-card">
                     <div style="display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #0f172a; padding-bottom: 0.75rem; margin-bottom: 1rem; text-align: center;">
                         <div style="width: 55px; height: 55px; border-radius: 10px; overflow: hidden; background:#0f172a; display:flex; align-items:center; justify-content:center; color:#f59e0b; font-weight:bold; font-size:1.1rem; flex-shrink: 0; border: 1.5px solid #f59e0b;">
-                            ${logoHtml}
+                            <span>GiE</span>
                         </div>
                         <div style="flex-grow: 1;">
                             <h3 id="modal-school-title" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">${schoolConfig.nombre}</h3>
@@ -1736,7 +1739,7 @@
                 `<div style="margin-top: 10px;"><img src="${schoolConfig.firma}" style="max-height: 55px; max-width: 150px; object-fit: contain; display: block; margin: 0 0 3px 0;" crossorigin="anonymous"></div>` : 
                 `<div style="height: 30px;"></div>`;
 
-            let nombreRectorStr = schoolConfig.showNombre ? `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos}` : "ÁLVARO GONZÁLEZ CONTRERAS (ALGC)";
+            let nombreRectorStr = schoolConfig.showNombre ? `${schoolConfig.rectorNombres} ${schoolConfig.rectorApellidos}` : "ÁLVARO GONZÁLEZ CONTRERAS";
             let infoExtraRector = "";
             if(schoolConfig.showTel) infoExtraRector += `<br>Tel: ${schoolConfig.rectorTel}`;
             if(schoolConfig.showEmail) infoExtraRector += `<br>Correo: ${schoolConfig.rectorEmail}`;

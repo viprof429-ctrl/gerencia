@@ -45,6 +45,7 @@ th{background:#f8fafc;color:#475569;font-size:.72rem;text-transform:uppercase}
 .t-info{background:#e0f2fe;color:#0369a1}.t-bad{background:#ffe4e6;color:#9f1239}
 .bar{background:#eef2ff;border:1.5px solid #c7d2fe;border-radius:14px;padding:1rem 1.2rem;margin:1rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
 .pill{background:#fff;border:1px solid #c7d2fe;border-radius:8px;padding:.45rem .9rem;font-weight:700;font-size:.85rem}
+h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bottom:.4rem;margin:1.3rem 0 .2rem}
 @media(max-width:640px){.g2{grid-template-columns:1fr}}
 </style>
 </head>
@@ -90,23 +91,42 @@ th{background:#f8fafc;color:#475569;font-size:.72rem;text-transform:uppercase}
 
     <section id="v-magister" class="hidden">
       <div class="card">
-        <h2>Panel Súper Admin (Magister)</h2>
-        <p class="d">Cree colegios. Luego el rector se registra desde la pantalla de inicio y usted lo nombra aquí.</p>
-        <form onsubmit="crearColegio(event)">
-          <div class="g2">
-            <div><label>Nombre del colegio</label><input id="c_nombre" required></div>
-            <div><label>NIT</label><input id="c_nit" required></div>
-            <div><label>Código DANE</label><input id="c_dane"></div>
-            <div><label>Ciudad / Dirección</label><input id="c_dir"></div>
-            <div><label>Máx. docentes ausentes por día y jornada</label><input type="number" id="c_max" min="1" max="50" value="2" required></div>
+        <h2 id="m_title">Crear institución y rector</h2>
+        <p class="d">El rector entrará a su colegio con el correo y la contraseña que digite aquí.</p>
+        <form onsubmit="guardarColegio(event)">
+          <div id="m_cole">
+            <h3 class="sec">Datos de la institución</h3>
+            <div class="g2">
+              <div><label>Nombre del colegio</label><input id="c_nombre" required></div>
+              <div><label>NIT</label><input id="c_nit" required></div>
+              <div><label>Código DANE</label><input id="c_dane"></div>
+              <div><label>Resolución de funcionamiento</label><input id="c_res" placeholder="N.° y fecha de la resolución"></div>
+              <div><label>Ciudad / Dirección</label><input id="c_dir"></div>
+              <div><label>Teléfono</label><input type="tel" id="c_tel"></div>
+              <div><label>Correo institucional</label><input type="email" id="c_mail"></div>
+              <div><label>Página web</label><input id="c_web" placeholder="https://"></div>
+              <div><label>Facebook</label><input id="c_fb" placeholder="https://facebook.com/..."></div>
+              <div><label>Máx. docentes ausentes por día y jornada</label><input type="number" id="c_max" min="1" max="50" value="2" required></div>
+            </div>
           </div>
-          <button class="btn" style="background:#7c3aed">Crear institución</button>
+          <div id="m_rect">
+            <h3 class="sec">Rector (usuario administrador del colegio)</h3>
+            <div class="g2">
+              <div><label>Nombres</label><input id="m_rn"></div>
+              <div><label>Apellidos</label><input id="m_ra"></div>
+              <div><label>Teléfono / WhatsApp</label><input type="tel" id="m_rt"></div>
+              <div><label>Correo (será su usuario de ingreso)</label><input type="email" id="m_rm" autocomplete="off"></div>
+              <div><label>Contraseña inicial</label><input type="text" id="m_rp" minlength="6" autocomplete="off" placeholder="Mínimo 6 caracteres"></div>
+            </div>
+          </div>
+          <button class="btn" id="m_btn" style="background:#7c3aed">Crear institución y rector</button>
+          <button type="button" class="link hidden" id="m_cancel" onclick="formModo('crear')">Cancelar y volver a crear</button>
           <div id="c_msg" class="msg"></div>
         </form>
       </div>
       <div class="card">
         <h2>Instituciones</h2>
-        <div class="wrap"><table><thead><tr><th>Nombre</th><th>NIT</th><th>Máx. ausentes/día</th></tr></thead><tbody id="t-cole"></tbody></table></div>
+        <div class="wrap"><table><thead><tr><th>Nombre</th><th>NIT</th><th>Rector</th><th>Usuarios</th><th>Máx./día</th><th>Acciones</th></tr></thead><tbody id="t-cole"></tbody></table></div>
       </div>
       <div class="card">
         <h2>Usuarios registrados</h2>
@@ -213,37 +233,29 @@ async function enter() {
   $('auth').classList.add('hidden');
   $('app').classList.remove('hidden');
   $('who').textContent = `${p.nombres} ${p.apellidos || ''} · ${ROLES[p.rol]}` + (colegio ? ' · ' + colegio.nombre : '');
-  if (p.rol === 'magister') { showView('magister'); loadMagister(); }
+  if (p.rol === 'magister') { showView('magister'); formModo('crear'); loadMagister(); }
   else goHome();
 }
 
 async function logout() { await db.auth.signOut(); location.reload(); }
 
 /* ---------- PANEL SÚPER ADMIN ---------- */
-async function crearColegio(e) {
-  e.preventDefault();
-  const form = e.target;
-  const { error } = await db.from('colegios').insert({
-    nombre: $('c_nombre').value.trim(), nit: $('c_nit').value.trim(),
-    dane: $('c_dane').value.trim() || null, direccion: $('c_dir').value.trim() || null,
-    max_diario: parseInt($('c_max').value) || 2
-  });
-  if (error) return msg('c_msg', error.message);
-  form.reset(); $('c_max').value = 2;
-  msg('c_msg', 'Institución creada.', true);
-  loadMagister();
-}
-
 async function loadMagister() {
   const [c, u] = await Promise.all([
-    db.from('colegios').select('id,nombre,nit,max_diario').order('nombre'),
-    db.from('perfiles').select('id,nombres,apellidos,telefono,rol,activo,colegios(nombre)').order('creado_en', { ascending: false })
+    db.from('colegios').select('*').order('creado_en'),
+    db.from('perfiles').select('id,nombres,apellidos,telefono,rol,activo,colegio_id,colegios(nombre)').order('creado_en', { ascending: false })
   ]);
-  $('t-cole').innerHTML = (c.data || []).map(x =>
-    `<tr><td><b>${esc(x.nombre)}</b></td><td>${esc(x.nit)}</td><td>${esc(x.max_diario)}</td></tr>`).join('')
-    || '<tr><td colspan="3">Aún no hay instituciones.</td></tr>';
+  COLES = c.data || [];
+  const users = u.data || [];
+  $('t-cole').innerHTML = COLES.map(x => {
+    const rect = users.find(p => p.colegio_id === x.id && p.rol === 'rector');
+    const n = users.filter(p => p.colegio_id === x.id).length;
+    return `<tr><td><b>${esc(x.nombre)}</b><br><small>${esc(x.telefono || '')} ${esc(x.correo || '')}</small></td><td>${esc(x.nit)}</td>
+      <td>${rect ? esc(rect.nombres + ' ' + (rect.apellidos || '')) : '<span class="tag t-no">Sin rector</span>'}</td><td>${n}</td><td>${esc(x.max_diario)}</td>
+      <td><button class="btn sm" onclick="editarColegio('${x.id}')">Editar</button>${rect ? '' : `<button class="btn sm gold" onclick="rectorColegio('${x.id}')">Crear rector</button>`}<button class="btn sm red" onclick="borrarColegio('${x.id}')">Eliminar</button></td></tr>`;
+  }).join('') || '<tr><td colspan="6">Aún no hay instituciones.</td></tr>';
 
-  $('t-users').innerHTML = (u.data || []).map(x => {
+  $('t-users').innerHTML = users.map(x => {
     const own = x.id === me.id;
     return `<tr>
       <td>${esc(x.nombres)} ${esc(x.apellidos)}</td>
@@ -257,6 +269,81 @@ async function loadMagister() {
         ${x.rol !== 'coordinador' ? `<button class="btn sm" onclick="setPerfil('${esc(x.id)}',{rol:'coordinador',activo:true})">Coordinador</button>` : ''}`}
       </td></tr>`;
   }).join('') || '<tr><td colspan="6">Sin usuarios.</td></tr>';
+}
+
+/* ---- Formulario institución + rector: modos 'crear' | 'editar' | 'rector' ---- */
+let COLES = [], M = { modo: 'crear', id: null };
+const val = id => $(id).value.trim();
+const CMAP = { c_nombre:'nombre', c_nit:'nit', c_dane:'dane', c_res:'resolucion', c_dir:'direccion', c_tel:'telefono', c_mail:'correo', c_web:'pagina_web', c_fb:'facebook' };
+
+function formModo(modo, c) {
+  M = { modo, id: c ? c.id : null };
+  $('m_cole').classList.toggle('hidden', modo === 'rector');
+  $('m_rect').classList.toggle('hidden', modo === 'editar');
+  ['m_rn','m_ra','m_rt','m_rm','m_rp'].forEach(i => { $(i).required = modo !== 'editar'; if (modo === 'editar') $(i).value = ''; else if (modo === 'crear') $(i).value = ''; });
+  ['c_nombre','c_nit','c_max'].forEach(i => $(i).required = modo !== 'rector');
+  Object.keys(CMAP).forEach(i => $(i).value = (modo === 'editar' && c) ? (c[CMAP[i]] || '') : '');
+  $('c_max').value = (modo === 'editar' && c) ? c.max_diario : 2;
+  $('m_title').textContent = modo === 'crear' ? 'Crear institución y rector' : modo === 'editar' ? 'Editar institución: ' + c.nombre : 'Crear rector para: ' + c.nombre;
+  $('m_btn').textContent = modo === 'crear' ? 'Crear institución y rector' : modo === 'editar' ? 'Guardar cambios' : 'Crear rector';
+  $('m_cancel').classList.toggle('hidden', modo === 'crear');
+  msg('c_msg', '');
+  if (c) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+const editarColegio = id => formModo('editar', COLES.find(x => x.id === id));
+const rectorColegio = id => formModo('rector', COLES.find(x => x.id === id));
+
+async function guardarColegio(e) {
+  e.preventDefault();
+  const btn = $('m_btn'); btn.disabled = true; msg('c_msg', 'Guardando…', true);
+  try {
+    const datos = {
+      nombre: val('c_nombre'), nit: val('c_nit'), dane: val('c_dane') || null, resolucion: val('c_res') || null,
+      direccion: val('c_dir') || null, telefono: val('c_tel') || null, correo: val('c_mail') || null,
+      pagina_web: val('c_web') || null, facebook: val('c_fb') || null, max_diario: parseInt($('c_max').value) || 2
+    };
+    let texto = '';
+    if (M.modo === 'editar') {
+      const { error } = await db.from('colegios').update(datos).eq('id', M.id);
+      if (error) throw new Error(error.message);
+      texto = 'Institución actualizada.';
+    } else {
+      let colegioId = M.id;
+      if (M.modo === 'crear') {
+        const { data, error } = await db.from('colegios').insert(datos).select('id').single();
+        if (error) throw new Error(error.code === '23505' ? 'Ya existe una institución con ese NIT.' : error.message);
+        colegioId = data.id;
+      }
+      await crearRector(colegioId);
+      texto = 'Listo. El rector ya puede ingresar con su correo y contraseña.';
+    }
+    formModo('crear');
+    msg('c_msg', texto, true);
+    loadMagister();
+  } catch (err) { msg('c_msg', err.message); loadMagister(); }
+  finally { btn.disabled = false; }
+}
+
+async function crearRector(colegioId) {
+  // Cliente auxiliar sin sesión: así no se cierra la sesión del Súper Admin
+  const aux = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'gie-aux' } });
+  const { data, error } = await aux.auth.signUp({
+    email: val('m_rm'), password: $('m_rp').value,
+    options: { data: { colegio_id: colegioId, nombres: val('m_rn'), apellidos: val('m_ra'), telefono: val('m_rt'), jornada: null } }
+  });
+  if (error) throw new Error((/already/i.test(error.message) ? 'Ese correo ya está registrado.' : error.message) + (M.modo === 'crear' ? ' La institución quedó creada; use "Crear rector" en la tabla.' : ''));
+  if (!data.user) throw new Error('No se pudo crear el usuario del rector.');
+  const { error: e2 } = await db.from('perfiles').update({ rol: 'rector', activo: true }).eq('id', data.user.id);
+  if (e2) throw new Error('Usuario creado, pero no se pudo activar como rector: ' + e2.message);
+  await db.from('colegios').update({ rector_nombres: val('m_rn'), rector_apellidos: val('m_ra'), rector_tel: val('m_rt'), rector_email: val('m_rm') }).eq('id', colegioId);
+}
+
+async function borrarColegio(id) {
+  const c = COLES.find(x => x.id === id);
+  if (!confirm(`¿Eliminar "${c.nombre}"?\n\nSe borrarán también sus usuarios (perfiles) y solicitudes de permisos. No se puede deshacer.`)) return;
+  const { error } = await db.from('colegios').delete().eq('id', id);
+  if (error) alert('No se pudo eliminar: ' + error.message);
+  loadMagister();
 }
 
 async function setPerfil(id, campos) {

@@ -711,7 +711,7 @@
             <textarea id="reject_observacion" rows="4" style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 8px; margin-bottom: 1.25rem;" placeholder="Escriba la razón reglamentaria..."></textarea>
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
                 <button onclick="confirmReject()" class="btn-submit" style="background: #e11d48; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;">Confirmar Negación</button>
-                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cancelar</button>
+                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
             </div>
         </div>
     </div>
@@ -770,7 +770,6 @@
         let activeSchoolId = localStorage.getItem('gie_active_school_id') || "antonia_santos";
         let schoolConfig = schoolsDB.find(s => s.id === activeSchoolId) || schoolsDB[0];
 
-        // Blindaje absoluto de datos en localStorage por colegio
         let permissions = [];
         let teachers = [];
         let coordinators = [];
@@ -980,6 +979,21 @@
             } else {
                 goToDashboard();
             }
+        }
+
+        // Helper robusto para extraer año y mes sin importar el formato de fecha
+        function extractYearMonth(dateStr) {
+            if (!dateStr) return { year: '', month: '' };
+            if (dateStr.includes('/')) {
+                let parts = dateStr.split('/');
+                if (parts.length === 3) return { year: parts[2], month: parts[1] };
+            }
+            let parts = dateStr.split('-');
+            if (parts.length === 3) {
+                if (parts[0].length === 4) return { year: parts[0], month: parts[1] };
+                else return { year: parts[2], month: parts[1] };
+            }
+            return { year: '', month: '' };
         }
 
         function renderDashboardModules() {
@@ -1367,12 +1381,12 @@
             let jornada = currentUser ? currentUser.jornada : "";
             if(!fecha || !currentUser) return;
 
-            let [targetYear, targetMonth] = fecha.split('-');
+            let targetYM = extractYearMonth(fecha);
             let userMonthlyCount = permissions.filter(p => {
                 if(!p.correo || p.correo.toLowerCase() !== currentUser.correo.toLowerCase() || p.estado === 'Rechazado') return false;
                 if(!p.fecha) return false;
-                let [pYear, pMonth] = p.fecha.split('-');
-                return pYear === targetYear && pMonth === targetMonth;
+                let pYM = extractYearMonth(p.fecha);
+                return pYM.year === targetYM.year && pYM.month === targetYM.month;
             }).length;
 
             let dailyCount = permissions.filter(p => p.fecha === fecha && p.jornada === jornada && p.estado !== 'Rechazado').length;
@@ -1411,15 +1425,15 @@
                 return;
             }
 
-            let [targetYear, targetMonth] = fecha.split('-');
+            let targetYM = extractYearMonth(fecha);
             let userMonthlyCount = permissions.filter(p => {
                 if(!p.correo || p.correo.toLowerCase() !== currentUser.correo.toLowerCase() || p.estado === 'Rechazado') return false;
                 if(!p.fecha) return false;
-                let [pYear, pMonth] = p.fecha.split('-');
-                return pYear === targetYear && pMonth === targetMonth;
+                let pYM = extractYearMonth(p.fecha);
+                return pYM.year === targetYM.year && pYM.month === targetYM.month;
             }).length;
 
-            // CORRECCIÓN EXACTA: Permite el 1er, 2do y 3er permiso. Bloquea estrictamente al intentar el 4to.
+            // VALIDACIÓN CORREGIDA: Permite hasta 3 permisos. Bloquea estrictamente al intentar solicitar el 4to.
             if(userMonthlyCount >= 3) {
                 alert("⚠️ [Límite Mensual Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
                 return;
@@ -1470,7 +1484,6 @@
             let msgWa = encodeURIComponent(`Hola, se ha iniciado el proceso de permiso radicado ${radicadoNum} para la fecha ${fecha} (${modalidad}) por el docente ${currentUser.name}. Por favor revise el panel.`);
             let waUrl = `https://wa.me/57${coordAsignado.whatsapp}?text=${msgWa}`;
 
-            // DISPARO AUTOMÁTICO DE CORREO AL COORDINADOR VÍA EMAILJS
             let emailParams = {
                 to_email: coordAsignado.correo,
                 to_name: coordAsignado.nombre || "Coordinador",

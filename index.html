@@ -36,7 +36,7 @@
         .gie-module-card { background: white; border-radius: 20px; padding: 2rem; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; transition: all 0.3s ease; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
         .gie-module-card:hover { transform: translateY(-5px); box-shadow: 0 20px 35px -10px rgba(79,70,229,0.15); border-color: #4f46e5; }
         .gie-module-icon { width: 70px; height: 70px; border-radius: 16px; background: #eef2ff; color: #4f46e5; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; }
-        .gie-module-card h3 { font-size: 1.1rem; font-weight: 800; color: #1e1b4b; margin-bottom: 0.5rem; }
+        .gie-module-card h3 { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
         .gie-module-card p { font-size: 0.8rem; color: #64748b; line-height: 1.4; }
 
         .card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
@@ -1380,7 +1380,6 @@
             let dailyAvailable = maxDaily - dailyCount;
 
             let badge = document.getElementById('slot-badge');
-            // CORRECCIÓN: Permitir hasta 3 solicitudes antes de marcar cupos agotados en el mes
             badge.textContent = `Mes: ${userMonthlyCount}/3 | Día: ${dailyAvailable >= 0 ? dailyAvailable : 0} cupo(s) libre(s)`;
             badge.style.color = (userMonthlyCount < 3 && dailyAvailable > 0) ? '#059669' : '#e11d48';
         }
@@ -1420,8 +1419,8 @@
                 return pYear === targetYear && pMonth === targetMonth;
             }).length;
 
-            // CORRECCIÓN ESTRICTA: Permitir 1, 2 y 3. Bloquear únicamente al intentar pedir el 4to.
-            if(userMonthlyCount > 3 || (userMonthlyCount === 3)) {
+            // CORRECCIÓN EXACTA: Permite el 1er, 2do y 3er permiso. Bloquea estrictamente al intentar el 4to.
+            if(userMonthlyCount >= 3) {
                 alert("⚠️ [Límite Mensual Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
                 return;
             }
@@ -1467,11 +1466,29 @@
             permissions.push(newP);
             localStorage.setItem(`gie_perms_${activeSchoolId}`, JSON.stringify(permissions));
 
-            let coordAsignado = coordinators.find(c => c.jornada === jornada) || { whatsapp: "3001112233" };
+            let coordAsignado = coordinators.find(c => c.jornada === jornada) || { whatsapp: "3001112233", correo: "coord@colegio.edu.co" };
             let msgWa = encodeURIComponent(`Hola, se ha iniciado el proceso de permiso radicado ${radicadoNum} para la fecha ${fecha} (${modalidad}) por el docente ${currentUser.name}. Por favor revise el panel.`);
             let waUrl = `https://wa.me/57${coordAsignado.whatsapp}?text=${msgWa}`;
 
-            if(confirm(`✅ [Solicitud Registrada]\nRadicado: ${radicadoNum}\n\n¿Desea enviar la notificación inmediata por WhatsApp al Coordinador de la jornada ${jornada}?`)) {
+            // DISPARO AUTOMÁTICO DE CORREO AL COORDINADOR VÍA EMAILJS
+            let emailParams = {
+                to_email: coordAsignado.correo,
+                to_name: coordAsignado.nombre || "Coordinador",
+                radicado: radicadoNum,
+                estado: "PENDIENTE DE REVISIÓN",
+                fecha: fecha,
+                jornada: jornada,
+                motivo: `Docente: ${currentUser.name} | Motivo: ${motivoCompleto}`
+            };
+
+            emailjs.send("service_9hhf70g", "template_066a5sv", emailParams)
+                .then(function(response) {
+                    console.log("Correo enviado al coordinador con éxito.");
+                }, function(error) {
+                    console.error("Error al enviar correo al coordinador:", error);
+                });
+
+            if(confirm(`✅ [Solicitud Registrada y Correo Enviado]\nRadicado: ${radicadoNum}\n\n¿Desea además notificar de inmediato por WhatsApp al Coordinador de la jornada ${jornada}?`)) {
                 window.open(waUrl, '_blank');
             }
 

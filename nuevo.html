@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIE - Gerencia Integral Educativa</title>
+<link rel="icon" href="logo-gie/favicon.ico">
+<link rel="apple-touch-icon" href="logo-gie/logo-gie-180.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif}
+body{background:#f1f5f9;color:#1e293b;min-height:100vh}
+.hidden{display:none!important}
+#auth{position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;padding:1rem;overflow:auto}
+.box{background:#fff;border-radius:20px;padding:2.2rem;width:100%;max-width:440px;text-align:center;box-shadow:0 25px 50px -12px rgba(0,0,0,.4)}
+.box img{display:block;margin:0 auto 1rem;width:95px;height:95px}
+h2{font-size:1.25rem;font-weight:800;color:#0f172a}
+.sub{font-size:.75rem;color:#64748b;margin-bottom:1.2rem}
+label{display:block;text-align:left;font-weight:700;font-size:.82rem;margin:.7rem 0 .3rem;color:#334155}
+input,select{width:100%;padding:.8rem 1rem;border:1.5px solid #cbd5e1;border-radius:12px;font-size:.9rem;background:#f8fafc}
+input:focus,select:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 4px rgba(79,70,229,.1)}
+.btn{background:linear-gradient(135deg,#4f46e5,#4338ca);color:#fff;border:none;padding:.9rem;font-weight:700;border-radius:12px;cursor:pointer;width:100%;margin-top:1.1rem;font-size:.95rem}
+.btn.sm{width:auto;margin:0 .2rem 0 0;padding:.35rem .7rem;font-size:.75rem;border-radius:8px}
+.btn.green{background:#059669}.btn.red{background:#e11d48}.btn.gold{background:#f59e0b;color:#0f172a}
+.link{background:none;border:none;color:#4f46e5;font-weight:700;text-decoration:underline;cursor:pointer;margin-top:1rem;font-size:.85rem}
+.msg{margin-top:.8rem;font-size:.82rem;font-weight:600;color:#e11d48}.msg.ok{color:#059669}
+header{background:linear-gradient(135deg,#0f172a,#1e1b4b);color:#fff;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:.9rem}.brand img{width:48px;height:48px;border-radius:12px}
+.brand h1{font-size:1.05rem}.brand p{font-size:.75rem;color:#cbd5e1}
+main{max-width:1100px;margin:2rem auto;padding:0 1.2rem}
+.card{background:#fff;border-radius:20px;padding:2rem;box-shadow:0 10px 25px -5px rgba(0,0,0,.06);border:1px solid #e2e8f0;margin-bottom:1.5rem}
+.card h2{margin-bottom:.4rem}.card p.d{color:#64748b;font-size:.85rem;margin-bottom:1rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 1.2rem}
+table{width:100%;border-collapse:collapse;margin-top:1rem}
+th,td{padding:.7rem;text-align:left;border-bottom:1px solid #f1f5f9;font-size:.85rem}
+th{background:#f8fafc;color:#475569;font-size:.72rem;text-transform:uppercase}
+.tag{padding:.2rem .6rem;border-radius:99px;font-size:.72rem;font-weight:800}
+.t-ok{background:#d1fae5;color:#065f46}.t-no{background:#fef3c7;color:#92400e}
+.wrap{overflow-x:auto}
+@media(max-width:640px){.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="auth">
+  <div class="box">
+    <img src="logo-gie/logo-gie-192.png" alt="GIE">
+    <h2>Gerencia Integral Educativa</h2>
+    <p class="sub">Plataforma Multitenant Institucional</p>
+
+    <form id="f-login" onsubmit="login(event)">
+      <label>Correo</label><input type="email" id="l_mail" required autocomplete="username" placeholder="correo@colegio.edu.co">
+      <label>Contraseña</label><input type="password" id="l_pass" required autocomplete="current-password" placeholder="••••••••">
+      <button class="btn">Ingresar a GIE</button>
+      <div id="l_msg" class="msg"></div>
+      <button type="button" class="link" onclick="toggle(true)">¿No tienes cuenta? Regístrate</button>
+    </form>
+
+    <form id="f-reg" class="hidden" onsubmit="register(event)">
+      <label>Institución / Colegio</label><select id="r_colegio" required></select>
+      <label>Nombres</label><input id="r_nombres" required>
+      <label>Apellidos</label><input id="r_apellidos" required>
+      <label>Correo</label><input type="email" id="r_mail" required>
+      <label>Teléfono / WhatsApp</label><input type="tel" id="r_tel" required>
+      <label>Jornada (docentes y coordinadores)</label>
+      <select id="r_jornada"><option value="">No aplica (rector)</option><option>Mañana</option><option>Tarde</option></select>
+      <label>Contraseña</label><input type="password" id="r_pass" required minlength="6" placeholder="Mínimo 6 caracteres">
+      <button class="btn green">Completar registro</button>
+      <div id="r_msg" class="msg"></div>
+      <button type="button" class="link" onclick="toggle(false)">← Volver al inicio de sesión</button>
+    </form>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <div class="brand"><img src="logo-gie/logo-gie-96.png" alt="GIE"><div><h1>GIE - Gerencia Integral Educativa</h1><p id="who"></p></div></div>
+    <button class="btn sm red" onclick="logout()">Salir</button>
+  </header>
+  <main>
+    <section id="v-home" class="card hidden">
+      <h2>Bienvenido(a)</h2>
+      <p class="d" id="home-txt"></p>
+    </section>
+
+    <section id="v-magister" class="hidden">
+      <div class="card">
+        <h2>Panel Súper Admin (Magister)</h2>
+        <p class="d">Cree colegios. Luego el rector se registra desde la pantalla de inicio y usted lo nombra aquí.</p>
+        <form onsubmit="crearColegio(event)">
+          <div class="g2">
+            <div><label>Nombre del colegio</label><input id="c_nombre" required></div>
+            <div><label>NIT</label><input id="c_nit" required></div>
+            <div><label>Código DANE</label><input id="c_dane"></div>
+            <div><label>Ciudad / Dirección</label><input id="c_dir"></div>
+            <div><label>Máx. docentes ausentes por día y jornada</label><input type="number" id="c_max" min="1" max="50" value="2" required></div>
+          </div>
+          <button class="btn" style="background:#7c3aed">Crear institución</button>
+          <div id="c_msg" class="msg"></div>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Instituciones</h2>
+        <div class="wrap"><table><thead><tr><th>Nombre</th><th>NIT</th><th>Máx. ausentes/día</th></tr></thead><tbody id="t-cole"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h2>Usuarios registrados</h2>
+        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Colegio</th><th>Teléfono</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="t-users"></tbody></table></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://ftrlvaxtgrgxvxodtgfl.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_BevO5oiQAphvZeVKzIQH8Q_tj0-8hBz'; // clave pública (segura con RLS)
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ROLES = { magister:'Súper Admin', rector:'Rector', coordinador:'Coordinador', docente:'Docente' };
+let me = null, colegio = null;
+
+function msg(id, t, ok) { const e = $(id); e.textContent = t; e.className = 'msg' + (ok ? ' ok' : ''); }
+function toggle(reg) { $('f-login').classList.toggle('hidden', reg); $('f-reg').classList.toggle('hidden', !reg); }
+function showView(v) { ['home','magister'].forEach(x => $('v-' + x).classList.toggle('hidden', x !== v)); }
+
+async function loadSchools() {
+  const { data, error } = await db.from('colegios_publicos').select('id,nombre,nit').order('nombre');
+  const s = $('r_colegio');
+  if (error || !data || !data.length) { s.innerHTML = '<option value="">No hay instituciones creadas todavía</option>'; return; }
+  s.innerHTML = data.map(c => `<option value="${esc(c.id)}">${esc(c.nombre)} (NIT: ${esc(c.nit)})</option>`).join('');
+}
+
+async function login(e) {
+  e.preventDefault();
+  const { error } = await db.auth.signInWithPassword({ email: $('l_mail').value.trim(), password: $('l_pass').value });
+  if (error) return msg('l_msg', 'Correo o contraseña incorrectos.');
+  await enter();
+}
+
+async function register(e) {
+  e.preventDefault();
+  const form = e.target;
+  if (!$('r_colegio').value) return msg('r_msg', 'Seleccione una institución.');
+  const { error } = await db.auth.signUp({
+    email: $('r_mail').value.trim(),
+    password: $('r_pass').value,
+    options: { data: {
+      colegio_id: $('r_colegio').value,
+      nombres: $('r_nombres').value.trim(),
+      apellidos: $('r_apellidos').value.trim(),
+      telefono: $('r_tel').value.trim(),
+      jornada: $('r_jornada').value || null
+    } }
+  });
+  if (error) return msg('r_msg', error.message);
+  await db.auth.signOut();
+  form.reset();
+  toggle(false);
+  msg('l_msg', 'Registro exitoso. Su cuenta quedará lista cuando el rector la active.', true);
+}
+
+async function enter() {
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) return;
+  const { data: p, error } = await db.from('perfiles').select('*').eq('id', user.id).single();
+  if (error || !p) { await db.auth.signOut(); return msg('l_msg', 'No se encontró su perfil. Contacte al administrador.'); }
+  if (!p.activo) { await db.auth.signOut(); return msg('l_msg', 'Su cuenta está pendiente de activación por el rector.'); }
+  me = p; colegio = null;
+  if (p.colegio_id) {
+    const { data } = await db.from('colegios').select('*').eq('id', p.colegio_id).single();
+    colegio = data;
+  }
+  $('auth').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('who').textContent = `${p.nombres} ${p.apellidos || ''} · ${ROLES[p.rol]}` + (colegio ? ' · ' + colegio.nombre : '');
+  if (p.rol === 'magister') { showView('magister'); loadMagister(); }
+  else { showView('home'); $('home-txt').textContent = 'Sesión iniciada correctamente. Los módulos (Control de Permisos, etc.) se conectan en la siguiente parte.'; }
+}
+
+async function logout() { await db.auth.signOut(); location.reload(); }
+
+/* ---------- PANEL SÚPER ADMIN ---------- */
+async function crearColegio(e) {
+  e.preventDefault();
+  const form = e.target;
+  const { error } = await db.from('colegios').insert({
+    nombre: $('c_nombre').value.trim(), nit: $('c_nit').value.trim(),
+    dane: $('c_dane').value.trim() || null, direccion: $('c_dir').value.trim() || null,
+    max_diario: parseInt($('c_max').value) || 2
+  });
+  if (error) return msg('c_msg', error.message);
+  form.reset(); $('c_max').value = 2;
+  msg('c_msg', 'Institución creada.', true);
+  loadMagister();
+}
+
+async function loadMagister() {
+  const [c, u] = await Promise.all([
+    db.from('colegios').select('id,nombre,nit,max_diario').order('nombre'),
+    db.from('perfiles').select('id,nombres,apellidos,telefono,rol,activo,colegios(nombre)').order('creado_en', { ascending: false })
+  ]);
+  $('t-cole').innerHTML = (c.data || []).map(x =>
+    `<tr><td><b>${esc(x.nombre)}</b></td><td>${esc(x.nit)}</td><td>${esc(x.max_diario)}</td></tr>`).join('')
+    || '<tr><td colspan="3">Aún no hay instituciones.</td></tr>';
+
+  $('t-users').innerHTML = (u.data || []).map(x => {
+    const own = x.id === me.id;
+    return `<tr>
+      <td>${esc(x.nombres)} ${esc(x.apellidos)}</td>
+      <td>${esc(x.colegios?.nombre || '—')}</td>
+      <td>${esc(x.telefono || '')}</td>
+      <td>${esc(ROLES[x.rol] || x.rol)}</td>
+      <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Pendiente'}</span></td>
+      <td>${own ? '' : `
+        <button class="btn sm green" onclick="setPerfil('${esc(x.id)}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>
+        ${x.rol !== 'rector' ? `<button class="btn sm gold" onclick="setPerfil('${esc(x.id)}',{rol:'rector',activo:true})">Nombrar rector</button>` : ''}
+        ${x.rol !== 'coordinador' ? `<button class="btn sm" onclick="setPerfil('${esc(x.id)}',{rol:'coordinador',activo:true})">Coordinador</button>` : ''}`}
+      </td></tr>`;
+  }).join('') || '<tr><td colspan="6">Sin usuarios.</td></tr>';
+}
+
+async function setPerfil(id, campos) {
+  const { error } = await db.from('perfiles').update(campos).eq('id', id);
+  if (error) alert('No se pudo actualizar: ' + error.message);
+  loadMagister();
+}
+
+/* ---------- INICIO ---------- */
+loadSchools();
+db.auth.getSession().then(({ data }) => { if (data.session) enter(); });
+</script>
+</body>
+</html>

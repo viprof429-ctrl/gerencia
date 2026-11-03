@@ -981,7 +981,7 @@
             }
         }
 
-        // Helper robusto para extraer año y mes sin importar el formato
+        // Helper robusto para extraer año y mes sin importar el formato de fecha
         function extractYearMonth(dateStr) {
             if (!dateStr) return { year: '', month: '' };
             if (dateStr.includes('/')) {
@@ -994,6 +994,19 @@
                 else return { year: parts[2], month: parts[1] };
             }
             return { year: '', month: '' };
+        }
+
+        // Helper robusto para verificar si el permiso pertenece al usuario actual (por correo o nombre)
+        function isCurrentuserPermission(p) {
+            if (!currentUser) return false;
+            let cEmail = currentUser.correo ? currentUser.correo.toLowerCase() : "";
+            let cName = currentUser.name ? currentUser.name.toLowerCase() : "";
+            let pEmail = p.correo ? p.correo.toLowerCase() : "";
+            let pName = p.nombre ? p.nombre.toLowerCase() : "";
+            
+            if (cEmail && pEmail && cEmail === pEmail) return true;
+            if (cName && pName && pName.includes(cName.replace(" (rector)", "").trim())) return true;
+            return false;
         }
 
         function renderDashboardModules() {
@@ -1383,7 +1396,7 @@
 
             let targetYM = extractYearMonth(fecha);
             let userMonthlyCount = permissions.filter(p => {
-                if(!p.correo || p.correo.toLowerCase() !== currentUser.correo.toLowerCase() || p.estado === 'Rechazado') return false;
+                if(!isCurrentuserPermission(p) || p.estado === 'Rechazado') return false;
                 if(!p.fecha) return false;
                 let pYM = extractYearMonth(p.fecha);
                 return pYM.year === targetYM.year && pYM.month === targetYM.month;
@@ -1427,13 +1440,13 @@
 
             let targetYM = extractYearMonth(fecha);
             let userMonthlyCount = permissions.filter(p => {
-                if(!p.correo || p.correo.toLowerCase() !== currentUser.correo.toLowerCase() || p.estado === 'Rechazado') return false;
+                if(!isCurrentuserPermission(p) || p.estado === 'Rechazado') return false;
                 if(!p.fecha) return false;
                 let pYM = extractYearMonth(p.fecha);
                 return pYM.year === targetYM.year && pYM.month === targetYM.month;
             }).length;
 
-            // VALIDACIÓN CORREGIDA CON EXTRACTOR ROBUSTO: Permite 0, 1 y 2. Bloquea estrictamente si ya tiene 3 o más.
+            // REGLA EXACTA: Permite el 1er, 2do y 3er permiso. Bloquea estrictamente al intentar el 4to.
             if(userMonthlyCount >= 3) {
                 alert("⚠️ [Límite Mensual Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
                 return;
@@ -1461,7 +1474,7 @@
                 id: Date.now(),
                 radicado: radicadoNum,
                 nombre: currentUser.name,
-                correo: currentUser.correo.toLowerCase(),
+                correo: currentUser.correo ? currentUser.correo.toLowerCase() : "",
                 whatsapp: currentUser.whatsapp || "3000000000",
                 jornada: jornada,
                 fecha: fecha,
@@ -1521,7 +1534,7 @@
         function renderTeacherHistory() {
             let tbody = document.getElementById('teacher-history-body');
             tbody.innerHTML = '';
-            let myPerms = permissions.filter(p => p.correo && currentUser && p.correo.toLowerCase() === currentUser.correo.toLowerCase());
+            let myPerms = permissions.filter(p => isCurrentuserPermission(p));
 
             if(myPerms.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:1.5rem;">No ha realizado solicitudes de permiso.</td></tr>`;

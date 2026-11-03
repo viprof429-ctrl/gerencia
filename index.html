@@ -711,7 +711,7 @@
             <textarea id="reject_observacion" rows="4" style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 8px; margin-bottom: 1.25rem;" placeholder="Escriba la razón reglamentaria..."></textarea>
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
                 <button onclick="confirmReject()" class="btn-submit" style="background: #e11d48; width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem;">Confirmar Negación</button>
-                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">Cancelar</button>
+                <button onclick="closeModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">Cancelar</button>
             </div>
         </div>
     </div>
@@ -981,7 +981,7 @@
             }
         }
 
-        // Helper robusto para extraer año y mes sin importar el formato de fecha
+        // Helper robusto para extraer año y mes sin importar el formato
         function extractYearMonth(dateStr) {
             if (!dateStr) return { year: '', month: '' };
             if (dateStr.includes('/')) {
@@ -1433,7 +1433,7 @@
                 return pYM.year === targetYM.year && pYM.month === targetYM.month;
             }).length;
 
-            // VALIDACIÓN CORREGIDA: Permite hasta 3 permisos. Bloquea estrictamente al intentar solicitar el 4to.
+            // VALIDACIÓN CORREGIDA CON EXTRACTOR ROBUSTO: Permite 0, 1 y 2. Bloquea estrictamente si ya tiene 3 o más.
             if(userMonthlyCount >= 3) {
                 alert("⚠️ [Límite Mensual Excedido]\nUsted ya ha alcanzado el límite máximo permitido de 3 permisos para este mes calendario.");
                 return;

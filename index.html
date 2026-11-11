@@ -49,6 +49,9 @@ th{background:#f8fafc;color:#475569;font-size:.72rem;text-transform:uppercase}
 h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bottom:.4rem;margin:1.3rem 0 .2rem}
 .dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;box-shadow:0 0 0 3px rgba(0,0,0,.06)}
 .dot-verde{background:#22c55e}.dot-amarillo{background:#f59e0b}.dot-rojo{background:#e11d48}.dot-gris{background:#94a3b8}
+.accmenu{position:absolute;z-index:60;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 12px 28px -8px rgba(0,0,0,.28);min-width:200px;padding:.3rem}
+.accmenu button{display:block;width:100%;text-align:left;background:none;border:none;padding:.6rem .85rem;font-size:.85rem;font-weight:600;border-radius:8px;cursor:pointer;color:#1e293b;margin:0}
+.accmenu button:hover{background:#f1f5f9}.accmenu button.red{color:#e11d48}.accmenu hr{border:none;border-top:1px solid #e2e8f0;margin:.25rem 0}
 .okbox{background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:14px;padding:.9rem 1rem;margin-top:1rem;font-size:.85rem;color:#065f46}
 @media(max-width:640px){.g2{grid-template-columns:1fr}}
 </style>
@@ -243,6 +246,16 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
         <button class="btn green" onclick="verReporte()">Generar reporte</button>
         <div id="rp_msg" class="msg"></div>
         <div id="rp_out"></div>
+        <h3 class="sec">Consultar casos por funcionario o por quejoso</h3>
+        <p class="d">Busca en todas las solicitudes del colegio, sin importar el período de arriba.</p>
+        <div class="g2">
+          <div><label>Funcionario</label><select id="bq_fun"><option value="">Todos</option></select></div>
+          <div><label>Estado</label><select id="bq_est"><option value="todas">Todos</option><option value="abiertas">Abiertas</option><option value="sin">Sin asignar</option><option value="venc">Por vencer o vencidas</option><option value="resp">Respondidas</option></select></div>
+        </div>
+        <label>Quejoso, correo, teléfono, radicado o asunto</label>
+        <input id="bq_txt" placeholder="Ej.: Pérez, 3113177475, SAU-2026-0001…" onkeydown="if(event.key==='Enter'){event.preventDefault();buscarCasos()}">
+        <button class="btn" onclick="buscarCasos()">Buscar casos</button>
+        <div id="bq_out"></div>
       </div>
       <div class="card" id="s_card_nueva">
         <h2>Nueva solicitud</h2>
@@ -439,6 +452,25 @@ async function enter() {
 
 async function logout() { await db.auth.signOut(); location.reload(); }
 
+/* ---------- MENÚ DE ACCIONES (lista desplegable) ---------- */
+const ACC = {};
+function menuAcc(ev, key) {
+  ev.stopPropagation();
+  const abierto = document.querySelector('.accmenu');
+  const mismo = abierto && abierto.dataset.key === key;
+  cerrarMenu(); if (mismo) return;
+  const m = document.createElement('div');
+  m.className = 'accmenu'; m.dataset.key = key;
+  m.innerHTML = (ACC[key] || []).map(([t, f, c]) => t === '-' ? '<hr>' : `<button class="${c || ''}" onclick="cerrarMenu();${f}">${t}</button>`).join('');
+  document.body.appendChild(m);
+  const r = ev.currentTarget.getBoundingClientRect();
+  m.style.top = (r.bottom + window.scrollY + 4) + 'px';
+  m.style.left = Math.max(8, r.right + window.scrollX - m.offsetWidth) + 'px';
+}
+function cerrarMenu() { document.querySelectorAll('.accmenu').forEach(x => x.remove()); }
+document.addEventListener('click', e => { if (!e.target.closest('.accmenu')) cerrarMenu(); });
+const btnAcc = key => `<button class="btn sm" onclick="menuAcc(event,'${key}')">Acciones ▾</button>`;
+
 /* ---------- MODO AUDITORÍA (Súper Admin) ---------- */
 let ME_REAL = null, AUD = false;
 async function auditar(id) {
@@ -468,24 +500,25 @@ async function loadMagister() {
   $('t-cole').innerHTML = COLES.map(x => {
     const rect = users.find(p => p.colegio_id === x.id && p.rol === 'rector');
     const n = users.filter(p => p.colegio_id === x.id).length;
+    ACC['c' + x.id] = [['🔎 Auditar colegio', `auditar('${x.id}')`], ['✏️ Editar', `editarColegio('${x.id}')`],
+      ...(rect ? [] : [['👤 Crear rector', `rectorColegio('${x.id}')`]]), ['-'], ['🗑️ Eliminar colegio', `borrarColegio('${x.id}')`, 'red']];
     return `<tr><td><b>${esc(x.nombre)}</b><br><small>${esc(x.telefono || '')} ${esc(x.correo || '')}</small></td><td>${esc(x.nit)}</td>
       <td>${rect ? esc(rect.nombres + ' ' + (rect.apellidos || '')) : '<span class="tag t-no">Sin rector</span>'}</td><td>${n}</td><td>${esc(x.max_diario)}</td>
-      <td><button class="btn sm green" onclick="auditar('${x.id}')">Auditar</button><button class="btn sm" onclick="editarColegio('${x.id}')">Editar</button>${rect ? '' : `<button class="btn sm gold" onclick="rectorColegio('${x.id}')">Crear rector</button>`}<button class="btn sm red" onclick="borrarColegio('${x.id}')">Eliminar</button></td></tr>`;
+      <td>${btnAcc('c' + x.id)}</td></tr>`;
   }).join('') || '<tr><td colspan="6">Aún no hay instituciones.</td></tr>';
 
   $('t-users').innerHTML = users.map(x => {
     const own = x.id === me.id;
+    ACC['u' + x.id] = [[x.activo ? '⏸️ Desactivar' : '✅ Activar', `setPerfil('${esc(x.id)}',{activo:${!x.activo}})`],
+      ...(x.rol !== 'rector' ? [['⭐ Nombrar rector', `setPerfil('${esc(x.id)}',{rol:'rector',activo:true})`]] : []),
+      ...(x.rol !== 'coordinador' ? [['📋 Hacer coordinador', `setPerfil('${esc(x.id)}',{rol:'coordinador',activo:true})`]] : [])];
     return `<tr>
       <td>${esc(x.nombres)} ${esc(x.apellidos)}</td>
       <td>${esc(x.colegios?.nombre || '—')}</td>
       <td>${esc(x.telefono || '')}</td>
       <td>${esc(ROLES[x.rol] || x.rol)}</td>
       <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Desactivado'}</span></td>
-      <td>${own ? '' : `
-        <button class="btn sm green" onclick="setPerfil('${esc(x.id)}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>
-        ${x.rol !== 'rector' ? `<button class="btn sm gold" onclick="setPerfil('${esc(x.id)}',{rol:'rector',activo:true})">Nombrar rector</button>` : ''}
-        ${x.rol !== 'coordinador' ? `<button class="btn sm" onclick="setPerfil('${esc(x.id)}',{rol:'coordinador',activo:true})">Coordinador</button>` : ''}`}
-      </td></tr>`;
+      <td>${own ? '' : btnAcc('u' + x.id)}</td></tr>`;
   }).join('') || '<tr><td colspan="6">Sin usuarios.</td></tr>';
 }
 
@@ -983,7 +1016,7 @@ async function consultaPqrs(e) {
 async function initSau() {
   if (!$('s-form').dataset.listo) { $('s-form').innerHTML = formPqrsHTML('s_', false, false); $('s-form').dataset.listo = '1'; }
   prefillSau(); RESP = null;
-  $('rp_card').classList.toggle('hidden', me.rol !== 'rector');
+  $('rp_card').classList.toggle('hidden', !esGestor());
   ['s_card_nueva', 's_card_mis'].forEach(x => $(x).classList.toggle('hidden', me.rol === 'rector'));   // el rector administra, no radica
   if (!$('rp_d').value) { const h = new Date(); $('rp_h').value = h.toISOString().slice(0, 10); $('rp_d').value = h.getFullYear() + '-01-01'; }
   $('g_det').classList.add('hidden');
@@ -1004,14 +1037,16 @@ async function loadGestion() {
   const { data, error } = await q;
   if (error) msg('g_msg', error.message);
   SAU_ROWS = data || [];
+  poblarFuncionarios();
   $('g_card').classList.toggle('hidden', !esGestor() && !SAU_ROWS.length);
   renderGestion();
 }
 const venceTxt = x => x.estado === 'Respondida' ? '' : (x.semaforo === 'rojo' ? 'vencida' : (x.dias_restantes === 0 ? 'vence hoy' : `${x.dias_restantes} día(s) hábil(es)`));
+const pasaFiltro = (x, f) => f === 'todas' || (f === 'abiertas' && x.estado !== 'Respondida') || (f === 'sin' && x.estado === 'Radicada')
+  || (f === 'venc' && x.estado !== 'Respondida' && ['rojo', 'amarillo'].includes(x.semaforo)) || (f === 'resp' && x.estado === 'Respondida');
 function renderGestion() {
   const f = $('g_filtro').value;
-  const rows = SAU_ROWS.filter(x => f === 'todas' || (f === 'abiertas' && x.estado !== 'Respondida') || (f === 'sin' && x.estado === 'Radicada')
-    || (f === 'venc' && ['rojo', 'amarillo'].includes(x.semaforo)) || (f === 'resp' && x.estado === 'Respondida'));
+  const rows = SAU_ROWS.filter(x => pasaFiltro(x, f));
   $('g_body').innerHTML = rows.map(x => `<tr><td>${semHTML(x.semaforo)}</td>
     <td><b>${esc(x.radicado)}</b><br><small>${esc(x.tipo)}</small></td>
     <td>${esc(x.asunto)}<br><small>${esc(x.nombre)} · ${esc(x.correo)}</small></td>
@@ -1125,10 +1160,47 @@ async function verReporte() {
       ${data.por_tipo.map(t => `<tr><td>${esc(t.tipo)}</td><td>${t.total}</td><td>${t.respondidas}</td></tr>`).join('') || '<tr><td colspan="3">Sin datos.</td></tr>'}</tbody></table></div>
     <h3 class="sec">Eficiencia por funcionario</h3>
     <div class="wrap"><table><thead><tr><th>Funcionario</th><th>Asignadas</th><th>Resueltas</th><th>A tiempo</th><th>Tardías</th><th>Pendientes</th><th>Vencidas</th><th>Prom. días hábiles</th><th>Cumplimiento</th></tr></thead><tbody>
-      ${data.por_funcionario.map(f => { const c = pct(f.a_tiempo, f.resueltas); return `<tr><td><b>${esc(f.nombre)}</b><br><small>${esc(f.cargo || '')}</small></td><td>${f.asignadas}</td><td>${f.resueltas}</td><td>${f.a_tiempo}</td><td>${f.tardias}</td><td>${f.pendientes}</td><td>${f.vencidas}</td><td>${f.prom_dias ?? '—'}</td><td>${c}${barra(c)}</td></tr>`; }).join('') || '<tr><td colspan="9">Sin solicitudes asignadas en el período.</td></tr>'}</tbody></table></div>
+      ${data.por_funcionario.map(f => { const c = pct(f.a_tiempo, f.resueltas); return `<tr><td>${f.id ? `<a href="#" style="color:#4f46e5;font-weight:700" onclick="verFuncionario('${esc(f.id)}');return false">${esc(f.nombre)}</a>` : `<b>${esc(f.nombre)}</b>`}<br><small>${esc(f.cargo || '')}</small></td><td>${f.asignadas}</td><td>${f.resueltas}</td><td>${f.a_tiempo}</td><td>${f.tardias}</td><td>${f.pendientes}</td><td>${f.vencidas}</td><td>${f.prom_dias ?? '—'}</td><td>${c}${barra(c)}</td></tr>`; }).join('') || '<tr><td colspan="9">Sin solicitudes asignadas en el período.</td></tr>'}</tbody></table></div>
     <p class="d" style="margin-top:.6rem"><small>Cumplimiento = solicitudes resueltas dentro del plazo / solicitudes resueltas. Pendientes y vencidas aún no cuentan en el cumplimiento.</small></p>
     <button class="btn sm gold" onclick="imprimirReporte()">Imprimir / guardar PDF</button>`;
   $('rp_out').innerHTML = REP_HTML;
+}
+
+/* ---------- Consultar casos por funcionario / quejoso ---------- */
+const plano = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+let BQ_HTML = '';
+function poblarFuncionarios() {
+  const m = new Map();
+  SAU_ROWS.forEach(x => { if (x.asignado_a) m.set(x.asignado_a, x.asignado_nombre + (x.asignado_cargo ? ' — ' + x.asignado_cargo : '')); });
+  const cur = $('bq_fun').value;
+  $('bq_fun').innerHTML = '<option value="">Todos</option>' + [...m].sort((a, b) => a[1].localeCompare(b[1])).map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('');
+  $('bq_fun').value = cur;
+}
+function buscarCasos() {
+  const fun = $('bq_fun').value, est = $('bq_est').value, q = plano($('bq_txt').value.trim());
+  const rows = SAU_ROWS.filter(x => (!fun || x.asignado_a === fun) && pasaFiltro(x, est)
+    && (!q || plano([x.nombre, x.correo, x.telefono, x.radicado, x.asunto].join(' ')).includes(q)));
+  const ab = rows.filter(x => x.estado !== 'Respondida').length, ve = rows.filter(x => x.estado !== 'Respondida' && x.semaforo === 'rojo').length;
+  BQ_HTML = `<p class="d" style="margin-top:1rem"><b>${rows.length}</b> caso(s) · ${ab} abierto(s) · ${ve} vencido(s)</p>
+    <div class="wrap"><table><thead><tr><th>Semáforo</th><th>Radicado</th><th>Asunto</th><th>Quejoso</th><th>Funcionario</th><th>Estado</th><th>Vence</th><th></th></tr></thead><tbody>
+    ${rows.map(x => `<tr><td>${semHTML(x.semaforo)}</td><td><b>${esc(x.radicado)}</b><br><small>${esc(x.tipo)}</small></td><td>${esc(x.asunto)}</td>
+      <td>${esc(x.nombre)}<br><small>${esc(x.correo)}${x.telefono ? ' · ' + esc(x.telefono) : ''}</small></td>
+      <td>${x.asignado_nombre ? esc(x.asignado_nombre) : '<span class="tag t-no">Sin asignar</span>'}</td><td>${esc(x.estado)}</td>
+      <td>${esc(x.fecha_vencimiento)}<br><small>${venceTxt(x)}</small></td>
+      <td><button class="btn sm" onclick="abrirPqrs('${x.id}')">Ver</button></td></tr>`).join('') || '<tr><td colspan="8">No se encontraron casos con esos criterios.</td></tr>'}
+    </tbody></table></div>
+    ${rows.length ? `<button class="btn sm gold" style="margin-top:.8rem" onclick="imprimirBusqueda()">Imprimir / guardar PDF</button>` : ''}`;
+  $('bq_out').innerHTML = BQ_HTML;
+}
+function verFuncionario(id) {
+  $('bq_fun').value = id; $('bq_est').value = 'todas'; $('bq_txt').value = '';
+  buscarCasos(); $('bq_out').scrollIntoView({ behavior: 'smooth' });
+}
+function imprimirBusqueda() {
+  const w = window.open('', '_blank');
+  const f = $('bq_fun').selectedOptions[0].textContent, q = $('bq_txt').value.trim();
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Casos SAU</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:24px;font-size:12px}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;padding:5px;text-align:left}button{display:none}.dot{display:inline-block;width:10px;height:10px;border-radius:50%}.dot-verde{background:#22c55e}.dot-amarillo{background:#f59e0b}.dot-rojo{background:#e11d48}.dot-gris{background:#94a3b8}</style></head><body><h2>${esc(colegio ? colegio.nombre : '')} — Consulta de casos del SAU</h2><p>Funcionario: <b>${esc(f)}</b> · Búsqueda: <b>${esc(q || '—')}</b></p>${BQ_HTML}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 400);
 }
 function imprimirReporte() {
   const w = window.open('', '_blank');

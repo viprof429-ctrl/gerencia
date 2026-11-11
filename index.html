@@ -132,6 +132,10 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
     <div class="brand"><img src="/logo-gie-96.png" alt="GIE"><div><h1>GIE - Gerencia Integral Educativa</h1><p id="who"></p></div></div>
     <div><button id="btn-home" class="btn sm gold hidden" onclick="goHome()">Menú principal</button><button class="btn sm red" onclick="logout()">Salir</button></div>
   </header>
+  <div id="aud_bar" class="bar hidden" style="margin:0;border-radius:0;border-left:0;border-right:0">
+    <span>🔎 <b>Modo auditoría:</b> está viendo <b id="aud_nom"></b> como lo ve su rector. Sus acciones no reemplazan a las del rector.</span>
+    <button class="btn sm gold" onclick="salirAuditoria()">← Volver al panel Súper Admin</button>
+  </div>
   <main>
     <section id="v-home" class="hidden"><div class="card"><h2>Suite de Gerencia Integral Educativa</h2><p class="d">Seleccione el módulo al que desea ingresar.</p><div class="mods" id="mods"></div></div></section>
 
@@ -240,11 +244,11 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
         <div id="rp_msg" class="msg"></div>
         <div id="rp_out"></div>
       </div>
-      <div class="card">
+      <div class="card" id="s_card_nueva">
         <h2>Nueva solicitud</h2>
         <form id="s-form" onsubmit="radicarPqrs(event,'s_')"></form>
       </div>
-      <div class="card">
+      <div class="card" id="s_card_mis">
         <h2>Mis solicitudes</h2>
         <div class="wrap"><table><thead><tr><th>Radicado</th><th>Asunto</th><th>Estado</th><th>Vence</th><th>Respuesta</th></tr></thead><tbody id="s_hist"></tbody></table></div>
       </div>
@@ -435,6 +439,23 @@ async function enter() {
 
 async function logout() { await db.auth.signOut(); location.reload(); }
 
+/* ---------- MODO AUDITORÍA (Súper Admin) ---------- */
+let ME_REAL = null, AUD = false;
+async function auditar(id) {
+  const { data: c, error } = await db.from('colegios').select('*').eq('id', id).single();
+  if (error || !c) return alert('No se pudo abrir el colegio: ' + traducir(error && error.message));
+  ME_REAL = ME_REAL || me; AUD = true;
+  me = { ...ME_REAL, rol: 'rector', colegio_id: id }; colegio = c;
+  $('aud_nom').textContent = c.nombre; $('aud_bar').classList.remove('hidden');
+  await cargarAccesos(); goHome();
+}
+function salirAuditoria() {
+  if (ME_REAL) me = ME_REAL;
+  ME_REAL = null; AUD = false; colegio = null;
+  $('aud_bar').classList.add('hidden');
+  showView('magister'); loadMagister();
+}
+
 /* ---------- PANEL SÚPER ADMIN ---------- */
 async function loadMagister() {
   loadMarco();
@@ -449,7 +470,7 @@ async function loadMagister() {
     const n = users.filter(p => p.colegio_id === x.id).length;
     return `<tr><td><b>${esc(x.nombre)}</b><br><small>${esc(x.telefono || '')} ${esc(x.correo || '')}</small></td><td>${esc(x.nit)}</td>
       <td>${rect ? esc(rect.nombres + ' ' + (rect.apellidos || '')) : '<span class="tag t-no">Sin rector</span>'}</td><td>${n}</td><td>${esc(x.max_diario)}</td>
-      <td><button class="btn sm" onclick="editarColegio('${x.id}')">Editar</button>${rect ? '' : `<button class="btn sm gold" onclick="rectorColegio('${x.id}')">Crear rector</button>`}<button class="btn sm red" onclick="borrarColegio('${x.id}')">Eliminar</button></td></tr>`;
+      <td><button class="btn sm green" onclick="auditar('${x.id}')">Auditar</button><button class="btn sm" onclick="editarColegio('${x.id}')">Editar</button>${rect ? '' : `<button class="btn sm gold" onclick="rectorColegio('${x.id}')">Crear rector</button>`}<button class="btn sm red" onclick="borrarColegio('${x.id}')">Eliminar</button></td></tr>`;
   }).join('') || '<tr><td colspan="6">Aún no hay instituciones.</td></tr>';
 
   $('t-users').innerHTML = users.map(x => {
@@ -963,6 +984,7 @@ async function initSau() {
   if (!$('s-form').dataset.listo) { $('s-form').innerHTML = formPqrsHTML('s_', false, false); $('s-form').dataset.listo = '1'; }
   prefillSau(); RESP = null;
   $('rp_card').classList.toggle('hidden', me.rol !== 'rector');
+  ['s_card_nueva', 's_card_mis'].forEach(x => $(x).classList.toggle('hidden', me.rol === 'rector'));   // el rector administra, no radica
   if (!$('rp_d').value) { const h = new Date(); $('rp_h').value = h.toISOString().slice(0, 10); $('rp_d').value = h.getFullYear() + '-01-01'; }
   $('g_det').classList.add('hidden');
   await Promise.all([loadMisPqrs(), loadGestion()]);
@@ -1087,7 +1109,7 @@ async function verReporte() {
   msg('rp_msg', 'Generando…', true);
   const d = $('rp_d').value, h = $('rp_h').value;
   if (!d || !h || d > h) return msg('rp_msg', 'Revise las fechas del período.');
-  const { data, error } = await db.rpc('reporte_sau', { p_desde: d, p_hasta: h });
+  const { data, error } = await db.rpc('reporte_sau', { p_desde: d, p_hasta: h, p_colegio: me.colegio_id });
   if (error) return msg('rp_msg', error.message);
   msg('rp_msg', '');
   const r = data.resumen, cumpl = pct(r.a_tiempo, r.respondidas);

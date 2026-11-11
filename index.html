@@ -52,6 +52,10 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
 .accmenu{position:absolute;z-index:60;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 12px 28px -8px rgba(0,0,0,.28);min-width:200px;padding:.3rem}
 .accmenu button{display:block;width:100%;text-align:left;background:none;border:none;padding:.6rem .85rem;font-size:.85rem;font-weight:600;border-radius:8px;cursor:pointer;color:#1e293b;margin:0}
 .accmenu button:hover{background:#f1f5f9}.accmenu button.red{color:#e11d48}.accmenu hr{border:none;border-top:1px solid #e2e8f0;margin:.25rem 0}
+.thumbs{display:flex;gap:.6rem;flex-wrap:wrap;margin:.5rem 0}
+.thumbs .th{position:relative;width:96px;height:96px}
+.thumbs .th img{width:96px;height:96px;object-fit:cover;border-radius:12px;border:1px solid #e2e8f0}
+.thumbs .x{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;border:none;background:#e11d48;color:#fff;font-weight:800;cursor:pointer;line-height:1;margin:0;padding:0}
 .okbox{background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:14px;padding:.9rem 1rem;margin-top:1rem;font-size:.85rem;color:#065f46}
 @media(max-width:640px){.g2{grid-template-columns:1fr}}
 </style>
@@ -267,6 +271,52 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       </div>
     </section>
 
+    <section id="v-mant" class="hidden">
+      <div class="card hidden" id="mg_card">
+        <h2>Gestión de mantenimiento</h2>
+        <p class="d">Semáforo: <span class="dot dot-verde"></span> en plazo · <span class="dot dot-amarillo"></span> por vencer · <span class="dot dot-rojo"></span> vencido · <span class="dot dot-gris"></span> solucionado. Los plazos cuentan días hábiles.</p>
+        <div class="g2">
+          <div><select id="mg_filtro" onchange="renderMant()"><option value="abiertos">Abiertos</option><option value="sin">Por atender</option><option value="proceso">En proceso</option><option value="venc">Por vencer o vencidos</option><option value="sol">Solucionados</option><option value="todos">Todos</option></select></div>
+          <div><select id="mg_area" onchange="renderMant()"><option value="">Todas las áreas</option></select></div>
+        </div>
+        <input id="mg_txt" placeholder="Buscar por solicitante, radicado, descripción o lugar…" oninput="renderMant()" style="margin-top:.6rem">
+        <div id="mg_msg" class="msg"></div>
+        <div class="wrap"><table><thead><tr><th>Semáforo</th><th>Radicado</th><th>Área</th><th>Solicitante</th><th>Estado</th><th>Fecha límite</th><th></th></tr></thead><tbody id="mg_body"></tbody></table></div>
+      </div>
+      <div class="card hidden" id="mg_det"></div>
+      <div class="card hidden" id="mr_card">
+        <h2>Reporte de mantenimiento</h2>
+        <p class="d">Seguimiento y estadísticas: tiempos de atención y solución, cumplimiento, áreas con más daños y costos.</p>
+        <div class="g2"><div><label>Desde</label><input type="date" id="mr_d"></div><div><label>Hasta</label><input type="date" id="mr_h"></div></div>
+        <button class="btn green" onclick="verReporteMant()">Generar reporte</button>
+        <div id="mr_msg" class="msg"></div>
+        <div id="mr_out"></div>
+      </div>
+      <div class="card hidden" id="mc_card">
+        <h2>Configuración de mantenimiento</h2>
+        <p class="d">El jefe principal y el suplente se designan en «Usuarios y accesos» (columna Mantenimiento).</p>
+        <div class="g2">
+          <div><label>Plazo máximo para atender un reporte (días hábiles)</label><input type="number" id="m_plazo" min="1" max="10"></div>
+          <div><label>Avisar cuando falten (días hábiles para la fecha de solución)</label><input type="number" id="m_alerta" min="1" max="10"></div>
+        </div>
+        <button class="btn green" onclick="guardarConfigMant()">Guardar plazos</button>
+        <div id="mc_msg" class="msg"></div>
+        <h3 class="sec">Áreas del colegio</h3>
+        <p class="d">Es la lista que ven los usuarios al reportar un daño.</p>
+        <div style="display:flex;gap:.6rem"><input id="ma_nuevo" placeholder="Nueva área…" maxlength="80"><button class="btn sm green" style="white-space:nowrap;padding:.6rem 1rem" onclick="addArea()">Agregar</button></div>
+        <div id="ma_list" class="wrap"></div>
+      </div>
+      <div class="card" id="mn_card">
+        <h2>Reportar un daño</h2>
+        <p class="d">Cuéntenos qué se dañó. El jefe de mantenimiento lo recibe y le responde con la fecha del arreglo.</p>
+        <form id="mn_form" onsubmit="reportarMant(event)"></form>
+      </div>
+      <div class="card" id="mm_card">
+        <h2>Mis reportes</h2>
+        <div class="wrap"><table><thead><tr><th>Semáforo</th><th>Radicado</th><th>Área</th><th>Estado</th><th>Fecha</th><th>Respuesta</th></tr></thead><tbody id="mm_body"></tbody></table></div>
+      </div>
+    </section>
+
     <section id="v-usuarios" class="hidden">
       <div class="card">
         <h2>Configuración del colegio</h2>
@@ -310,7 +360,7 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       <div class="card">
         <h2>Usuarios del colegio</h2>
         <p class="d">Los docentes, administrativos y el público se registran solos y quedan activos de inmediato. Aquí puede cambiar su rol o jornada, o desactivar a quien no deba tener acceso.</p>
-        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Jornada</th><th>Régimen</th><th>Cargo</th><th>Monitor SAU</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="u_body"></tbody></table></div>
+        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Jornada</th><th>Régimen</th><th>Cargo</th><th>Monitor SAU</th><th>Mantenimiento</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="u_body"></tbody></table></div>
       </div>
       <div class="card">
         <h2>Accesos por rol</h2>
@@ -333,6 +383,7 @@ const ROLES = { magister:'Súper Admin', rector:'Rector', coordinador:'Coordinad
 let me = null, colegio = null;
 
 const ERRORES = [
+  [/mant_jefe_unico/i, 'Ya hay un jefe de mantenimiento con ese cargo. Quíteselo primero a la otra persona.'],
   [/already registered|already been registered/i, 'Este correo ya está registrado.'],
   [/invalid login credentials/i, 'Correo o contraseña incorrectos.'],
   [/password should be at least/i, 'La contraseña debe tener mínimo 6 caracteres.'],
@@ -390,7 +441,7 @@ async function nuevaClave(e) {
   verForm('f-login');
   msg('l_msg', 'Contraseña actualizada. Ya puede ingresar con la nueva.', true);
 }
-const VIEWS = ['home','magister','permisos','bandeja','sau','usuarios'];
+const VIEWS = ['home','magister','permisos','bandeja','sau','mant','usuarios'];
 function showView(v) { VIEWS.forEach(x => $('v-' + x).classList.toggle('hidden', x !== v)); $('btn-home').classList.toggle('hidden', v === 'home' || v === 'magister'); }
 
 async function loadSchools() {
@@ -629,8 +680,15 @@ async function goHome() {
   let sau = { sin: 0, por: 0, venc: 0, mias: 0 };
   { const { data } = await db.from('pqrs_vista').select('estado,semaforo,asignado_a');
     (data || []).forEach(x => { if (x.estado === 'Radicada') sau.sin++; if (x.semaforo === 'amarillo') sau.por++; if (x.semaforo === 'rojo') sau.venc++; if (x.asignado_a === me.id && x.estado === 'Asignada') sau.mias++; }); }
+  let mant = { sin: 0, por: 0, venc: 0 };
+  if (esGestorMant()) { const { data } = await db.from('mant_vista').select('estado,semaforo');
+    (data || []).forEach(x => { if (x.estado === 'Reportado') mant.sin++; if (x.estado !== 'Solucionado' && x.semaforo === 'amarillo') mant.por++; if (x.estado !== 'Solucionado' && x.semaforo === 'rojo') mant.venc++; }); }
   const cards = [];
-  MODS.filter(m => puede(m.k) || (m.k === 'sau' && (esGestor() || sau.mias > 0))).forEach(m => {
+  MODS.filter(m => puede(m.k) || (m.k === 'sau' && (esGestor() || sau.mias > 0)) || (m.k === 'mantenimiento' && !!me.mant_rol)).forEach(m => {
+    if (m.k === 'mantenimiento') {
+      const al = esGestorMant() ? [mant.sin && `${mant.sin} por atender`, mant.por && `${mant.por} por vencer`, mant.venc && `${mant.venc} vencido(s)`] : [];
+      return cards.push({ t:m.t, i:m.i, go:'mant', d: esGestorMant() ? 'Atienda los reportes de daños, haga seguimiento y consulte estadísticas.' : 'Reporte un daño con fotos y siga el estado del arreglo.', x: al.filter(Boolean).map(a => `<span class="tag t-bad" style="margin:.1rem">${a}</span>`).join('') });
+    }
     if (m.k === 'sau') {
       const alertas = esGestor() ? [sau.sin && `${sau.sin} sin asignar`, sau.por && `${sau.por} por vencer`, sau.venc && `${sau.venc} vencida(s)`] : [sau.mias && `${sau.mias} por responder`];
       return cards.push({ t:m.t, i:m.i, go:'sau', d:'Radique y consulte solicitudes' + (esGestor() ? '; asigne y responda las del colegio.' : '.'), x: alertas.filter(Boolean).map(a => `<span class="tag t-bad" style="margin:.1rem">${a}</span>`).join('') });
@@ -649,6 +707,7 @@ function openMod(v) {
   if (v === 'permisos') initPermisos();
   if (v === 'bandeja') loadBandeja();
   if (v === 'sau') initSau();
+  if (v === 'mant') initMant();
   if (v === 'usuarios') loadUsuarios();
 }
 const ST = { Pendiente:'t-no', Preaprobado:'t-info', Aprobado:'t-ok', Rechazado:'t-bad' };
@@ -794,7 +853,7 @@ const opts = (list, cur) => list.map(([v, t]) => `<option value="${v}" ${v === c
 const REGIMENES = [['','—'],['2277','Decreto 2277/1979'],['1278','Decreto 1278/2002']];
 async function loadUsuarios() {
   loadMatriz(); cargarConfig();
-  const { data } = await db.from('perfiles').select('id,nombres,apellidos,correo,telefono,rol,jornada,regimen,cargo,es_monitor_sau,activo').order('creado_en', { ascending: false });
+  const { data } = await db.from('perfiles').select('id,nombres,apellidos,correo,telefono,rol,jornada,regimen,cargo,es_monitor_sau,mant_rol,activo').order('creado_en', { ascending: false });
   $('u_body').innerHTML = (data || []).map(x => {
     const fijo = x.id === me.id || x.rol === 'rector';
     return `<tr><td>${esc(x.nombres)} ${esc(x.apellidos)}</td><td style="word-break:break-all">${esc(x.correo || '—')}</td><td>${esc(x.telefono || '')}</td>
@@ -803,9 +862,10 @@ async function loadUsuarios() {
       <td>${x.rol !== 'docente' ? '—' : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{regimen:this.value||null})">${opts(REGIMENES, x.regimen || '')}</select>`}</td>
       <td>${fijo ? esc(x.cargo || '—') : `<input list="dl_cargos" style="width:11rem;padding:.4rem" maxlength="60" value="${esc(x.cargo || '')}" onchange="setUsr('${x.id}',{cargo:this.value.trim()||null})">`}</td>
       <td style="text-align:center">${x.rol === 'rector' ? '—' : `<input type="checkbox" style="width:auto" ${x.es_monitor_sau ? 'checked' : ''} onchange="setUsr('${x.id}',{es_monitor_sau:this.checked})">`}</td>
+      <td>${x.rol === 'rector' ? '—' : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{mant_rol:this.value||null})">${opts([['','—'],['principal','Jefe principal'],['suplente','Jefe suplente']], x.mant_rol || '')}</select>`}</td>
       <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Desactivado'}</span></td>
       <td>${fijo ? '' : `<button class="btn sm green" onclick="setUsr('${x.id}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>`}</td></tr>`;
-  }).join('') || '<tr><td colspan="9">Sin usuarios.</td></tr>';
+  }).join('') || '<tr><td colspan="10">Sin usuarios.</td></tr>';
 }
 async function setUsr(id, campos) {
   const { error } = await db.from('perfiles').update(campos).eq('id', id);
@@ -1206,6 +1266,309 @@ function imprimirReporte() {
   const w = window.open('', '_blank');
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Reporte SAU</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:24px;font-size:13px}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;padding:6px;text-align:left}h3{margin-top:18px}button{display:none}</style></head><body><h2>${esc(colegio ? colegio.nombre : '')} — Reporte de eficiencia del SAU</h2>${REP_HTML}</body></html>`);
   w.document.close(); w.focus(); setTimeout(() => w.print(), 400);
+}
+
+/* =====================================================================
+   GESTIÓN DE MANTENIMIENTO
+   ===================================================================== */
+const CATS_MANT = ['Eléctrico', 'Hidráulico', 'Locativo', 'Mobiliario', 'Tecnológico', 'Seguridad', 'Zonas verdes', 'Otro'];
+const ESTADO_MANT = { 'Reportado': 'Por atender', 'En proceso': 'En proceso', 'Solucionado': 'Solucionado' };
+const esGestorMant = () => me && (me.rol === 'rector' || !!me.mant_rol);
+const semMant = s => `<span class="dot ${(SEM[s] || SEM.gris)[1]}"></span> <small>${s === 'gris' ? 'Solucionado' : (SEM[s] || SEM.gris)[0]}</small>`;
+const pesos = n => (n === null || n === undefined || n === '') ? '—' : '$' + Number(n).toLocaleString('es-CO');
+const limTxt = x => x.estado === 'Solucionado' ? '' : (x.semaforo === 'rojo' ? 'vencido' : (x.dias_restantes === 0 ? 'vence hoy' : `${x.dias_restantes} día(s) hábil(es)`));
+const limEtq = e => e === 'Reportado' ? 'Atender antes del' : 'Solución prevista';
+const urgTag = x => x.urgente ? ' <span class="tag t-bad">⚠ Urgente</span>' : '';
+let MANT_ROWS = [], MANT_AREAS = [];
+const FOTOS = { m_fotos: [], s_fotos: [] };
+
+async function comprimir(file) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.8));
+    return blob ? new File([blob], 'foto.jpg', { type: 'image/jpeg' }) : file;
+  } catch (_) { return file; }
+}
+function pintarFotos(box) {
+  $(box).innerHTML = FOTOS[box].map((f, i) => `<div class="th"><img src="${f.url}" alt="foto ${i + 1}"><button type="button" class="x" onclick="quitarFoto('${box}',${i})">×</button></div>`).join('');
+}
+function quitarFoto(box, i) { FOTOS[box].splice(i, 1); pintarFotos(box); }
+async function addFotos(inp, box) {
+  const lista = [...inp.files]; inp.value = '';
+  for (const f of lista) {
+    if (FOTOS[box].length >= 3) { alert('Máximo 3 fotos.'); break; }
+    const c = await comprimir(f);
+    if (!/^image\/(jpeg|png|webp)$/.test(c.type)) { alert('Formato de imagen no admitido. Use JPG o PNG.'); continue; }
+    if (c.size > 5 * 1024 * 1024) { alert('La foto pesa más de 5 MB.'); continue; }
+    FOTOS[box].push({ file: c, url: URL.createObjectURL(c) });
+  }
+  pintarFotos(box);
+}
+const botonesFoto = (box, pref) => `
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.3rem">
+    <button type="button" class="btn sm" style="padding:.6rem 1rem;font-size:.85rem" onclick="$('${pref}cam').click()">📷 Tomar foto</button>
+    <button type="button" class="btn sm gold" style="padding:.6rem 1rem;font-size:.85rem" onclick="$('${pref}gal').click()">🖼️ Elegir de la galería</button>
+  </div>
+  <input type="file" id="${pref}cam" accept="image/*" capture="environment" class="hidden" onchange="addFotos(this,'${box}')">
+  <input type="file" id="${pref}gal" accept="image/*" multiple class="hidden" onchange="addFotos(this,'${box}')">
+  <div class="thumbs" id="${box}"></div>`;
+
+function formMantHTML() {
+  return `
+  <label>Área donde ocurre</label><select id="m_area" required></select>
+  <label>Lugar exacto (opcional)</label><input id="m_ubic" maxlength="150" placeholder="Ej.: Salón 6-1, junto a la ventana">
+  <label>Tipo de daño</label><select id="m_cat" required><option value="">Seleccione…</option>${CATS_MANT.map(c => `<option>${c}</option>`).join('')}</select>
+  <label style="display:flex;gap:.5rem;align-items:flex-start;font-weight:600"><input type="checkbox" id="m_urg" style="width:auto;margin-top:.2rem"> <span>Hay riesgo para las personas (marcar como <b>urgente</b>)</span></label>
+  <label>Descripción de lo sucedido</label>
+  <textarea id="m_desc" rows="4" required minlength="10" maxlength="2000" placeholder="Qué se dañó y qué pasó (mínimo 10 caracteres)."></textarea>
+  <label>Fotos (hasta 3)</label>${botonesFoto('m_fotos', 'm_')}
+  <button class="btn" id="mn_btn">Enviar reporte</button>
+  <div id="m_msg" class="msg"></div>
+  <div id="m_ok" class="okbox hidden" style="text-align:left"></div>`;
+}
+
+async function avisoMant(id, forzar) {
+  try {
+    const { data, error } = await db.functions.invoke('mant-avisos', { body: { accion: 'estado', reporte_id: id, forzar: !!forzar } });
+    if (error) {
+      let m = error.message;
+      try { const j = await error.context.json(); if (j && j.error) m = j.error; } catch (_) {}
+      return { ok: false, error: traducir(m) };
+    }
+    return data || { ok: false, error: 'Sin respuesta del servidor de correos.' };
+  } catch (e) { return { ok: false, error: traducir(e.message) }; }
+}
+
+async function initMant() {
+  const gest = esGestorMant(), rector = me.rol === 'rector', reporta = !rector;
+  $('mg_card').classList.toggle('hidden', !gest);
+  $('mr_card').classList.toggle('hidden', !gest);
+  $('mc_card').classList.toggle('hidden', !rector);
+  $('mn_card').classList.toggle('hidden', !reporta);
+  $('mm_card').classList.toggle('hidden', !reporta);
+  $('mg_det').classList.add('hidden');
+  if (!$('mn_form').dataset.listo) { $('mn_form').innerHTML = formMantHTML(); $('mn_form').dataset.listo = '1'; }
+  if (!$('mr_d').value) { const h = new Date(); $('mr_h').value = h.toISOString().slice(0, 10); $('mr_d').value = h.getFullYear() + '-01-01'; }
+  FOTOS.m_fotos = []; pintarFotos('m_fotos');
+  await cargarAreas();
+  await Promise.all([gest ? loadMantGestion() : 0, reporta ? loadMisMant() : 0, rector ? cargarConfigMant() : 0]);
+}
+
+async function cargarAreas() {
+  const { data } = await db.from('mant_areas').select('id,nombre,activo').eq('colegio_id', me.colegio_id).order('nombre');
+  MANT_AREAS = data || [];
+  $('m_area').innerHTML = '<option value="">Seleccione…</option>' + MANT_AREAS.filter(a => a.activo).map(a => `<option value="${esc(a.id)}">${esc(a.nombre)}</option>`).join('');
+  const cur = $('mg_area').value;
+  $('mg_area').innerHTML = '<option value="">Todas las áreas</option>' + MANT_AREAS.map(a => `<option>${esc(a.nombre)}</option>`).join('');
+  $('mg_area').value = cur;
+}
+
+/* ---------- Reportar ---------- */
+async function reportarMant(e) {
+  e.preventDefault();
+  const btn = $('mn_btn'); btn.disabled = true; $('m_ok').classList.add('hidden'); msg('m_msg', 'Enviando…', true);
+  try {
+    const texto = $('m_ubic').value + ' ' + $('m_desc').value;
+    const chk = await db.rpc('revisar_texto', { p_texto: texto });
+    if (chk.data && chk.data.ok === false)
+      throw new Error(`Su mensaje contiene lenguaje inapropiado ("${chk.data.palabras.join('", "')}"). Reescríbalo con respeto.`);
+    const { data, error } = await db.rpc('reportar_mant', {
+      p_area: $('m_area').value, p_ubicacion: $('m_ubic').value.trim() || null, p_categoria: $('m_cat').value,
+      p_urgente: $('m_urg').checked, p_descripcion: $('m_desc').value.trim()
+    });
+    if (error) throw new Error(error.message);
+    const fallidas = []; let n = 0;
+    for (const f of FOTOS.m_fotos) {
+      const up = await db.storage.from('mant-fotos').upload(`${data.id}/${++n}-foto.jpg`, f.file, { contentType: f.file.type });
+      if (up.error) fallidas.push(n);
+    }
+    const r = await avisoMant(data.id);
+    $('m_ok').innerHTML = `<b>Reporte enviado.</b><br>Su número es <b style="font-size:1.1rem">${esc(data.radicado)}</b>. El jefe de mantenimiento lo atenderá y le avisaremos por correo.<br><small>${r.ok ? '' : 'El reporte quedó registrado, pero el aviso por correo no se pudo enviar.'}${fallidas.length ? ' No se pudieron subir ' + fallidas.length + ' foto(s).' : ''}</small>`;
+    $('m_ok').classList.remove('hidden'); msg('m_msg', '');
+    $('mn_form').reset(); FOTOS.m_fotos = []; pintarFotos('m_fotos');
+    loadMisMant();
+  } catch (err) { msg('m_msg', err.message); }
+  finally { btn.disabled = false; }
+}
+
+async function loadMisMant() {
+  const { data } = await db.from('mant_mias').select('*').order('creado_en', { ascending: false });
+  $('mm_body').innerHTML = (data || []).map(x => `<tr><td>${semMant(x.semaforo)}</td>
+    <td><b>${esc(x.radicado)}</b>${urgTag(x)}<br><small>${esc(fLarga(x.creado_en))}</small></td>
+    <td>${esc(x.area_nombre)}${x.ubicacion ? '<br><small>' + esc(x.ubicacion) + '</small>' : ''}</td>
+    <td>${esc(ESTADO_MANT[x.estado])}</td>
+    <td>${x.estado === 'Solucionado' ? esc(fLarga(x.solucionado_en)) : `<small>${limEtq(x.estado)}</small><br>${esc(fLarga(x.fecha_limite))}`}</td>
+    <td>${x.respuesta_jefe ? `<details><summary>Ver respuesta</summary><div style="margin-top:.4rem"><b>Jefe de mantenimiento:</b><br>${conBr(x.respuesta_jefe)}${x.solucion_nota ? '<br><b>Solución:</b><br>' + conBr(x.solucion_nota) : ''}</div></details>` : '<small>Esperando respuesta</small>'}</td></tr>`).join('')
+    || '<tr><td colspan="6">Aún no ha enviado reportes.</td></tr>';
+}
+
+/* ---------- Gestión (rector y jefes) ---------- */
+async function loadMantGestion() {
+  const { data, error } = await db.from('mant_vista').select('*');
+  if (error) msg('mg_msg', error.message);
+  MANT_ROWS = (data || []).sort((a, b) => (a.estado === 'Solucionado') - (b.estado === 'Solucionado')
+    || (a.estado === 'Solucionado' ? String(b.solucionado_en).localeCompare(String(a.solucionado_en)) : String(a.fecha_limite).localeCompare(String(b.fecha_limite))));
+  renderMant();
+}
+function renderMant() {
+  const f = $('mg_filtro').value, ar = $('mg_area').value, q = plano($('mg_txt').value.trim());
+  const rows = MANT_ROWS.filter(x =>
+    (f === 'todos' || (f === 'abiertos' && x.estado !== 'Solucionado') || (f === 'sin' && x.estado === 'Reportado')
+      || (f === 'proceso' && x.estado === 'En proceso') || (f === 'venc' && x.estado !== 'Solucionado' && ['rojo', 'amarillo'].includes(x.semaforo))
+      || (f === 'sol' && x.estado === 'Solucionado'))
+    && (!ar || x.area_nombre === ar)
+    && (!q || plano([x.reportante_nombre, x.radicado, x.descripcion, x.ubicacion, x.categoria].join(' ')).includes(q)));
+  $('mg_body').innerHTML = rows.map(x => `<tr><td>${semMant(x.semaforo)}</td>
+    <td><b>${esc(x.radicado)}</b>${urgTag(x)}<br><small>${esc(fLarga(x.creado_en))}</small></td>
+    <td>${esc(x.area_nombre)}<br><small>${esc(x.categoria)}${x.ubicacion ? ' · ' + esc(x.ubicacion) : ''}</small></td>
+    <td>${esc(x.reportante_nombre)}</td><td>${esc(ESTADO_MANT[x.estado])}</td>
+    <td>${x.estado === 'Solucionado' ? '—' : `<small>${limEtq(x.estado)}</small><br>${esc(x.fecha_limite)}<br><small>${limTxt(x)}</small>`}</td>
+    <td><button class="btn sm" onclick="abrirMant('${x.id}')">Gestionar</button></td></tr>`).join('')
+    || '<tr><td colspan="7">No hay reportes en esta vista.</td></tr>';
+}
+
+async function abrirMant(id) {
+  const x = MANT_ROWS.find(r => r.id === id); if (!x) return;
+  FOTOS.s_fotos = [];
+  const [h, ls] = await Promise.all([
+    db.from('mant_historial').select('*').eq('reporte_id', id).order('fecha'),
+    db.storage.from('mant-fotos').list(id)
+  ]);
+  const nombres = (ls.data || []).filter(a => a.name && !a.name.startsWith('.')).map(a => `${id}/${a.name}`);
+  let urls = [];
+  if (nombres.length) { const s = await db.storage.from('mant-fotos').createSignedUrls(nombres, 900); urls = (s.data || []).filter(u => u.signedUrl); }
+  const galeria = lista => lista.length ? `<div class="thumbs">${lista.map(u => `<a href="${esc(u.signedUrl)}" target="_blank" rel="noopener"><img src="${esc(u.signedUrl)}" alt="foto" style="width:110px;height:110px;object-fit:cover;border-radius:12px;border:1px solid #e2e8f0"></a>`).join('')}</div>` : '<small>Sin fotos.</small>';
+  const fReporte = urls.filter(u => !/\/sol-/.test(u.path)), fSol = urls.filter(u => /\/sol-/.test(u.path));
+  let acc = '';
+  if (x.estado !== 'Solucionado') {
+    acc += `<h3 class="sec">${x.estado === 'Reportado' ? 'Responder: iniciar el arreglo' : 'Actualizar el plan'}</h3>
+      <label>Respuesta para el solicitante (qué se hará)</label>
+      <textarea id="dm_resp" rows="3" placeholder="Ej.: Se programó al electricista para revisar el tablero.">${esc(x.respuesta_jefe || '')}</textarea>
+      <div class="g2"><div><label>Fecha en que quedará solucionado</label><input type="date" id="dm_fecha" min="${new Date().toISOString().slice(0, 10)}" value="${esc(x.fecha_compromiso || '')}"></div>
+      <div><label>Costo estimado (opcional, en pesos)</label><input type="number" id="dm_costo" min="0" step="1000" value="${esc(x.costo_estimado ?? '')}"></div></div>
+      <button class="btn sm green" style="margin-top:.6rem" onclick="accionMant('atender','${id}')">${x.estado === 'Reportado' ? 'Registrar: en proceso' : 'Guardar plan'}</button>`;
+  }
+  if (x.estado === 'En proceso') {
+    acc += `<h3 class="sec">Cerrar el caso</h3>
+      <label>Qué se hizo</label><textarea id="dm_nota" rows="3" placeholder="Describa brevemente la solución."></textarea>
+      <label>Costo real (opcional, en pesos)</label><input type="number" id="dm_costor" min="0" step="1000" value="${esc(x.costo_estimado ?? '')}">
+      <label>Fotos del arreglo terminado (opcional, hasta 3)</label>${botonesFoto('s_fotos', 's_')}
+      <button class="btn sm green" style="margin-top:.6rem" onclick="accionMant('solucionar','${id}')">Marcar como solucionado</button>`;
+  }
+  acc += `<div style="margin-top:.8rem"><button class="btn sm gold" onclick="accionMant('reenviar','${id}')">Reenviar aviso por correo</button></div>`;
+  $('mg_det').innerHTML = `<h2>${semMant(x.semaforo)} &nbsp;${esc(x.radicado)}${urgTag(x)}</h2>
+    <p class="d">Estado: <b>${esc(ESTADO_MANT[x.estado])}</b> ${x.estado !== 'Solucionado' ? '· ' + limEtq(x.estado).toLowerCase() + ': <b>' + esc(x.fecha_limite) + '</b> (' + limTxt(x) + ')' : ''}</p>
+    <p><b>Reportó:</b> ${esc(x.reportante_nombre)}${x.reportante_correo ? ' · ' + esc(x.reportante_correo) : ''}</p>
+    <p><b>Área:</b> ${esc(x.area_nombre)}${x.ubicacion ? ' · ' + esc(x.ubicacion) : ''} &nbsp; <b>Tipo:</b> ${esc(x.categoria)}</p>
+    <p style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:.8rem 1rem;margin:.6rem 0">${conBr(x.descripcion)}</p>
+    <p><b>Fotos del reporte</b></p>${galeria(fReporte)}
+    ${x.respuesta_jefe ? `<p style="margin-top:.8rem"><b>Respuesta del jefe${x.atendido_por ? ' (' + esc(x.atendido_por) + ')' : ''}:</b><br>${conBr(x.respuesta_jefe)}<br><b>Solución prevista:</b> ${esc(fLarga(x.fecha_compromiso))} · <b>Costo estimado:</b> ${pesos(x.costo_estimado)}</p>` : ''}
+    ${x.estado === 'Solucionado' ? `<p style="margin-top:.8rem"><b>Solucionado</b> el ${esc(fLarga(x.solucionado_en))} (${esc(x.solucionado_por || '')}):<br>${conBr(x.solucion_nota)}<br><b>Costo real:</b> ${pesos(x.costo_real)}</p><p><b>Fotos de la solución</b></p>${galeria(fSol)}` : ''}
+    ${acc}
+    <h3 class="sec">Historial</h3>
+    <div class="wrap"><table><tbody>${(h.data || []).map(r => `<tr><td style="white-space:nowrap">${esc(new Date(r.fecha).toLocaleString('es-CO', { timeZone: 'America/Bogota' }))}</td><td><b>${esc(r.accion)}</b><br><small>${esc(r.actor || '')} — ${esc(r.detalle || '')}</small></td></tr>`).join('')}</tbody></table></div>
+    <button class="link" onclick="$('mg_det').classList.add('hidden')">Cerrar</button>`;
+  pintarFotos && $('s_fotos') && pintarFotos('s_fotos');
+  $('mg_det').classList.remove('hidden');
+  $('mg_det').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function accionMant(acc, id) {
+  try {
+    if (acc === 'reenviar') {
+      const a = await avisoMant(id, true);
+      return msg('mg_msg', a.ok ? textoSau(a) : 'No se pudo enviar: ' + a.error, a.ok);
+    }
+    let r;
+    if (acc === 'atender') {
+      r = await db.rpc('atender_mant', { p_id: id, p_respuesta: $('dm_resp').value, p_fecha: $('dm_fecha').value || null, p_costo: $('dm_costo').value === '' ? null : Number($('dm_costo').value) });
+    } else {
+      r = await db.rpc('solucionar_mant', { p_id: id, p_nota: $('dm_nota').value, p_costo_real: $('dm_costor').value === '' ? null : Number($('dm_costor').value) });
+    }
+    if (r.error) throw new Error(r.error.message);
+    let fallidas = 0;
+    if (acc === 'solucionar') {
+      let n = 0;
+      for (const f of FOTOS.s_fotos) {
+        const up = await db.storage.from('mant-fotos').upload(`${id}/sol-${++n}-foto.jpg`, f.file, { contentType: f.file.type });
+        if (up.error) fallidas++;
+      }
+      FOTOS.s_fotos = [];
+    }
+    const a = await avisoMant(id);
+    $('mg_det').classList.add('hidden');
+    await loadMantGestion();
+    msg('mg_msg', 'Listo. ' + (a.ok ? textoSau(a) : 'El aviso por correo no se pudo enviar: ' + a.error) + (fallidas ? ` No se pudieron subir ${fallidas} foto(s).` : ''), true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) { msg('mg_msg', e.message); }
+}
+
+/* ---------- Reporte de eficiencia ---------- */
+let REPM_HTML = '';
+async function verReporteMant() {
+  msg('mr_msg', 'Generando…', true);
+  const d = $('mr_d').value, h = $('mr_h').value;
+  if (!d || !h || d > h) return msg('mr_msg', 'Revise las fechas del período.');
+  const { data, error } = await db.rpc('reporte_mant', { p_desde: d, p_hasta: h, p_colegio: me.colegio_id });
+  if (error) return msg('mr_msg', error.message);
+  msg('mr_msg', '');
+  const r = data.resumen;
+  const kpi = (t, v) => `<div style="flex:1;min-width:130px;border:1px solid #e2e8f0;border-radius:14px;padding:.8rem;text-align:center"><div style="font-size:1.4rem;font-weight:800">${v}</div><small>${t}</small></div>`;
+  const tabla = (tit, filas) => `<h3 class="sec">${tit}</h3><div class="wrap"><table><thead><tr><th>${tit.replace('Por ', '')}</th><th>Reportes</th><th>Abiertos</th><th>Costo real</th></tr></thead><tbody>
+    ${filas.map(f => `<tr><td>${esc(f.nombre)}</td><td>${f.total}</td><td>${f.abiertos}</td><td>${pesos(f.costo)}</td></tr>`).join('') || '<tr><td colspan="4">Sin datos.</td></tr>'}</tbody></table></div>`;
+  REPM_HTML = `<h3 class="sec">Resumen ${esc(fLarga(d))} – ${esc(fLarga(h))}</h3>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
+      ${kpi('Reportes', r.total)}${kpi('Por atender', r.reportados)}${kpi('En proceso', r.en_proceso)}${kpi('Solucionados', r.solucionados)}
+      ${kpi('Urgentes', r.urgentes)}${kpi('Vencidos', r.vencidos)}
+    </div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
+      ${kpi('Atendidos a tiempo', pct(r.atendidos_a_tiempo, r.atendidos_a_tiempo + r.atendidos_tarde))}
+      ${kpi('Solucionados a tiempo', pct(r.sol_a_tiempo, r.sol_a_tiempo + r.sol_tarde))}
+      ${kpi('Promedio para atender (días háb.)', r.prom_atencion ?? '—')}${kpi('Promedio para solucionar (días háb.)', r.prom_solucion ?? '—')}
+      ${kpi('Costo estimado', pesos(r.costo_estimado))}${kpi('Costo real', pesos(r.costo_real))}
+    </div>
+    ${tabla('Por área', data.por_area)}${tabla('Por categoría', data.por_categoria)}
+    <h3 class="sec">Por responsable</h3>
+    <div class="wrap"><table><thead><tr><th>Responsable</th><th>Atendidos</th><th>Solucionados</th><th>A tiempo</th><th>Tardíos</th><th>En proceso</th><th>Vencidos</th><th>Prom. días háb.</th><th>Cumplimiento</th></tr></thead><tbody>
+    ${data.por_responsable.map(f => { const c = pct(f.a_tiempo, f.solucionados); return `<tr><td><b>${esc(f.nombre)}</b></td><td>${f.atendidos}</td><td>${f.solucionados}</td><td>${f.a_tiempo}</td><td>${f.tardios}</td><td>${f.en_proceso}</td><td>${f.vencidos}</td><td>${f.prom_dias ?? '—'}</td><td>${c}${barra(c)}</td></tr>`; }).join('') || '<tr><td colspan="9">Sin reportes atendidos en el período.</td></tr>'}</tbody></table></div>
+    <p class="d" style="margin-top:.6rem"><small>Cumplimiento = solucionados dentro de la fecha prometida / solucionados. Los tiempos se cuentan en días hábiles desde que se reportó.</small></p>
+    <button class="btn sm gold" onclick="imprimirReporteMant()">Imprimir / guardar PDF</button>`;
+  $('mr_out').innerHTML = REPM_HTML;
+}
+function imprimirReporteMant() {
+  const w = window.open('', '_blank');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Reporte de mantenimiento</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:24px;font-size:13px}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;padding:6px;text-align:left}h3{margin-top:18px}button{display:none}</style></head><body><h2>${esc(colegio ? colegio.nombre : '')} — Reporte de mantenimiento</h2>${REPM_HTML}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 400);
+}
+
+/* ---------- Configuración (rector) ---------- */
+function cargarConfigMant() {
+  if (!colegio) return;
+  $('m_plazo').value = colegio.mant_plazo_atencion || 3; $('m_alerta').value = colegio.mant_alerta_dias || 2;
+  $('ma_list').innerHTML = `<table><tbody>${MANT_AREAS.map(a => `<tr><td>${esc(a.nombre)}</td><td><span class="tag ${a.activo ? 't-ok' : 't-no'}">${a.activo ? 'Activa' : 'Inactiva'}</span></td>
+    <td><button class="btn sm" onclick="toggleArea('${a.id}',${!a.activo})">${a.activo ? 'Desactivar' : 'Activar'}</button></td></tr>`).join('')}</tbody></table>`;
+}
+async function guardarConfigMant() {
+  const datos = { mant_plazo_atencion: parseInt($('m_plazo').value), mant_alerta_dias: parseInt($('m_alerta').value) };
+  if (!datos.mant_plazo_atencion || !datos.mant_alerta_dias) return msg('mc_msg', 'Digite los dos plazos (de 1 a 10 días hábiles).');
+  const { error } = await db.from('colegios').update(datos).eq('id', me.colegio_id);
+  if (error) return msg('mc_msg', error.message);
+  Object.assign(colegio, datos); msg('mc_msg', 'Guardado. Los reportes nuevos usarán este plazo.', true);
+}
+async function addArea() {
+  const nombre = $('ma_nuevo').value.trim();
+  if (nombre.length < 2) return msg('mc_msg', 'Escriba el nombre del área.');
+  const { error } = await db.from('mant_areas').insert({ colegio_id: me.colegio_id, nombre });
+  if (error) return msg('mc_msg', error.message);
+  $('ma_nuevo').value = ''; msg('mc_msg', 'Área agregada.', true); await cargarAreas(); cargarConfigMant();
+}
+async function toggleArea(id, activo) {
+  const { error } = await db.from('mant_areas').update({ activo }).eq('id', id);
+  if (error) return msg('mc_msg', error.message);
+  await cargarAreas(); cargarConfigMant();
 }
 
 /* ---------- RESOLUCIÓN (imprimible / PDF) ---------- */

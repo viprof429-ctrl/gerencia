@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIE - Gerencia Integral Educativa</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/logo-gie-180.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif}
+body{background:#f1f5f9;color:#1e293b;min-height:100vh}
+.hidden{display:none!important}
+#auth{position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;padding:1rem;overflow:auto}
+.box{background:#fff;border-radius:20px;padding:2.2rem;width:100%;max-width:440px;text-align:center;box-shadow:0 25px 50px -12px rgba(0,0,0,.4)}
+.box img{display:block;margin:0 auto 1rem;width:95px;height:95px}
+h2{font-size:1.25rem;font-weight:800;color:#0f172a}
+.sub{font-size:.75rem;color:#64748b;margin-bottom:1.2rem}
+label{display:block;text-align:left;font-weight:700;font-size:.82rem;margin:.7rem 0 .3rem;color:#334155}
+input,select,textarea{width:100%;font-size:.85rem;border:1.5px solid #cbd5e1;border-radius:12px;padding:.7rem 1rem;background:#f8fafc;resize:vertical}
+input,select{width:100%;padding:.8rem 1rem;border:1.5px solid #cbd5e1;border-radius:12px;font-size:.9rem;background:#f8fafc}
+input:focus,select:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 4px rgba(79,70,229,.1)}
+.btn{background:linear-gradient(135deg,#4f46e5,#4338ca);color:#fff;border:none;padding:.9rem;font-weight:700;border-radius:12px;cursor:pointer;width:100%;margin-top:1.1rem;font-size:.95rem}
+.btn.sm{width:auto;margin:0 .2rem 0 0;padding:.35rem .7rem;font-size:.75rem;border-radius:8px}
+.btn.green{background:#059669}.btn.red{background:#e11d48}.btn.gold{background:#f59e0b;color:#0f172a}
+.link{background:none;border:none;color:#4f46e5;font-weight:700;text-decoration:underline;cursor:pointer;margin-top:1rem;font-size:.85rem}
+.msg{margin-top:.8rem;font-size:.82rem;font-weight:600;color:#e11d48}.msg.ok{color:#059669}
+header{background:linear-gradient(135deg,#0f172a,#1e1b4b);color:#fff;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:.9rem}.brand img{width:48px;height:48px;border-radius:12px}
+.brand h1{font-size:1.05rem}.brand p{font-size:.75rem;color:#cbd5e1}
+main{max-width:1100px;margin:2rem auto;padding:0 1.2rem}
+.card{background:#fff;border-radius:20px;padding:2rem;box-shadow:0 10px 25px -5px rgba(0,0,0,.06);border:1px solid #e2e8f0;margin-bottom:1.5rem}
+.card h2{margin-bottom:.4rem}.card p.d{color:#64748b;font-size:.85rem;margin-bottom:1rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 1.2rem}
+table{width:100%;border-collapse:collapse;margin-top:1rem}
+th,td{padding:.7rem;text-align:left;border-bottom:1px solid #f1f5f9;font-size:.85rem}
+th{background:#f8fafc;color:#475569;font-size:.72rem;text-transform:uppercase}
+.tag{padding:.2rem .6rem;border-radius:99px;font-size:.72rem;font-weight:800}
+.t-ok{background:#d1fae5;color:#065f46}.t-no{background:#fef3c7;color:#92400e}
+.wrap{overflow-x:auto}
+.mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.2rem;margin-top:1rem}
+.mod{border:1px solid #e2e8f0;border-radius:18px;padding:1.5rem;text-align:center;cursor:pointer;transition:.2s}
+.mod:hover{transform:translateY(-4px);border-color:#4f46e5;box-shadow:0 14px 28px -12px rgba(79,70,229,.3)}
+.mod.off{opacity:.5;cursor:default}.mod.off:hover{transform:none;border-color:#e2e8f0;box-shadow:none}
+.mod .ico{font-size:2rem;margin-bottom:.5rem}.mod h3{font-size:1rem;margin-bottom:.3rem}.mod p{font-size:.8rem;color:#64748b}
+.t-info{background:#e0f2fe;color:#0369a1}.t-bad{background:#ffe4e6;color:#9f1239}
+.bar{background:#eef2ff;border:1.5px solid #c7d2fe;border-radius:14px;padding:1rem 1.2rem;margin:1rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+.pill{background:#fff;border:1px solid #c7d2fe;border-radius:8px;padding:.45rem .9rem;font-weight:700;font-size:.85rem}
+h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bottom:.4rem;margin:1.3rem 0 .2rem}
+@media(max-width:640px){.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="auth">
+  <div class="box">
+    <img src="/logo-gie-192.png" alt="GIE">
+    <h2>Gerencia Integral Educativa</h2>
+    <p class="sub">Plataforma Multitenant Institucional</p>
+
+    <form id="f-login" onsubmit="login(event)">
+      <label>Correo</label><input type="email" id="l_mail" required autocomplete="username" placeholder="correo@colegio.edu.co">
+      <label>Contraseña</label><input type="password" id="l_pass" required autocomplete="current-password" placeholder="••••••••">
+      <button class="btn">Ingresar a GIE</button>
+      <div id="l_msg" class="msg"></div>
+      <button type="button" class="link" onclick="toggle(true)">¿No tienes cuenta? Regístrate</button><br>
+      <button type="button" class="link" style="margin-top:.3rem" onclick="verForm('f-forgot')">¿Olvidó su contraseña?</button>
+    </form>
+
+    <form id="f-forgot" class="hidden" onsubmit="olvido(event)">
+      <h2 style="font-size:1.05rem">Recuperar contraseña</h2>
+      <p class="sub">Escriba su correo y le enviaremos un enlace para crear una contraseña nueva.</p>
+      <label>Correo</label><input type="email" id="f_mail" required placeholder="correo@colegio.edu.co">
+      <button class="btn">Enviar enlace</button>
+      <div id="f_msg" class="msg"></div>
+      <button type="button" class="link" onclick="verForm('f-login')">← Volver al inicio de sesión</button>
+    </form>
+
+    <form id="f-newpass" class="hidden" onsubmit="nuevaClave(event)">
+      <h2 style="font-size:1.05rem">Crear contraseña nueva</h2>
+      <p class="sub">Escriba la contraseña que usará de ahora en adelante.</p>
+      <label>Contraseña nueva</label><input type="password" id="n_pass" required minlength="6" autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+      <label>Repita la contraseña</label><input type="password" id="n_pass2" required minlength="6" autocomplete="new-password">
+      <button class="btn green">Guardar contraseña</button>
+      <div id="n_msg" class="msg"></div>
+    </form>
+
+    <form id="f-reg" class="hidden" onsubmit="register(event)">
+      <label>Institución / Colegio</label><select id="r_colegio" required></select>
+      <label>Nombres</label><input id="r_nombres" required>
+      <label>Apellidos</label><input id="r_apellidos" required>
+      <label>Correo</label><input type="email" id="r_mail" required>
+      <label>Teléfono / WhatsApp</label><input type="tel" id="r_tel" required>
+      <label>Tipo de usuario</label>
+      <select id="r_tipo" onchange="tipoReg()"><option value="docente">Docente</option><option value="administrativo">Administrativo</option><option value="publico">Público (padre de familia / comunidad)</option></select>
+      <div id="r_jwrap"><label>Jornada</label>
+      <select id="r_jornada" required><option value="">Seleccione…</option><option>Mañana</option><option>Tarde</option></select></div>
+      <div id="r_rwrap"><label>Régimen docente</label>
+      <select id="r_regimen" required><option value="">Seleccione…</option><option value="2277">Decreto 2277 de 1979 (Estatuto antiguo)</option><option value="1278">Decreto 1278 de 2002 (Estatuto de profesionalización)</option></select>
+      <small style="display:block;text-align:left;color:#64748b;margin-top:.3rem">Si no está seguro, consúltelo en su resolución de nombramiento.</small></div>
+      <label>Contraseña</label><input type="password" id="r_pass" required minlength="6" placeholder="Mínimo 6 caracteres">
+      <button class="btn green">Completar registro</button>
+      <div id="r_msg" class="msg"></div>
+      <button type="button" class="link" onclick="toggle(false)">← Volver al inicio de sesión</button>
+    </form>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <div class="brand"><img src="/logo-gie-96.png" alt="GIE"><div><h1>GIE - Gerencia Integral Educativa</h1><p id="who"></p></div></div>
+    <div><button id="btn-home" class="btn sm gold hidden" onclick="goHome()">Menú principal</button><button class="btn sm red" onclick="logout()">Salir</button></div>
+  </header>
+  <main>
+    <section id="v-home" class="hidden"><div class="card"><h2>Suite de Gerencia Integral Educativa</h2><p class="d">Seleccione el módulo al que desea ingresar.</p><div class="mods" id="mods"></div></div></section>
+
+    <section id="v-magister" class="hidden">
+      <div class="card">
+        <h2 id="m_title">Crear institución y rector</h2>
+        <p class="d">El rector entrará a su colegio con el correo y la contraseña que digite aquí.</p>
+        <form onsubmit="guardarColegio(event)">
+          <div id="m_cole">
+            <h3 class="sec">Datos de la institución</h3>
+            <div class="g2">
+              <div><label>Nombre del colegio</label><input id="c_nombre" required></div>
+              <div><label>NIT</label><input id="c_nit" required></div>
+              <div><label>Código DANE</label><input id="c_dane"></div>
+              <div><label>Resolución de funcionamiento</label><input id="c_res" placeholder="N.° y fecha de la resolución"></div>
+              <div><label>Ciudad / Dirección</label><input id="c_dir"></div>
+              <div><label>Teléfono</label><input type="tel" id="c_tel"></div>
+              <div><label>Correo institucional</label><input type="email" id="c_mail"></div>
+              <div><label>Página web</label><input id="c_web" placeholder="https://"></div>
+              <div><label>Facebook</label><input id="c_fb" placeholder="https://facebook.com/..."></div>
+              <div><label>Máx. docentes ausentes por día y jornada</label><input type="number" id="c_max" min="1" max="50" value="2" required></div>
+              <div><label>Máx. permisos por docente al mes</label><input type="number" id="c_maxm" min="1" max="31" value="3" required></div>
+            </div>
+          </div>
+          <div id="m_rect">
+            <h3 class="sec">Rector (usuario administrador del colegio)</h3>
+            <div class="g2">
+              <div><label>Nombres</label><input id="m_rn"></div>
+              <div><label>Apellidos</label><input id="m_ra"></div>
+              <div><label>Teléfono / WhatsApp</label><input type="tel" id="m_rt"></div>
+              <div><label>Correo (será su usuario de ingreso)</label><input type="email" id="m_rm" autocomplete="off"></div>
+              <div><label>Contraseña inicial</label><input type="text" id="m_rp" minlength="6" autocomplete="off" placeholder="Mínimo 6 caracteres"></div>
+            </div>
+          </div>
+          <button class="btn" id="m_btn" style="background:#7c3aed">Crear institución y rector</button>
+          <button type="button" class="link hidden" id="m_cancel" onclick="formModo('crear')">Cancelar y volver a crear</button>
+          <div id="c_msg" class="msg"></div>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Instituciones</h2>
+        <div class="wrap"><table><thead><tr><th>Nombre</th><th>NIT</th><th>Rector</th><th>Usuarios</th><th>Máx./día</th><th>Acciones</th></tr></thead><tbody id="t-cole"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h2>Marco normativo de las resoluciones</h2>
+        <p class="d">Textos que aparecen en los «considerandos» de cada resolución. Cada línea es un párrafo. Deben ser validados por un abogado antes de usarse oficialmente.</p>
+        <label>Considerandos generales (todos los solicitantes)</label><textarea id="mn_comun" rows="6"></textarea>
+        <label>Docentes del Decreto 2277 de 1979</label><textarea id="mn_2277" rows="3"></textarea>
+        <label>Docentes del Decreto 1278 de 2002</label><textarea id="mn_1278" rows="3"></textarea>
+        <label>Artículo de recursos (final de la resolución)</label><textarea id="mn_recursos" rows="3"></textarea>
+        <button class="btn green" onclick="guardarMarco()">Guardar marco normativo</button>
+        <div id="mn_msg" class="msg"></div>
+      </div>
+      <div class="card">
+        <h2>Usuarios registrados</h2>
+        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Colegio</th><th>Teléfono</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="t-users"></tbody></table></div>
+      </div>
+    </section>
+  
+    <section id="v-permisos" class="hidden">
+      <div class="card">
+        <h2>Solicitud de Permiso Laboral</h2>
+        <p class="d">Máximo según la política del colegio por mes. Mínimo 3 días hábiles de anticipación (no cuentan sábados, domingos ni festivos).</p>
+        <form onsubmit="enviarPermiso(event)">
+          <div class="bar"><div><b>Fecha del permiso</b><br><small>Verifique la disponibilidad del mes y los cupos del día.</small></div>
+            <div style="display:flex;gap:.8rem;align-items:center"><input type="date" id="p_fecha" required onchange="checkCupos()" style="width:170px"><span id="p_badge" class="pill">Cupos libres</span></div></div>
+          <div class="g2">
+            <div><label>Modalidad</label><select id="p_mod" onchange="toggleHoras()"><option>Jornada Completa</option><option>Por Horas</option></select></div>
+            <div><label>Motivo</label><select id="p_tipo" required><option value="">Seleccione...</option><option>Calamidad doméstica</option><option>Comisión de servicios</option><option>Estudios / Capacitación</option><option>Asuntos de salud</option><option>Asuntos personales</option></select></div>
+          </div>
+          <div id="p_horas" class="g2 hidden"><div><label>Hora de inicio</label><input type="time" id="p_hi"></div><div><label>Hora de finalización</label><input type="time" id="p_hf"></div></div>
+          <label>Descripción del motivo</label><input id="p_det" required placeholder="Detalle breve">
+          <div class="g2">
+            <div><label>1. Soporte del permiso (PDF, máx. 5 MB)</label><input type="file" id="p_f1" accept="application/pdf" required></div>
+            <div><label>2. Material de actividades (PDF, máx. 5 MB)</label><input type="file" id="p_f2" accept="application/pdf" required></div>
+          </div>
+          <button class="btn" id="p_btn">Enviar solicitud oficial</button>
+          <div id="p_msg" class="msg"></div>
+        </form>
+      </div>
+      <div class="card"><h2>Mi historial de solicitudes</h2>
+        <div class="wrap"><table><thead><tr><th>Radicado</th><th>Fecha</th><th>Motivo</th><th>Estado</th><th>Observación</th></tr></thead><tbody id="p_hist"></tbody></table></div></div>
+    </section>
+
+    <section id="v-bandeja" class="hidden"><div class="card"><h2>Panel de solicitudes</h2>
+      <p class="d">El coordinador preaprueba y el rector aprueba de forma definitiva.</p>
+      <div id="b_msg" class="msg"></div>
+      <div class="wrap"><table><thead><tr><th>Radicado</th><th>Solicitante</th><th>Jornada / Fecha</th><th>Motivo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="b_body"></tbody></table></div></div></section>
+
+    <section id="v-usuarios" class="hidden">
+      <div class="card">
+        <h2>Configuración del colegio</h2>
+        <p class="d">Políticas de permisos y correo institucional. Los avisos por correo salen con «responder a» este correo.</p>
+        <div class="g2">
+          <div><label>Máx. docentes ausentes por día y jornada</label><input type="number" id="cf_max" min="1" max="50"></div>
+          <div><label>Máx. permisos por docente al mes</label><input type="number" id="cf_maxm" min="1" max="31"></div>
+          <div><label>Correo institucional</label><input type="email" id="cf_mail"></div>
+          <div><label>Teléfono</label><input type="tel" id="cf_tel"></div>
+        </div>
+        <h3 class="sec">Escudo del colegio (membrete de las resoluciones)</h3>
+        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+          <img id="cf_escudo" alt="" style="width:80px;height:80px;object-fit:contain;border:1px solid #e2e8f0;border-radius:12px;background:#fff" class="hidden">
+          <div style="flex:1;min-width:220px"><input type="file" id="cf_file" accept="image/png,image/jpeg"><small style="color:#64748b">PNG o JPG, fondo transparente o blanco, máx. 1 MB.</small></div>
+        </div>
+        <button class="btn green" onclick="guardarConfig()">Guardar configuración</button>
+        <div id="cf_msg" class="msg"></div>
+      </div>
+      <div class="card">
+        <h2>Crear usuario</h2>
+        <p class="d">Cree coordinadores, docentes o administrativos: ingresan con el correo y la contraseña que digite aquí. Los docentes, administrativos y el público también pueden registrarse solos desde la pantalla de inicio.</p>
+        <form onsubmit="crearUsuario(event)">
+          <div class="g2">
+            <div><label>Nombres</label><input id="u_nom" required></div>
+            <div><label>Apellidos</label><input id="u_ape" required></div>
+            <div><label>Teléfono / WhatsApp</label><input type="tel" id="u_tel" required></div>
+            <div><label>Correo (usuario de ingreso)</label><input type="email" id="u_mail" required autocomplete="off"></div>
+            <div><label>Rol</label><select id="u_rol"><option value="coordinador">Coordinador</option><option value="docente">Docente</option><option value="administrativo">Administrativo</option></select></div>
+            <div><label>Jornada (obligatoria para coordinadores y docentes)</label><select id="u_jor"><option value="">No aplica</option><option>Mañana</option><option>Tarde</option></select></div>
+            <div><label>Régimen (obligatorio para docentes)</label><select id="u_reg"><option value="">No aplica</option><option value="2277">Decreto 2277 de 1979</option><option value="1278">Decreto 1278 de 2002</option></select></div>
+            <div><label>Contraseña inicial</label><input id="u_pass" required minlength="6" autocomplete="off" placeholder="Mínimo 6 caracteres"></div>
+          </div>
+          <button class="btn" id="u_btn">Crear usuario</button>
+          <div id="u_msg" class="msg"></div>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Usuarios del colegio</h2>
+        <p class="d">Los docentes, administrativos y el público se registran solos y quedan activos de inmediato. Aquí puede cambiar su rol o jornada, o desactivar a quien no deba tener acceso.</p>
+        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Jornada</th><th>Régimen</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="u_body"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h2>Accesos por rol</h2>
+        <p class="d">Marque a qué módulos puede entrar cada tipo de usuario. El rector siempre tiene acceso a todo.</p>
+        <div class="wrap"><table><thead><tr><th>Módulo</th><th>Docente</th><th>Coordinador</th><th>Administrativo</th><th>Público</th></tr></thead><tbody id="a_body"></tbody></table></div>
+        <button class="btn green" onclick="guardarMatriz()">Guardar accesos</button>
+        <div id="a_msg" class="msg"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://ftrlvaxtgrgxvxodtgfl.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_BevO5oiQAphvZeVKzIQH8Q_tj0-8hBz'; // clave pública (segura con RLS)
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { flowType: 'implicit' } });
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ROLES = { magister:'Súper Admin', rector:'Rector', coordinador:'Coordinador', docente:'Docente', administrativo:'Administrativo', publico:'Público' };
+let me = null, colegio = null;
+
+const ERRORES = [
+  [/already registered|already been registered/i, 'Este correo ya está registrado.'],
+  [/invalid login credentials/i, 'Correo o contraseña incorrectos.'],
+  [/password should be at least/i, 'La contraseña debe tener mínimo 6 caracteres.'],
+  [/rate limit|too many requests/i, 'Demasiados intentos. Espere unos minutos e intente de nuevo.'],
+  [/for security purposes|after \d+ seconds/i, 'Por seguridad, espere unos segundos antes de intentarlo de nuevo.'],
+  [/invalid format|unable to validate email/i, 'El formato del correo no es válido.'],
+  [/email not confirmed/i, 'Debe confirmar su correo antes de ingresar.'],
+  [/signups? (not allowed|are disabled|disabled)/i, 'El registro de nuevos usuarios está deshabilitado.'],
+  [/row-level security|permission denied/i, 'No tiene permiso para realizar esta acción.'],
+  [/duplicate key|already exists/i, 'Ese registro ya existe.'],
+  [/check constraint/i, 'Algún dato no es válido. Revíselo.'],
+  [/foreign key/i, 'No se puede completar: hay información relacionada.'],
+  [/jwt expired|invalid jwt|refresh token/i, 'Su sesión expiró. Ingrese de nuevo.'],
+  [/failed to fetch|networkerror|network request failed|load failed/i, 'Sin conexión. Revise su internet e intente de nuevo.'],
+  [/exceeded the maximum allowed size|payload too large/i, 'El archivo es demasiado pesado.'],
+  [/bucket not found/i, 'No se encontró el espacio de almacenamiento de archivos.'],
+  [/error sending (recovery|confirmation|magic link)|not authorized|smtp/i, 'No se pudo enviar el correo. Intente más tarde o contacte al rector.'],
+  [/same_password|different from the old/i, 'La contraseña nueva debe ser distinta a la anterior.'],
+  [/not found/i, 'No se encontró la información solicitada.']
+];
+function traducir(t) {
+  t = String(t || '');
+  const f = ERRORES.find(x => x[0].test(t));
+  return f ? f[1] : t;
+}
+function msg(id, t, ok) { const e = $(id); e.textContent = ok ? t : traducir(t); e.className = 'msg' + (ok ? ' ok' : ''); }
+function tipoReg() {
+  const t = $('r_tipo').value;
+  $('r_jwrap').classList.toggle('hidden', t === 'publico');
+  $('r_jornada').required = t === 'docente';
+  if (t === 'publico') $('r_jornada').value = '';
+  $('r_rwrap').classList.toggle('hidden', t !== 'docente');
+  $('r_regimen').required = t === 'docente';
+  if (t !== 'docente') $('r_regimen').value = '';
+}
+function verForm(id) { ['f-login','f-reg','f-forgot','f-newpass'].forEach(x => $(x).classList.toggle('hidden', x !== id)); }
+function toggle(reg) { verForm(reg ? 'f-reg' : 'f-login'); }
+
+/* ---------- RECUPERAR CONTRASEÑA ---------- */
+let RECUPERANDO = /type=recovery/.test(location.hash);
+async function olvido(e) {
+  e.preventDefault();
+  const { error } = await db.auth.resetPasswordForEmail($('f_mail').value.trim(), { redirectTo: location.origin + '/' });
+  if (error) return msg('f_msg', error.message);
+  msg('f_msg', 'Listo. Si el correo está registrado, le llegó un enlace (revise también Spam).', true);
+}
+async function nuevaClave(e) {
+  e.preventDefault();
+  if ($('n_pass').value !== $('n_pass2').value) return msg('n_msg', 'Las contraseñas no coinciden.');
+  const { error } = await db.auth.updateUser({ password: $('n_pass').value });
+  if (error) return msg('n_msg', /different from the old/i.test(error.message) ? 'La contraseña nueva debe ser distinta a la anterior.' : error.message);
+  RECUPERANDO = false;
+  history.replaceState(null, '', location.pathname);
+  await db.auth.signOut();
+  verForm('f-login');
+  msg('l_msg', 'Contraseña actualizada. Ya puede ingresar con la nueva.', true);
+}
+const VIEWS = ['home','magister','permisos','bandeja','usuarios'];
+function showView(v) { VIEWS.forEach(x => $('v-' + x).classList.toggle('hidden', x !== v)); $('btn-home').classList.toggle('hidden', v === 'home' || v === 'magister'); }
+
+async function loadSchools() {
+  const { data, error } = await db.from('colegios_publicos').select('id,nombre,nit').order('nombre');
+  const s = $('r_colegio');
+  if (error || !data || !data.length) { s.innerHTML = '<option value="">No hay instituciones creadas todavía</option>'; return; }
+  s.innerHTML = data.map(c => `<option value="${esc(c.id)}">${esc(c.nombre)} (NIT: ${esc(c.nit)})</option>`).join('');
+}
+
+async function login(e) {
+  e.preventDefault();
+  const { error } = await db.auth.signInWithPassword({ email: $('l_mail').value.trim(), password: $('l_pass').value });
+  if (error) return msg('l_msg', 'Correo o contraseña incorrectos.');
+  await enter();
+}
+
+async function register(e) {
+  e.preventDefault();
+  const form = e.target, tipo = $('r_tipo').value;
+  if (!$('r_colegio').value) return msg('r_msg', 'Seleccione una institución.');
+  const { error } = await db.auth.signUp({
+    email: $('r_mail').value.trim(),
+    password: $('r_pass').value,
+    options: { data: {
+      colegio_id: $('r_colegio').value,
+      nombres: $('r_nombres').value.trim(),
+      apellidos: $('r_apellidos').value.trim(),
+      telefono: $('r_tel').value.trim(),
+      jornada: $('r_jornada').value || null,
+      rol: $('r_tipo').value,
+      regimen: tipo === 'docente' ? ($('r_regimen').value || null) : null
+    } }
+  });
+  if (error) return msg('r_msg', error.message);
+  await db.auth.signOut();
+  form.reset();
+  toggle(false);
+  msg('l_msg', 'Registro exitoso. Ya puede ingresar con su correo y contraseña.', true);
+}
+
+async function enter() {
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) return;
+  const { data: p, error } = await db.from('perfiles').select('*').eq('id', user.id).single();
+  if (error || !p) { await db.auth.signOut(); return msg('l_msg', 'No se encontró su perfil. Contacte al administrador.'); }
+  if (!p.activo) { await db.auth.signOut(); return msg('l_msg', 'Su cuenta está desactivada. Contacte al rector de su institución.'); }
+  me = p; colegio = null;
+  if (p.colegio_id) {
+    const { data } = await db.from('colegios').select('*').eq('id', p.colegio_id).single();
+    colegio = data;
+  }
+  $('auth').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('who').textContent = `${p.nombres} ${p.apellidos || ''} · ${ROLES[p.rol]}` + (colegio ? ' · ' + colegio.nombre : '');
+  if (p.rol === 'magister') { showView('magister'); formModo('crear'); loadMagister(); }
+  else { await cargarAccesos(); goHome(); }
+}
+
+async function logout() { await db.auth.signOut(); location.reload(); }
+
+/* ---------- PANEL SÚPER ADMIN ---------- */
+async function loadMagister() {
+  loadMarco();
+  const [c, u] = await Promise.all([
+    db.from('colegios').select('*').order('creado_en'),
+    db.from('perfiles').select('id,nombres,apellidos,telefono,rol,activo,colegio_id,colegios(nombre)').order('creado_en', { ascending: false })
+  ]);
+  COLES = c.data || [];
+  const users = u.data || [];
+  $('t-cole').innerHTML = COLES.map(x => {
+    const rect = users.find(p => p.colegio_id === x.id && p.rol === 'rector');
+    const n = users.filter(p => p.colegio_id === x.id).length;
+    return `<tr><td><b>${esc(x.nombre)}</b><br><small>${esc(x.telefono || '')} ${esc(x.correo || '')}</small></td><td>${esc(x.nit)}</td>
+      <td>${rect ? esc(rect.nombres + ' ' + (rect.apellidos || '')) : '<span class="tag t-no">Sin rector</span>'}</td><td>${n}</td><td>${esc(x.max_diario)}</td>
+      <td><button class="btn sm" onclick="editarColegio('${x.id}')">Editar</button>${rect ? '' : `<button class="btn sm gold" onclick="rectorColegio('${x.id}')">Crear rector</button>`}<button class="btn sm red" onclick="borrarColegio('${x.id}')">Eliminar</button></td></tr>`;
+  }).join('') || '<tr><td colspan="6">Aún no hay instituciones.</td></tr>';
+
+  $('t-users').innerHTML = users.map(x => {
+    const own = x.id === me.id;
+    return `<tr>
+      <td>${esc(x.nombres)} ${esc(x.apellidos)}</td>
+      <td>${esc(x.colegios?.nombre || '—')}</td>
+      <td>${esc(x.telefono || '')}</td>
+      <td>${esc(ROLES[x.rol] || x.rol)}</td>
+      <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Desactivado'}</span></td>
+      <td>${own ? '' : `
+        <button class="btn sm green" onclick="setPerfil('${esc(x.id)}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>
+        ${x.rol !== 'rector' ? `<button class="btn sm gold" onclick="setPerfil('${esc(x.id)}',{rol:'rector',activo:true})">Nombrar rector</button>` : ''}
+        ${x.rol !== 'coordinador' ? `<button class="btn sm" onclick="setPerfil('${esc(x.id)}',{rol:'coordinador',activo:true})">Coordinador</button>` : ''}`}
+      </td></tr>`;
+  }).join('') || '<tr><td colspan="6">Sin usuarios.</td></tr>';
+}
+
+/* ---- Formulario institución + rector: modos 'crear' | 'editar' | 'rector' ---- */
+let COLES = [], M = { modo: 'crear', id: null };
+const val = id => $(id).value.trim();
+const CMAP = { c_nombre:'nombre', c_nit:'nit', c_dane:'dane', c_res:'resolucion', c_dir:'direccion', c_tel:'telefono', c_mail:'correo', c_web:'pagina_web', c_fb:'facebook' };
+
+function formModo(modo, c) {
+  M = { modo, id: c ? c.id : null };
+  $('m_cole').classList.toggle('hidden', modo === 'rector');
+  $('m_rect').classList.toggle('hidden', modo === 'editar');
+  ['m_rn','m_ra','m_rt','m_rm','m_rp'].forEach(i => { $(i).required = modo !== 'editar'; if (modo === 'editar') $(i).value = ''; else if (modo === 'crear') $(i).value = ''; });
+  ['c_nombre','c_nit','c_max','c_maxm'].forEach(i => $(i).required = modo !== 'rector');
+  Object.keys(CMAP).forEach(i => $(i).value = (modo === 'editar' && c) ? (c[CMAP[i]] || '') : '');
+  $('c_max').value = (modo === 'editar' && c) ? c.max_diario : 2;
+  $('c_maxm').value = (modo === 'editar' && c) ? c.max_mensual : 3;
+  $('m_title').textContent = modo === 'crear' ? 'Crear institución y rector' : modo === 'editar' ? 'Editar institución: ' + c.nombre : 'Crear rector para: ' + c.nombre;
+  $('m_btn').textContent = modo === 'crear' ? 'Crear institución y rector' : modo === 'editar' ? 'Guardar cambios' : 'Crear rector';
+  $('m_cancel').classList.toggle('hidden', modo === 'crear');
+  msg('c_msg', '');
+  if (c) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+const editarColegio = id => formModo('editar', COLES.find(x => x.id === id));
+const rectorColegio = id => formModo('rector', COLES.find(x => x.id === id));
+
+async function guardarColegio(e) {
+  e.preventDefault();
+  const btn = $('m_btn'); btn.disabled = true; msg('c_msg', 'Guardando…', true);
+  try {
+    const datos = {
+      nombre: val('c_nombre'), nit: val('c_nit'), dane: val('c_dane') || null, resolucion: val('c_res') || null,
+      direccion: val('c_dir') || null, telefono: val('c_tel') || null, correo: val('c_mail') || null,
+      pagina_web: val('c_web') || null, facebook: val('c_fb') || null, max_diario: parseInt($('c_max').value) || 2, max_mensual: parseInt($('c_maxm').value) || 3
+    };
+    let texto = '';
+    if (M.modo === 'editar') {
+      const { error } = await db.from('colegios').update(datos).eq('id', M.id);
+      if (error) throw new Error(error.message);
+      texto = 'Institución actualizada.';
+    } else {
+      let colegioId = M.id;
+      if (M.modo === 'crear') {
+        const { data, error } = await db.from('colegios').insert(datos).select('id').single();
+        if (error) throw new Error(error.code === '23505' ? 'Ya existe una institución con ese NIT.' : error.message);
+        colegioId = data.id;
+      }
+      await crearRector(colegioId);
+      texto = 'Listo. El rector ya puede ingresar con su correo y contraseña.';
+    }
+    formModo('crear');
+    msg('c_msg', texto, true);
+    loadMagister();
+  } catch (err) { msg('c_msg', err.message); loadMagister(); }
+  finally { btn.disabled = false; }
+}
+
+async function crearRector(colegioId) {
+  // Cliente auxiliar sin sesión: así no se cierra la sesión del Súper Admin
+  const aux = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'gie-aux' } });
+  const { data, error } = await aux.auth.signUp({
+    email: val('m_rm'), password: $('m_rp').value,
+    options: { data: { colegio_id: colegioId, nombres: val('m_rn'), apellidos: val('m_ra'), telefono: val('m_rt'), jornada: null } }
+  });
+  if (error) throw new Error((/already/i.test(error.message) ? 'Ese correo ya está registrado.' : error.message) + (M.modo === 'crear' ? ' La institución quedó creada; use "Crear rector" en la tabla.' : ''));
+  if (!data.user) throw new Error('No se pudo crear el usuario del rector.');
+  const { error: e2 } = await db.from('perfiles').update({ rol: 'rector', activo: true }).eq('id', data.user.id);
+  if (e2) throw new Error('Usuario creado, pero no se pudo activar como rector: ' + e2.message);
+  await db.from('colegios').update({ rector_nombres: val('m_rn'), rector_apellidos: val('m_ra'), rector_tel: val('m_rt'), rector_email: val('m_rm') }).eq('id', colegioId);
+}
+
+async function borrarColegio(id) {
+  const c = COLES.find(x => x.id === id);
+  if (!confirm(`¿Eliminar "${c.nombre}"?\n\nSe borrarán también sus usuarios (perfiles) y solicitudes de permisos. No se puede deshacer.`)) return;
+  const { error } = await db.from('colegios').delete().eq('id', id);
+  if (error) alert('No se pudo eliminar: ' + traducir(error.message));
+  loadMagister();
+}
+
+async function setPerfil(id, campos) {
+  const { error } = await db.from('perfiles').update(campos).eq('id', id);
+  if (error) alert('No se pudo actualizar: ' + traducir(error.message));
+  loadMagister();
+}
+
+/* ---------- MENÚ ---------- */
+let ACCESOS = {};
+const MODS = [
+  { k:'permisos', t:'Control de Permisos', i:'📋' },
+  { k:'sau', t:'SAU (Atención al Usuario)', i:'🎧' },
+  { k:'mantenimiento', t:'Gestión de Mantenimiento', i:'🛠️' },
+  { k:'contable', t:'Módulo Contable', i:'💰' }
+];
+async function cargarAccesos() {
+  ACCESOS = {};
+  const { data } = await db.from('accesos_rol').select('rol,modulo,permitido');
+  (data || []).forEach(x => { ACCESOS[x.rol] = ACCESOS[x.rol] || {}; ACCESOS[x.rol][x.modulo] = x.permitido; });
+}
+async function goHome() {
+  const r = me.rol;
+  showView('home');
+  const puede = k => r === 'rector' || !!(ACCESOS[r] && ACCESOS[r][k]);
+  let pend = 0;
+  if (r === 'coordinador' || r === 'rector') {
+    const { count } = await db.from('permisos').select('id', { count: 'exact', head: true }).eq('estado', r === 'coordinador' ? 'Pendiente' : 'Preaprobado');
+    pend = count || 0;
+  }
+  const cards = [];
+  MODS.filter(m => puede(m.k)).forEach(m => {
+    if (m.k === 'permisos') {
+      const go = ['docente','administrativo'].includes(r) ? 'permisos' : (['coordinador','rector'].includes(r) ? 'bandeja' : null);
+      cards.push({ t:m.t, i:m.i, go, n: go === 'bandeja' ? pend : 0, d: go === 'permisos' ? 'Solicite permisos y consulte su historial.' : go ? 'Revise, preapruebe y apruebe solicitudes.' : 'Próximamente.' });
+    } else cards.push({ t:m.t, i:m.i, go:null, d:'Próximamente.' });
+  });
+  if (r === 'rector') cards.push({ t:'Usuarios y accesos', i:'👥', go:'usuarios', d:'Cree usuarios, asigne roles y defina a qué módulos entra cada rol.' });
+  $('mods').innerHTML = cards.map(m => `<div class="mod ${m.go ? '' : 'off'}" ${m.go ? `onclick="openMod('${m.go}')"` : ''}><div class="ico">${m.i}</div><h3>${esc(m.t)}</h3><p>${esc(m.d)}</p>${m.n ? `<p style="margin-top:.6rem"><span class="tag t-bad">${m.n} solicitud(es) por revisar</span></p>` : ''}</div>`).join('')
+    || '<p class="d">No tiene módulos habilitados todavía. Contacte al rector de su institución.</p>';
+}
+function openMod(v) {
+  showView(v);
+  if (v === 'permisos') initPermisos();
+  if (v === 'bandeja') loadBandeja();
+  if (v === 'usuarios') loadUsuarios();
+}
+const ST = { Pendiente:'t-no', Preaprobado:'t-info', Aprobado:'t-ok', Rechazado:'t-bad' };
+const badge = s => `<span class="tag ${ST[s] || ''}">${esc(s)}</span>`;
+const sb = () => db.storage.from('soportes');
+
+/* ---------- PERMISOS: DOCENTE ---------- */
+async function initPermisos() {
+  loadHistorial();
+  const { data } = await db.rpc('fecha_minima');   // 3 días hábiles, calculado en el servidor
+  if (data) $('p_fecha').min = data;
+}
+function toggleHoras() {
+  const h = $('p_mod').value === 'Por Horas';
+  $('p_horas').classList.toggle('hidden', !h);
+  $('p_hi').required = h; $('p_hf').required = h;
+}
+async function checkCupos() {
+  const f = $('p_fecha').value, b = $('p_badge');
+  if (!f) { b.textContent = 'Cupos libres'; b.style.color = ''; return null; }
+  const { data, error } = await db.rpc('cupos_dia', { p_fecha: f });
+  if (error || !data) {
+    console.error('cupos_dia', error);
+    b.textContent = 'Error al consultar cupos: ' + traducir(error ? error.message : 'sin respuesta');
+    b.style.color = '#e11d48';
+    return null;
+  }
+  if (!data.habil) { b.textContent = 'Esa fecha no es día hábil (fin de semana o festivo)'; b.style.color = '#e11d48'; data.bloqueado = true; return data; }
+  if (f < data.fecha_min) { b.textContent = 'Se requieren 3 días hábiles de anticipación. Primera fecha: ' + data.fecha_min; b.style.color = '#e11d48'; data.bloqueado = true; return data; }
+  const libres = Math.max(data.max_diario - data.ocupados, 0);
+  b.textContent = `Mes: ${data.mis_mes}/${data.max_mensual} | Día: ${libres} cupo(s) libre(s)`;
+  b.style.color = (data.mis_mes < data.max_mensual && libres > 0 && !data.ya_pidio) ? '#059669' : '#e11d48';
+  return data;
+}
+async function enviarPermiso(e) {
+  e.preventDefault();
+  const form = e.target, btn = $('p_btn');
+  btn.disabled = true; msg('p_msg', 'Enviando…', true);
+  try {
+    if (!me.jornada) throw new Error('Su perfil no tiene jornada asignada. Contacte al rector.');
+    if (me.rol === 'docente' && !me.regimen) throw new Error('Su perfil no tiene régimen asignado (Decreto 2277 o 1278). Pídale al rector que lo registre.');
+    const c = await checkCupos();
+    if (!c) throw new Error($('p_badge').textContent);
+    if (c.bloqueado) throw new Error($('p_badge').textContent);
+    if (c.ya_pidio) throw new Error('Ya tiene una solicitud registrada para esa fecha.');
+    if (c.mis_mes >= c.max_mensual) throw new Error(`Límite mensual excedido: máximo ${c.max_mensual} permisos por mes.`);
+    if (c.ocupados >= c.max_diario) throw new Error(`Límite diario excedido: ya se completó el cupo de ${c.max_diario} docente(s) para ese día.`);
+    const mod = $('p_mod').value, hi = $('p_hi').value, hf = $('p_hf').value;
+    if (mod === 'Por Horas' && (!hi || !hf || hf <= hi)) throw new Error('Revise la hora de inicio y de finalización.');
+    const f1 = $('p_f1').files[0], f2 = $('p_f2').files[0];
+    for (const f of [f1, f2]) {
+      if (f.type !== 'application/pdf') throw new Error('Los soportes deben ser archivos PDF.');
+      if (f.size > 5 * 1024 * 1024) throw new Error('Cada PDF debe pesar máximo 5 MB.');
+    }
+    const base = `${me.colegio_id}/${me.id}/${crypto.randomUUID()}`;
+    const up = await Promise.all([
+      sb().upload(base + '-permiso.pdf', f1, { contentType: 'application/pdf' }),
+      sb().upload(base + '-actividades.pdf', f2, { contentType: 'application/pdf' })
+    ]);
+    const bad = up.find(r => r.error);
+    if (bad) throw new Error('No se pudo subir el PDF: ' + traducir(bad.error.message));
+    const { data: nuevo, error } = await db.from('permisos').insert({
+      colegio_id: me.colegio_id, docente_id: me.id, fecha: $('p_fecha').value, jornada: me.jornada,
+      modalidad: mod, hora_inicio: mod === 'Por Horas' ? hi : null, hora_fin: mod === 'Por Horas' ? hf : null,
+      motivo: `[${$('p_tipo').value}] ${$('p_det').value.trim()}`,
+      soporte_path: base + '-permiso.pdf', actividades_path: base + '-actividades.pdf'
+    }).select('id').single();
+    if (error) throw new Error(error.message);
+    form.reset(); toggleHoras(); $('p_badge').textContent = 'Cupos libres';
+    const r = await notificar(nuevo.id);
+    msg('p_msg', r && r.ok ? 'Solicitud enviada. ' + textoPara(r) : 'Solicitud enviada, pero el aviso por correo al coordinador falló: ' + (r ? r.error : ''), !!(r && r.ok));
+    loadHistorial();
+  } catch (err) { msg('p_msg', err.message); }
+  finally { btn.disabled = false; }
+}
+async function loadHistorial() {
+  const { data } = await db.from('permisos').select('*').eq('docente_id', me.id).order('creado_en', { ascending: false });
+  $('p_hist').innerHTML = (data || []).map(p => `<tr><td><b>${esc(p.radicado)}</b></td><td>${esc(p.fecha)}<br><small>${esc(p.modalidad)}</small></td><td>${esc(p.motivo)}</td><td>${badge(p.estado)}</td><td>${esc(p.observacion || '')}${p.resolucion_num ? `<br><button class="btn sm gold" style="margin-top:.4rem" onclick="verResolucion('${p.id}')">Ver resolución</button>` : ''}</td></tr>`).join('')
+    || '<tr><td colspan="5">Aún no ha realizado solicitudes.</td></tr>';
+}
+
+/* ---------- PERMISOS: COORDINADOR / RECTOR ---------- */
+async function loadBandeja() {
+  const { data, error } = await db.from('permisos').select('*,perfiles(nombres,apellidos)').order('creado_en', { ascending: false });
+  if (error) { $('b_body').innerHTML = `<tr><td colspan="6">${esc(error.message)}</td></tr>`; return; }
+  $('b_body').innerHTML = (data || []).map(p => {
+    let a = '';
+    if (me.rol === 'coordinador' && p.estado === 'Pendiente') a += `<button class="btn sm" onclick="cambiar('${p.id}','Preaprobado')">Preaprobar</button>`;
+    if (me.rol === 'rector' && p.estado === 'Preaprobado') a += `<button class="btn sm green" onclick="cambiar('${p.id}','Aprobado')">Aprobar</button>`;
+    if ((me.rol === 'coordinador' && p.estado === 'Pendiente') || (me.rol === 'rector' && ['Pendiente','Preaprobado'].includes(p.estado)))
+      a += `<button class="btn sm red" onclick="negar('${p.id}')">Negar</button>`;
+    a += `<button class="btn sm gold" onclick="verPdf('${esc(p.soporte_path)}')">Soporte</button><button class="btn sm gold" onclick="verPdf('${esc(p.actividades_path)}')">Actividades</button>`;
+    a += `<button class="btn sm" onclick="reenviar('${p.id}')">Reenviar aviso</button>`;
+    if (p.resolucion_num) a += `<button class="btn sm green" onclick="verResolucion('${p.id}')">Resolución ${esc(p.resolucion_num)}/${esc(p.resolucion_anio)}</button>`;
+    return `<tr><td><b>${esc(p.radicado)}</b></td><td>${esc(p.perfiles?.nombres)} ${esc(p.perfiles?.apellidos)}</td>
+      <td>${esc(p.fecha)}<br><small>${esc(p.jornada)} · ${esc(p.modalidad)}</small></td><td>${esc(p.motivo)}</td><td>${badge(p.estado)}</td><td>${a}</td></tr>`;
+  }).join('') || '<tr><td colspan="6">No hay solicitudes.</td></tr>';
+}
+async function cambiar(id, estado, obs) {
+  const { error } = await db.from('permisos').update(obs ? { estado, observacion: obs } : { estado }).eq('id', id);
+  if (error) { alert(traducir(error.message)); return loadBandeja(); }
+  const r = await notificar(id);
+  loadBandeja();
+  if (r && r.ok) msg('b_msg', 'Decisión registrada. ' + textoPara(r), true);
+  else msg('b_msg', 'La decisión quedó registrada, pero el aviso por correo no se pudo enviar: ' + (r ? r.error : ''));
+}
+function textoPara(r) {
+  if (!r) return '';
+  if (r.yaEnviado) return 'El aviso por correo ya se había enviado antes.';
+  let t = 'Aviso por correo enviado a: ' + (r.para || []).map(x => `${x.nombre} (${x.email})`).join(', ') + '.';
+  if (r.fallos && r.fallos.length) t += ' No se pudo enviar a: ' + r.fallos.join(' | ');
+  return t;
+}
+async function reenviar(id) {
+  msg('b_msg', 'Enviando aviso…', true);
+  const r = await notificar(id, true);
+  if (r && r.ok) msg('b_msg', textoPara(r), true); else msg('b_msg', 'No se pudo enviar: ' + (r ? r.error : ''));
+}
+async function notificar(id, forzar) {
+  try {
+    const { data, error } = await db.functions.invoke('notificar', { body: { permiso_id: id, forzar: !!forzar } });
+    if (error) {
+      let m = error.message;
+      try { const j = await error.context.json(); if (j && j.error) m = j.error; } catch (_) {}
+      return { ok: false, error: traducir(m) };
+    }
+    return data || { ok: false, error: 'Sin respuesta del servidor de correos.' };
+  } catch (e) { return { ok: false, error: traducir(e.message) }; }
+}
+function negar(id) { const o = prompt('Escriba el motivo de la negación:'); if (o && o.trim()) cambiar(id, 'Rechazado', o.trim()); }
+async function verPdf(path) {
+  const w = window.open('', '_blank');
+  const { data, error } = await sb().createSignedUrl(path, 300);
+  if (error) { if (w) w.close(); return alert('No se pudo abrir el archivo: ' + traducir(error.message)); }
+  if (w) w.location = data.signedUrl;
+}
+
+/* ---------- USUARIOS (RECTOR) ---------- */
+const ROLES_USR = [['docente','Docente'],['coordinador','Coordinador'],['administrativo','Administrativo'],['publico','Público']];
+const JORNADAS = [['','—'],['Mañana','Mañana'],['Tarde','Tarde']];
+const opts = (list, cur) => list.map(([v, t]) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${t}</option>`).join('');
+
+const REGIMENES = [['','—'],['2277','Decreto 2277/1979'],['1278','Decreto 1278/2002']];
+async function loadUsuarios() {
+  loadMatriz(); cargarConfig();
+  const { data } = await db.from('perfiles').select('id,nombres,apellidos,correo,telefono,rol,jornada,regimen,activo').order('creado_en', { ascending: false });
+  $('u_body').innerHTML = (data || []).map(x => {
+    const fijo = x.id === me.id || x.rol === 'rector';
+    return `<tr><td>${esc(x.nombres)} ${esc(x.apellidos)}</td><td style="word-break:break-all">${esc(x.correo || '—')}</td><td>${esc(x.telefono || '')}</td>
+      <td>${fijo ? esc(ROLES[x.rol] || x.rol) : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{rol:this.value})">${opts(ROLES_USR, x.rol)}</select>`}</td>
+      <td>${fijo ? esc(x.jornada || '—') : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{jornada:this.value||null})">${opts(JORNADAS, x.jornada || '')}</select>`}</td>
+      <td>${x.rol !== 'docente' ? '—' : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{regimen:this.value||null})">${opts(REGIMENES, x.regimen || '')}</select>`}</td>
+      <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Desactivado'}</span></td>
+      <td>${fijo ? '' : `<button class="btn sm green" onclick="setUsr('${x.id}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>`}</td></tr>`;
+  }).join('') || '<tr><td colspan="6">Sin usuarios.</td></tr>';
+}
+async function setUsr(id, campos) {
+  const { error } = await db.from('perfiles').update(campos).eq('id', id);
+  if (error) alert(traducir(error.message));
+  loadUsuarios();
+}
+async function crearUsuario(e) {
+  e.preventDefault();
+  const form = e.target, btn = $('u_btn');
+  btn.disabled = true; msg('u_msg', 'Creando…', true);
+  try {
+    const rol = $('u_rol').value, jor = $('u_jor').value || null;
+    if (['docente','coordinador'].includes(rol) && !jor) throw new Error('Seleccione la jornada.');
+    const reg = $('u_reg').value || null;
+    if (rol === 'docente' && !reg) throw new Error('Seleccione el régimen del docente.');
+    const aux = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'gie-aux' } });
+    const { data, error } = await aux.auth.signUp({
+      email: val('u_mail'), password: $('u_pass').value,
+      options: { data: { colegio_id: me.colegio_id, nombres: val('u_nom'), apellidos: val('u_ape'), telefono: val('u_tel'), jornada: jor, rol: rol === 'coordinador' ? 'docente' : rol, regimen: ['docente','coordinador'].includes(rol) ? reg : null } }
+    });
+    if (error) throw new Error(/already/i.test(error.message) ? 'Ese correo ya está registrado.' : error.message);
+    if (!data.user) throw new Error('No se pudo crear el usuario.');
+    const { error: e2 } = await db.from('perfiles').update({ rol, activo: true }).eq('id', data.user.id);
+    if (e2) throw new Error('Usuario creado, pero no se pudo activar: ' + e2.message);
+    form.reset();
+    msg('u_msg', 'Usuario creado. Ya puede ingresar con su correo y contraseña.', true);
+    loadUsuarios();
+  } catch (err) { msg('u_msg', err.message); }
+  finally { btn.disabled = false; }
+}
+
+/* ---------- ACCESOS POR ROL ---------- */
+const ROLES_ACC = [['docente','Docente'],['coordinador','Coordinador'],['administrativo','Administrativo'],['publico','Público']];
+async function loadMatriz() {
+  const { data } = await db.from('accesos_rol').select('rol,modulo,permitido');
+  const A = {};
+  (data || []).forEach(x => { A[x.rol] = A[x.rol] || {}; A[x.rol][x.modulo] = x.permitido; });
+  $('a_body').innerHTML = MODS.map(m => `<tr><td><b>${esc(m.t)}</b></td>${ROLES_ACC.map(r =>
+    `<td style="text-align:center"><input type="checkbox" style="width:auto" data-rol="${r[0]}" data-mod="${m.k}" ${A[r[0]] && A[r[0]][m.k] ? 'checked' : ''}></td>`).join('')}</tr>`).join('');
+}
+async function guardarMatriz() {
+  const filas = [...document.querySelectorAll('#a_body input')].map(i => ({ colegio_id: me.colegio_id, rol: i.dataset.rol, modulo: i.dataset.mod, permitido: i.checked }));
+  const { error } = await db.from('accesos_rol').upsert(filas, { onConflict: 'colegio_id,rol,modulo' });
+  msg('a_msg', error ? error.message : 'Accesos guardados.', !error);
+}
+
+/* ---------- CONFIGURACIÓN DEL COLEGIO (RECTOR) ---------- */
+function cargarConfig() {
+  if (!colegio) return;
+  $('cf_max').value = colegio.max_diario; $('cf_maxm').value = colegio.max_mensual;
+  $('cf_mail').value = colegio.correo || ''; $('cf_tel').value = colegio.telefono || '';
+  const u = escudoUrl(colegio);
+  $('cf_escudo').classList.toggle('hidden', !u);
+  if (u) $('cf_escudo').src = u;
+}
+const escudoUrl = c => (c && c.logo_path) ? db.storage.from('escudos').getPublicUrl(c.logo_path).data.publicUrl : '';
+async function guardarConfig() {
+  const datos = { max_diario: parseInt($('cf_max').value), max_mensual: parseInt($('cf_maxm').value), correo: val('cf_mail') || null, telefono: val('cf_tel') || null };
+  if (!datos.max_diario || !datos.max_mensual) return msg('cf_msg', 'Digite los dos límites (números mayores a 0).');
+  const f = $('cf_file').files[0];
+  if (f) {
+    if (!/^image\/(png|jpeg)$/.test(f.type)) return msg('cf_msg', 'El escudo debe ser una imagen PNG o JPG.');
+    if (f.size > 1024 * 1024) return msg('cf_msg', 'El escudo debe pesar máximo 1 MB.');
+    const path = `${me.colegio_id}/escudo-${Date.now()}.${f.type === 'image/png' ? 'png' : 'jpg'}`;
+    const up = await db.storage.from('escudos').upload(path, f, { contentType: f.type });
+    if (up.error) return msg('cf_msg', 'No se pudo subir el escudo: ' + up.error.message);
+    datos.logo_path = path;
+  }
+  const { error } = await db.from('colegios').update(datos).eq('id', me.colegio_id);
+  if (error) return msg('cf_msg', error.message);
+  Object.assign(colegio, datos);
+  $('cf_file').value = ''; cargarConfig();
+  msg('cf_msg', 'Configuración guardada.', true);
+}
+
+/* ---------- MARCO NORMATIVO (SÚPER ADMIN) ---------- */
+const CLAVES_MARCO = ['comun', '2277', '1278', 'recursos'];
+async function loadMarco() {
+  const { data } = await db.from('marco_normativo').select('clave,texto');
+  (data || []).forEach(x => { if ($('mn_' + x.clave)) $('mn_' + x.clave).value = x.texto; });
+}
+async function guardarMarco() {
+  const filas = CLAVES_MARCO.map(k => ({ clave: k, texto: $('mn_' + k).value.trim(), actualizado_en: new Date().toISOString() })).filter(f => f.texto);
+  const { error } = await db.from('marco_normativo').upsert(filas, { onConflict: 'clave' });
+  msg('mn_msg', error ? error.message : 'Marco normativo guardado.', !error);
+}
+
+/* ---------- RESOLUCIÓN (imprimible / PDF) ---------- */
+const fLarga = s => {
+  if (!s) return '';
+  const solo = /^\d{4}-\d{2}-\d{2}$/.test(s);
+  return new Date(solo ? s + 'T12:00:00Z' : s).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric', timeZone: solo ? 'UTC' : 'America/Bogota' });
+};
+async function verResolucion(id) {
+  const w = window.open('', '_blank');
+  if (!w) return alert('Permita las ventanas emergentes para ver la resolución.');
+  w.document.write('<p style="font-family:sans-serif">Cargando resolución…</p>');
+  try {
+    const [pr, mr] = await Promise.all([
+      db.from('permisos').select('*,perfiles(nombres,apellidos,regimen,rol)').eq('id', id).single(),
+      db.from('marco_normativo').select('clave,texto')
+    ]);
+    if (pr.error) throw new Error(pr.error.message);
+    const M = {}; (mr.data || []).forEach(x => M[x.clave] = x.texto);
+    const html = resolucionHTML(pr.data, colegio || {}, M);
+    w.document.open(); w.document.write(html); w.document.close();
+  } catch (e) {
+    w.document.body.innerHTML = '<p style="font-family:sans-serif;color:#b91c1c">No se pudo cargar la resolución: ' + esc(traducir(e.message)) + '</p>';
+  }
+}
+function resolucionHTML(p, c, M) {
+  const ok = p.estado === 'Aprobado';
+  const d = p.perfiles || {};
+  const nom = `${d.nombres || ''} ${d.apellidos || ''}`.trim();
+  const REG = { '2277': 'Decreto Ley 2277 de 1979 (Estatuto Docente)', '1278': 'Decreto Ley 1278 de 2002 (Estatuto de Profesionalización Docente)' };
+  const cargo = d.rol === 'docente' ? 'docente' + (REG[d.regimen] ? ', vinculado(a) bajo el régimen del ' + REG[d.regimen] + ',' : '') : 'servidor(a) administrativo(a)';
+  const parr = t => String(t || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+  const horas = p.modalidad === 'Por Horas' ? ` de ${String(p.hora_inicio).slice(0, 5)} a ${String(p.hora_fin).slice(0, 5)}` : '';
+  const cuando = `el día ${fLarga(p.fecha)}, jornada ${String(p.jornada).toLowerCase()}, modalidad ${String(p.modalidad).toLowerCase()}${horas}`;
+  const cons = [
+    `Que ${nom}, ${cargo} de esta institución, radicó la solicitud ${p.radicado} para obtener permiso remunerado ${cuando}, por el siguiente motivo: ${p.motivo}.`,
+    ...parr(M.comun),
+    ...(d.rol === 'docente' ? parr(M[d.regimen]) : []),
+    'Que el solicitante anexó el soporte del permiso y el material de actividades para garantizar la continuidad del servicio educativo durante su ausencia.',
+    p.preaprobado_nombre ? `Que la solicitud fue revisada y preaprobada por ${p.preaprobado_nombre}, coordinador(a) de la jornada, el ${fLarga(p.preaprobado_en)}.` : null,
+    ok ? 'Que, verificado el cumplimiento de los requisitos y la disponibilidad de personal para atender el servicio, resulta procedente conceder el permiso solicitado.'
+       : `Que, revisada la solicitud, no resulta procedente concederla por la siguiente razón: ${p.observacion || 'sin observación registrada'}.`
+  ].filter(Boolean);
+  const arts = ok
+    ? [`Conceder permiso remunerado a ${nom} ${cuando}.`, `Parágrafo. El beneficiario deberá dejar las actividades programadas y reintegrarse a sus labores al término del permiso.`]
+    : [`Negar el permiso solicitado por ${nom} ${cuando}, por las razones expuestas en la parte considerativa.`];
+  arts.push('Notificar la presente resolución al interesado.');
+  if (M.recursos) arts.push(M.recursos);
+  const ORD = ['PRIMERO', 'SEGUNDO', 'TERCERO', 'CUARTO'];
+  let n = 0;
+  const articulos = arts.map(a => /^Parágrafo/.test(a) ? `<p><b>PARÁGRAFO.</b>${esc(a.replace(/^Parágrafo\.?/, ''))}</p>` : `<p><b>ARTÍCULO ${ORD[n++]}.</b> ${esc(a)}</p>`).join('');
+  const firmante = p.decidido_nombre || [c.rector_nombres, c.rector_apellidos].filter(Boolean).join(' ');
+  const datosCol = [c.nit ? 'NIT ' + c.nit : '', c.dane ? 'DANE ' + c.dane : '', c.resolucion ? 'Resolución de funcionamiento: ' + c.resolucion : ''].filter(Boolean).join(' · ');
+  const contacto = [c.direccion, c.telefono, c.correo].filter(Boolean).join(' · ');
+  const logo = escudoUrl(c);
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Resolución ${esc(p.resolucion_num)} de ${esc(p.resolucion_anio)}</title>
+<style>@page{size:letter;margin:0}body{box-sizing:border-box;font-family:'Times New Roman',serif;color:#000;max-width:800px;margin:0 auto;padding:28px 40px;line-height:1.35;font-size:12.5px}
+h1{font-size:17px;text-align:center;margin:18px 0 4px}h2{font-size:14px;text-align:center;margin:18px 0 8px}
+.enc{display:flex;align-items:center;justify-content:center;gap:18px;text-align:center;border-bottom:2px solid #000;padding-bottom:10px}.enc img{height:80px;max-width:96px;object-fit:contain}.enc b{font-size:16px;text-transform:uppercase}.enc small{display:block;color:#333}
+p{text-align:justify;margin:6px 0}.por{text-align:center;font-style:italic}.firma{margin-top:34px;text-align:center;page-break-inside:avoid}.firma div{border-top:1px solid #000;display:inline-block;padding-top:4px;min-width:260px}
+.pie{margin-top:20px;font-size:11px;color:#444;text-align:center}.no-print{text-align:right;margin-bottom:10px}
+button{padding:8px 16px;font-size:13px;cursor:pointer}@media print{.no-print{display:none}body{max-width:none;padding:11mm 18mm}}</style></head><body>
+<div class="no-print"><button onclick="window.print()">Imprimir / Guardar como PDF</button></div>
+<div class="enc">${logo ? `<img src="${esc(logo)}" alt="Escudo">` : ''}<div><b>${esc(c.nombre || '')}</b><small>${esc(datosCol)}</small><small>${esc(contacto)}</small></div></div>
+<h1>RESOLUCIÓN N.° ${esc(p.resolucion_num)} DE ${esc(p.resolucion_anio)}</h1>
+<p class="por" style="text-align:center">(${esc(fLarga(p.resolucion_en))})</p>
+<p class="por">Por la cual se ${ok ? 'concede' : 'niega'} un permiso remunerado por justa causa</p>
+<p>EL RECTOR DE ${esc((c.nombre || 'LA INSTITUCIÓN').toUpperCase())}, en uso de sus facultades legales y en especial de las conferidas por el artículo 10 de la Ley 715 de 2001, y</p>
+<h2>CONSIDERANDO</h2>
+${cons.map((t, i) => `<p>${i + 1}. ${esc(t)}</p>`).join('')}
+<h2>RESUELVE</h2>
+${articulos}
+<p style="text-align:center;margin-top:22px"><b>COMUNÍQUESE Y CÚMPLASE</b></p>
+<p style="text-align:center">Dada el ${esc(fLarga(p.resolucion_en))}.</p>
+<div class="firma"><div><b>${esc(firmante)}</b><br>Rector(a)</div></div>
+<p class="pie">Documento generado por GIE · Gerencia Integral Educativa · Radicado ${esc(p.radicado)}</p>
+</body></html>`;
+}
+
+/* ---------- INICIO ---------- */
+loadSchools();
+if (RECUPERANDO) verForm('f-newpass');
+db.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') { RECUPERANDO = true; verForm('f-newpass'); } });
+db.auth.getSession().then(({ data }) => { if (data.session && !RECUPERANDO) enter(); });
+</script>
+</body>
+</html>

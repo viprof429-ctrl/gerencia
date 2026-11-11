@@ -47,6 +47,9 @@ th{background:#f8fafc;color:#475569;font-size:.72rem;text-transform:uppercase}
 .bar{background:#eef2ff;border:1.5px solid #c7d2fe;border-radius:14px;padding:1rem 1.2rem;margin:1rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
 .pill{background:#fff;border:1px solid #c7d2fe;border-radius:8px;padding:.45rem .9rem;font-weight:700;font-size:.85rem}
 h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bottom:.4rem;margin:1.3rem 0 .2rem}
+.dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+.dot-verde{background:#22c55e}.dot-amarillo{background:#f59e0b}.dot-rojo{background:#e11d48}.dot-gris{background:#94a3b8}
+.okbox{background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:14px;padding:.9rem 1rem;margin-top:1rem;font-size:.85rem;color:#065f46}
 @media(max-width:640px){.g2{grid-template-columns:1fr}}
 </style>
 </head>
@@ -65,6 +68,24 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       <div id="l_msg" class="msg"></div>
       <button type="button" class="link" onclick="toggle(true)">¿No tienes cuenta? Regístrate</button><br>
       <button type="button" class="link" style="margin-top:.3rem" onclick="verForm('f-forgot')">¿Olvidó su contraseña?</button>
+      <hr style="margin:1.2rem 0 .4rem;border:none;border-top:1px solid #e2e8f0">
+      <p class="sub" style="margin:.4rem 0 0">Atención al usuario (sin necesidad de cuenta)</p>
+      <button type="button" class="link" style="margin-top:.3rem" onclick="verForm('f-pqrs')">Radicar petición, queja, reclamo o sugerencia</button><br>
+      <button type="button" class="link" style="margin-top:.3rem" onclick="verForm('f-consulta')">Consultar el estado de mi solicitud</button>
+    </form>
+
+    <form id="f-pqrs" class="hidden" onsubmit="radicarPqrs(event,'q_')"></form>
+
+    <form id="f-consulta" class="hidden" onsubmit="consultaPqrs(event)">
+      <h2 style="font-size:1.05rem">Consultar solicitud</h2>
+      <p class="sub">Digite el número de radicado y el correo con el que radicó.</p>
+      <label>Institución</label><select id="k_colegio" required></select>
+      <label>Número de radicado</label><input id="k_rad" required placeholder="SAU-2026-0001">
+      <label>Correo</label><input type="email" id="k_correo" required>
+      <button class="btn">Consultar</button>
+      <div id="k_msg" class="msg"></div>
+      <div id="k_res" class="okbox hidden" style="text-align:left;background:#f8fafc;border-color:#cbd5e1;color:#1e293b"></div>
+      <button type="button" class="link" onclick="verForm('f-login')">← Volver al inicio de sesión</button>
     </form>
 
     <form id="f-forgot" class="hidden" onsubmit="olvido(event)">
@@ -200,6 +221,35 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       <div id="b_msg" class="msg"></div>
       <div class="wrap"><table><thead><tr><th>Radicado</th><th>Solicitante</th><th>Jornada / Fecha</th><th>Motivo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="b_body"></tbody></table></div></div></section>
 
+    <section id="v-sau" class="hidden">
+      <div class="card" id="g_card">
+        <h2>Gestión del SAU</h2>
+        <p class="d">Semáforo: <span class="dot dot-verde"></span> en plazo · <span class="dot dot-amarillo"></span> por vencer · <span class="dot dot-rojo"></span> vencida · <span class="dot dot-gris"></span> respondida. El plazo cuenta días hábiles.</p>
+        <select id="g_filtro" onchange="renderGestion()" style="width:auto">
+          <option value="abiertas">Abiertas</option><option value="sin">Sin asignar</option><option value="venc">Por vencer o vencidas</option><option value="resp">Respondidas</option><option value="todas">Todas</option>
+        </select>
+        <div id="g_msg" class="msg"></div>
+        <div class="wrap"><table><thead><tr><th>Semáforo</th><th>Radicado</th><th>Asunto / Solicitante</th><th>Estado</th><th>Responsable</th><th>Vence</th><th></th></tr></thead><tbody id="g_body"></tbody></table></div>
+      </div>
+      <div class="card hidden" id="g_det"></div>
+      <div class="card hidden" id="rp_card">
+        <h2>Reporte de eficiencia</h2>
+        <p class="d">Estadísticas de las solicitudes radicadas en el período: cumplimiento del colegio y desempeño de cada funcionario asignado.</p>
+        <div class="g2"><div><label>Desde</label><input type="date" id="rp_d"></div><div><label>Hasta</label><input type="date" id="rp_h"></div></div>
+        <button class="btn green" onclick="verReporte()">Generar reporte</button>
+        <div id="rp_msg" class="msg"></div>
+        <div id="rp_out"></div>
+      </div>
+      <div class="card">
+        <h2>Nueva solicitud</h2>
+        <form id="s-form" onsubmit="radicarPqrs(event,'s_')"></form>
+      </div>
+      <div class="card">
+        <h2>Mis solicitudes</h2>
+        <div class="wrap"><table><thead><tr><th>Radicado</th><th>Asunto</th><th>Estado</th><th>Vence</th><th>Respuesta</th></tr></thead><tbody id="s_hist"></tbody></table></div>
+      </div>
+    </section>
+
     <section id="v-usuarios" class="hidden">
       <div class="card">
         <h2>Configuración del colegio</h2>
@@ -209,6 +259,8 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
           <div><label>Máx. permisos por docente al mes</label><input type="number" id="cf_maxm" min="1" max="31"></div>
           <div><label>Correo institucional</label><input type="email" id="cf_mail"></div>
           <div><label>Teléfono</label><input type="tel" id="cf_tel"></div>
+          <div><label>SAU: plazo para responder (días hábiles)</label><input type="number" id="cf_plazo" min="1" max="60"></div>
+          <div><label>SAU: avisar al responsable, monitor y rector cuando falten (mín. 3 días hábiles)</label><input type="number" id="cf_alerta" min="3" max="30"></div>
         </div>
         <h3 class="sec">Escudo del colegio (membrete de las resoluciones)</h3>
         <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
@@ -230,6 +282,8 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
             <div><label>Rol</label><select id="u_rol"><option value="coordinador">Coordinador</option><option value="docente">Docente</option><option value="administrativo">Administrativo</option></select></div>
             <div><label>Jornada (obligatoria para coordinadores y docentes)</label><select id="u_jor"><option value="">No aplica</option><option>Mañana</option><option>Tarde</option></select></div>
             <div><label>Régimen (obligatorio para docentes)</label><select id="u_reg"><option value="">No aplica</option><option value="2277">Decreto 2277 de 1979</option><option value="1278">Decreto 1278 de 2002</option></select></div>
+            <div><label>Cargo (ej.: Tesorero, Secretaria, Coordinador de convivencia)</label><input id="u_cargo" list="dl_cargos" maxlength="60">
+              <datalist id="dl_cargos"><option>Coordinador académico</option><option>Coordinador de convivencia</option><option>Docente</option><option>Tesorero(a)</option><option>Secretario(a)</option><option>Orientador(a)</option><option>Bibliotecario(a)</option><option>Auxiliar administrativo</option><option>Servicios generales</option></datalist></div>
             <div><label>Contraseña inicial</label><input id="u_pass" required minlength="6" autocomplete="off" placeholder="Mínimo 6 caracteres"></div>
           </div>
           <button class="btn" id="u_btn">Crear usuario</button>
@@ -239,7 +293,7 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       <div class="card">
         <h2>Usuarios del colegio</h2>
         <p class="d">Los docentes, administrativos y el público se registran solos y quedan activos de inmediato. Aquí puede cambiar su rol o jornada, o desactivar a quien no deba tener acceso.</p>
-        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Jornada</th><th>Régimen</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="u_body"></tbody></table></div>
+        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Jornada</th><th>Régimen</th><th>Cargo</th><th>Monitor SAU</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="u_body"></tbody></table></div>
       </div>
       <div class="card">
         <h2>Accesos por rol</h2>
@@ -297,7 +351,7 @@ function tipoReg() {
   $('r_regimen').required = t === 'docente';
   if (t !== 'docente') $('r_regimen').value = '';
 }
-function verForm(id) { ['f-login','f-reg','f-forgot','f-newpass'].forEach(x => $(x).classList.toggle('hidden', x !== id)); }
+function verForm(id) { ['f-login','f-reg','f-forgot','f-newpass','f-pqrs','f-consulta'].forEach(x => $(x).classList.toggle('hidden', x !== id)); }
 function toggle(reg) { verForm(reg ? 'f-reg' : 'f-login'); }
 
 /* ---------- RECUPERAR CONTRASEÑA ---------- */
@@ -319,14 +373,15 @@ async function nuevaClave(e) {
   verForm('f-login');
   msg('l_msg', 'Contraseña actualizada. Ya puede ingresar con la nueva.', true);
 }
-const VIEWS = ['home','magister','permisos','bandeja','usuarios'];
+const VIEWS = ['home','magister','permisos','bandeja','sau','usuarios'];
 function showView(v) { VIEWS.forEach(x => $('v-' + x).classList.toggle('hidden', x !== v)); $('btn-home').classList.toggle('hidden', v === 'home' || v === 'magister'); }
 
 async function loadSchools() {
   const { data, error } = await db.from('colegios_publicos').select('id,nombre,nit').order('nombre');
-  const s = $('r_colegio');
-  if (error || !data || !data.length) { s.innerHTML = '<option value="">No hay instituciones creadas todavía</option>'; return; }
-  s.innerHTML = data.map(c => `<option value="${esc(c.id)}">${esc(c.nombre)} (NIT: ${esc(c.nit)})</option>`).join('');
+  const ids = ['r_colegio','q_colegio','k_colegio'].map(x => $(x)).filter(Boolean);
+  if (error || !data || !data.length) { ids.forEach(s => s.innerHTML = '<option value="">No hay instituciones creadas todavía</option>'); return; }
+  const html = data.map(c => `<option value="${esc(c.id)}">${esc(c.nombre)} (NIT: ${esc(c.nit)})</option>`).join('');
+  ids.forEach(s => s.innerHTML = html);
 }
 
 async function login(e) {
@@ -517,21 +572,29 @@ async function goHome() {
     const { count } = await db.from('permisos').select('id', { count: 'exact', head: true }).eq('estado', r === 'coordinador' ? 'Pendiente' : 'Preaprobado');
     pend = count || 0;
   }
+  let sau = { sin: 0, por: 0, venc: 0, mias: 0 };
+  { const { data } = await db.from('pqrs_vista').select('estado,semaforo,asignado_a');
+    (data || []).forEach(x => { if (x.estado === 'Radicada') sau.sin++; if (x.semaforo === 'amarillo') sau.por++; if (x.semaforo === 'rojo') sau.venc++; if (x.asignado_a === me.id && x.estado === 'Asignada') sau.mias++; }); }
   const cards = [];
-  MODS.filter(m => puede(m.k)).forEach(m => {
+  MODS.filter(m => puede(m.k) || (m.k === 'sau' && (esGestor() || sau.mias > 0))).forEach(m => {
+    if (m.k === 'sau') {
+      const alertas = esGestor() ? [sau.sin && `${sau.sin} sin asignar`, sau.por && `${sau.por} por vencer`, sau.venc && `${sau.venc} vencida(s)`] : [sau.mias && `${sau.mias} por responder`];
+      return cards.push({ t:m.t, i:m.i, go:'sau', d:'Radique y consulte solicitudes' + (esGestor() ? '; asigne y responda las del colegio.' : '.'), x: alertas.filter(Boolean).map(a => `<span class="tag t-bad" style="margin:.1rem">${a}</span>`).join('') });
+    }
     if (m.k === 'permisos') {
       const go = ['docente','administrativo'].includes(r) ? 'permisos' : (['coordinador','rector'].includes(r) ? 'bandeja' : null);
       cards.push({ t:m.t, i:m.i, go, n: go === 'bandeja' ? pend : 0, d: go === 'permisos' ? 'Solicite permisos y consulte su historial.' : go ? 'Revise, preapruebe y apruebe solicitudes.' : 'Próximamente.' });
     } else cards.push({ t:m.t, i:m.i, go:null, d:'Próximamente.' });
   });
   if (r === 'rector') cards.push({ t:'Usuarios y accesos', i:'👥', go:'usuarios', d:'Cree usuarios, asigne roles y defina a qué módulos entra cada rol.' });
-  $('mods').innerHTML = cards.map(m => `<div class="mod ${m.go ? '' : 'off'}" ${m.go ? `onclick="openMod('${m.go}')"` : ''}><div class="ico">${m.i}</div><h3>${esc(m.t)}</h3><p>${esc(m.d)}</p>${m.n ? `<p style="margin-top:.6rem"><span class="tag t-bad">${m.n} solicitud(es) por revisar</span></p>` : ''}</div>`).join('')
+  $('mods').innerHTML = cards.map(m => `<div class="mod ${m.go ? '' : 'off'}" ${m.go ? `onclick="openMod('${m.go}')"` : ''}><div class="ico">${m.i}</div><h3>${esc(m.t)}</h3><p>${esc(m.d)}</p>${m.n ? `<p style="margin-top:.6rem"><span class="tag t-bad">${m.n} solicitud(es) por revisar</span></p>` : ''}${m.x ? `<p style="margin-top:.6rem">${m.x}</p>` : ''}</div>`).join('')
     || '<p class="d">No tiene módulos habilitados todavía. Contacte al rector de su institución.</p>';
 }
 function openMod(v) {
   showView(v);
   if (v === 'permisos') initPermisos();
   if (v === 'bandeja') loadBandeja();
+  if (v === 'sau') initSau();
   if (v === 'usuarios') loadUsuarios();
 }
 const ST = { Pendiente:'t-no', Preaprobado:'t-info', Aprobado:'t-ok', Rechazado:'t-bad' };
@@ -677,16 +740,18 @@ const opts = (list, cur) => list.map(([v, t]) => `<option value="${v}" ${v === c
 const REGIMENES = [['','—'],['2277','Decreto 2277/1979'],['1278','Decreto 1278/2002']];
 async function loadUsuarios() {
   loadMatriz(); cargarConfig();
-  const { data } = await db.from('perfiles').select('id,nombres,apellidos,correo,telefono,rol,jornada,regimen,activo').order('creado_en', { ascending: false });
+  const { data } = await db.from('perfiles').select('id,nombres,apellidos,correo,telefono,rol,jornada,regimen,cargo,es_monitor_sau,activo').order('creado_en', { ascending: false });
   $('u_body').innerHTML = (data || []).map(x => {
     const fijo = x.id === me.id || x.rol === 'rector';
     return `<tr><td>${esc(x.nombres)} ${esc(x.apellidos)}</td><td style="word-break:break-all">${esc(x.correo || '—')}</td><td>${esc(x.telefono || '')}</td>
       <td>${fijo ? esc(ROLES[x.rol] || x.rol) : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{rol:this.value})">${opts(ROLES_USR, x.rol)}</select>`}</td>
       <td>${fijo ? esc(x.jornada || '—') : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{jornada:this.value||null})">${opts(JORNADAS, x.jornada || '')}</select>`}</td>
       <td>${x.rol !== 'docente' ? '—' : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{regimen:this.value||null})">${opts(REGIMENES, x.regimen || '')}</select>`}</td>
+      <td>${fijo ? esc(x.cargo || '—') : `<input list="dl_cargos" style="width:11rem;padding:.4rem" maxlength="60" value="${esc(x.cargo || '')}" onchange="setUsr('${x.id}',{cargo:this.value.trim()||null})">`}</td>
+      <td style="text-align:center">${x.rol === 'rector' ? '—' : `<input type="checkbox" style="width:auto" ${x.es_monitor_sau ? 'checked' : ''} onchange="setUsr('${x.id}',{es_monitor_sau:this.checked})">`}</td>
       <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Desactivado'}</span></td>
       <td>${fijo ? '' : `<button class="btn sm green" onclick="setUsr('${x.id}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>`}</td></tr>`;
-  }).join('') || '<tr><td colspan="6">Sin usuarios.</td></tr>';
+  }).join('') || '<tr><td colspan="9">Sin usuarios.</td></tr>';
 }
 async function setUsr(id, campos) {
   const { error } = await db.from('perfiles').update(campos).eq('id', id);
@@ -709,7 +774,7 @@ async function crearUsuario(e) {
     });
     if (error) throw new Error(/already/i.test(error.message) ? 'Ese correo ya está registrado.' : error.message);
     if (!data.user) throw new Error('No se pudo crear el usuario.');
-    const { error: e2 } = await db.from('perfiles').update({ rol, activo: true }).eq('id', data.user.id);
+    const { error: e2 } = await db.from('perfiles').update({ rol, activo: true, cargo: val('u_cargo') || null }).eq('id', data.user.id);
     if (e2) throw new Error('Usuario creado, pero no se pudo activar: ' + e2.message);
     form.reset();
     msg('u_msg', 'Usuario creado. Ya puede ingresar con su correo y contraseña.', true);
@@ -737,6 +802,7 @@ async function guardarMatriz() {
 function cargarConfig() {
   if (!colegio) return;
   $('cf_max').value = colegio.max_diario; $('cf_maxm').value = colegio.max_mensual;
+  $('cf_plazo').value = colegio.pqrs_plazo_dias || 15; $('cf_alerta').value = colegio.pqrs_alerta_dias || 3;
   $('cf_mail').value = colegio.correo || ''; $('cf_tel').value = colegio.telefono || '';
   const u = escudoUrl(colegio);
   $('cf_escudo').classList.toggle('hidden', !u);
@@ -744,7 +810,8 @@ function cargarConfig() {
 }
 const escudoUrl = c => (c && c.logo_path) ? db.storage.from('escudos').getPublicUrl(c.logo_path).data.publicUrl : '';
 async function guardarConfig() {
-  const datos = { max_diario: parseInt($('cf_max').value), max_mensual: parseInt($('cf_maxm').value), correo: val('cf_mail') || null, telefono: val('cf_tel') || null };
+  const datos = { max_diario: parseInt($('cf_max').value), max_mensual: parseInt($('cf_maxm').value), correo: val('cf_mail') || null, telefono: val('cf_tel') || null,
+    pqrs_plazo_dias: parseInt($('cf_plazo').value) || 15, pqrs_alerta_dias: Math.max(3, parseInt($('cf_alerta').value) || 3) };
   if (!datos.max_diario || !datos.max_mensual) return msg('cf_msg', 'Digite los dos límites (números mayores a 0).');
   const f = $('cf_file').files[0];
   if (f) {
@@ -772,6 +839,279 @@ async function guardarMarco() {
   const filas = CLAVES_MARCO.map(k => ({ clave: k, texto: $('mn_' + k).value.trim(), actualizado_en: new Date().toISOString() })).filter(f => f.texto);
   const { error } = await db.from('marco_normativo').upsert(filas, { onConflict: 'clave' });
   msg('mn_msg', error ? error.message : 'Marco normativo guardado.', !error);
+}
+
+/* =====================================================================
+   SAU - SISTEMA DE ATENCIÓN AL USUARIO (PQRS)
+   ===================================================================== */
+const TIPOS_PQRS = ['Petición', 'Queja', 'Reclamo', 'Sugerencia', 'Felicitación', 'Denuncia', 'Trámite', 'Otro'];
+const ESTADO_PUB = { 'Radicada': 'Recibida', 'Asignada': 'En trámite', 'En revisión': 'En trámite', 'Respondida': 'Respondida' };
+const SEM = { verde: ['En plazo', 'dot-verde'], amarillo: ['Por vencer', 'dot-amarillo'], rojo: ['Vencida', 'dot-rojo'], gris: ['Respondida', 'dot-gris'] };
+const semHTML = s => `<span class="dot ${(SEM[s] || SEM.gris)[1]}"></span> <small>${(SEM[s] || SEM.gris)[0]}</small>`;
+const esGestor = () => me && (me.rol === 'rector' || me.es_monitor_sau);
+const conBr = t => esc(t).replace(/\n/g, '<br>');
+let SAU_ROWS = [], RESP = null;
+
+function formPqrsHTML(p, conColegio, volver) {
+  return `
+  <h2 style="font-size:1.05rem;text-align:center">Radicar solicitud</h2>
+  <p class="sub" style="text-align:center">Peticiones, quejas, reclamos, sugerencias, felicitaciones y más.</p>
+  ${conColegio ? `<label>Institución</label><select id="${p}colegio" required></select>` : ''}
+  <label>Tipo de solicitud</label>
+  <select id="${p}tipo" required><option value="">Seleccione…</option>${TIPOS_PQRS.map(t => `<option>${t}</option>`).join('')}</select>
+  <label>Nombre completo</label><input id="${p}nombre" required maxlength="120">
+  <label>Correo electrónico (para responderle)</label><input type="email" id="${p}correo" required maxlength="160">
+  <label>Teléfono (opcional)</label><input type="tel" id="${p}tel" maxlength="30">
+  <label>Asunto</label><input id="${p}asunto" required minlength="5" maxlength="150">
+  <label>Descripción</label>
+  <textarea id="${p}desc" rows="5" required minlength="20" maxlength="4000" placeholder="Cuéntenos con detalle y con respeto (mínimo 20 caracteres)."></textarea>
+  <label>Adjuntos (opcional): hasta 3 archivos PDF, imagen o Word, máx. 5 MB cada uno</label>
+  <input type="file" id="${p}files" multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+  <input id="${p}hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">
+  <label style="display:flex;gap:.5rem;align-items:flex-start;font-weight:600"><input type="checkbox" id="${p}acepta" required style="width:auto;margin-top:.2rem"> <span>Autorizo el tratamiento de mis datos personales para gestionar esta solicitud (Ley 1581 de 2012).</span></label>
+  <button class="btn" id="${p}btn">Radicar solicitud</button>
+  <div id="${p}msg" class="msg"></div>
+  <div id="${p}ok" class="okbox hidden" style="text-align:left"></div>
+  ${volver ? `<button type="button" class="link" onclick="verForm('f-login')">← Volver al inicio de sesión</button>` : ''}`;
+}
+
+function iniciarSau() { $('f-pqrs').innerHTML = formPqrsHTML('q_', true, true); }
+
+function prefillSau() {
+  $('s_nombre').value = `${me.nombres || ''} ${me.apellidos || ''}`.trim();
+  $('s_correo').value = me.correo || '';
+  $('s_tel').value = me.telefono || '';
+}
+
+async function avisoSau(id, forzar) {
+  try {
+    const { data, error } = await db.functions.invoke('sau-avisos', { body: { accion: 'estado', pqrs_id: id, forzar: !!forzar } });
+    if (error) {
+      let m = error.message;
+      try { const j = await error.context.json(); if (j && j.error) m = j.error; } catch (_) {}
+      return { ok: false, error: traducir(m) };
+    }
+    return data || { ok: false, error: 'Sin respuesta del servidor de correos.' };
+  } catch (e) { return { ok: false, error: traducir(e.message) }; }
+}
+function textoSau(a) {
+  if (!a) return '';
+  if (a.yaEnviado) return 'El aviso ya se había enviado.';
+  let t = (a.para && a.para.length) ? 'Avisos por correo enviados a: ' + a.para.join(', ') + '.' : '';
+  if (a.fallos && a.fallos.length) t += ' No se pudo enviar a: ' + a.fallos.join(' | ');
+  return t;
+}
+
+/* ---------- Radicar (pantalla pública y dentro de GIE) ---------- */
+async function radicarPqrs(e, pref) {
+  e.preventDefault();
+  const form = e.target, g = k => $(pref + k), btn = g('btn');
+  if (g('hp').value) return;                                  // trampa para robots
+  btn.disabled = true; g('ok').classList.add('hidden'); msg(pref + 'msg', 'Revisando su mensaje…', true);
+  try {
+    const files = [...(g('files').files || [])];
+    if (files.length > 3) throw new Error('Puede adjuntar máximo 3 archivos.');
+    for (const f of files) if (f.size > 5 * 1024 * 1024) throw new Error(`"${f.name}" pesa más de 5 MB.`);
+
+    // Revisión de lenguaje: si hay palabras obscenas NO se permite el envío
+    const chk = await db.rpc('revisar_texto', { p_texto: [g('nombre').value, g('asunto').value, g('desc').value].join(' ') });
+    if (chk.data && chk.data.ok === false)
+      throw new Error(`Su mensaje contiene lenguaje inapropiado ("${chk.data.palabras.join('", "')}"). Por favor reescríbalo con respeto para poder radicarlo.`);
+
+    const { data, error } = await db.rpc('radicar_pqrs', {
+      p_colegio: g('colegio') ? g('colegio').value : me.colegio_id,
+      p_tipo: g('tipo').value, p_asunto: g('asunto').value.trim(), p_descripcion: g('desc').value.trim(),
+      p_nombre: g('nombre').value.trim(), p_correo: g('correo').value.trim(),
+      p_telefono: g('tel').value.trim() || null, p_acepta: g('acepta').checked
+    });
+    if (error) throw new Error(error.message);
+
+    const fallidos = []; let n = 0;
+    for (const f of files) {
+      const limpio = f.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9._-]/g, '_').slice(-60);
+      const up = await db.storage.from('pqrs-adjuntos').upload(`${data.id}/${++n}-${limpio}`, f, { contentType: f.type || undefined });
+      if (up.error) fallidos.push(f.name);
+    }
+    const r = await avisoSau(data.id);
+    const correo = g('correo').value.trim();
+    g('ok').innerHTML = `<b>Solicitud radicada.</b><br>Su número de radicado es <b style="font-size:1.1rem">${esc(data.radicado)}</b>. Guárdelo: con él y su correo puede consultar el estado.<br><small>${r && r.ok ? 'Le enviamos la confirmación a ' + esc(correo) + '.' : 'La solicitud quedó radicada, pero no se pudo enviar la confirmación por correo.'}${fallidos.length ? '<br>No se pudieron subir estos adjuntos: ' + esc(fallidos.join(', ')) : ''}</small>`;
+    g('ok').classList.remove('hidden');
+    msg(pref + 'msg', '');
+    form.reset();
+    if (pref === 's_') { prefillSau(); loadMisPqrs(); }
+  } catch (err) { msg(pref + 'msg', err.message); }
+  finally { btn.disabled = false; }
+}
+
+/* ---------- Consulta pública ---------- */
+async function consultaPqrs(e) {
+  e.preventDefault();
+  $('k_res').classList.add('hidden'); msg('k_msg', 'Consultando…', true);
+  const { data, error } = await db.rpc('consultar_pqrs', { p_colegio: $('k_colegio').value, p_radicado: $('k_rad').value, p_correo: $('k_correo').value });
+  if (error) return msg('k_msg', error.message);
+  if (!data) return msg('k_msg', 'No encontramos una solicitud con ese radicado y ese correo. Revise los datos.');
+  msg('k_msg', '');
+  $('k_res').innerHTML = `<b>${esc(data.radicado)}</b> · ${esc(data.tipo)}<br>${esc(data.asunto)}<br>
+    <b>Estado:</b> ${esc(ESTADO_PUB[data.estado] || data.estado)}<br>
+    <b>Radicada:</b> ${esc(fLarga(data.creado_en))} · <b>Fecha límite de respuesta:</b> ${esc(fLarga(data.fecha_vencimiento))}
+    ${data.respuesta_final ? `<div style="border-left:4px solid #4f46e5;background:#f8fafc;padding:.6rem .8rem;margin-top:.6rem"><b>Respuesta:</b><br>${conBr(data.respuesta_final)}</div>` : ''}`;
+  $('k_res').classList.remove('hidden');
+}
+
+/* ---------- Dentro de GIE ---------- */
+async function initSau() {
+  if (!$('s-form').dataset.listo) { $('s-form').innerHTML = formPqrsHTML('s_', false, false); $('s-form').dataset.listo = '1'; }
+  prefillSau(); RESP = null;
+  $('rp_card').classList.toggle('hidden', me.rol !== 'rector');
+  if (!$('rp_d').value) { const h = new Date(); $('rp_h').value = h.toISOString().slice(0, 10); $('rp_d').value = h.getFullYear() + '-01-01'; }
+  $('g_det').classList.add('hidden');
+  await Promise.all([loadMisPqrs(), loadGestion()]);
+}
+
+async function loadMisPqrs() {
+  const { data } = await db.from('pqrs_mias').select('*').order('creado_en', { ascending: false });
+  $('s_hist').innerHTML = (data || []).map(x => `<tr><td><b>${esc(x.radicado)}</b><br><small>${esc(x.tipo)}</small></td><td>${esc(x.asunto)}</td>
+    <td>${esc(ESTADO_PUB[x.estado] || x.estado)}</td><td>${esc(x.fecha_vencimiento)}</td>
+    <td>${x.respuesta_final ? `<details><summary>Ver respuesta</summary><div style="margin-top:.4rem">${conBr(x.respuesta_final)}</div></details>` : '—'}</td></tr>`).join('')
+    || '<tr><td colspan="5">Aún no ha radicado solicitudes con su cuenta.</td></tr>';
+}
+
+async function loadGestion() {
+  let q = db.from('pqrs_vista').select('*').order('fecha_vencimiento', { ascending: true });
+  if (!esGestor()) q = q.eq('asignado_a', me.id);
+  const { data, error } = await q;
+  if (error) msg('g_msg', error.message);
+  SAU_ROWS = data || [];
+  $('g_card').classList.toggle('hidden', !esGestor() && !SAU_ROWS.length);
+  renderGestion();
+}
+const venceTxt = x => x.estado === 'Respondida' ? '' : (x.semaforo === 'rojo' ? 'vencida' : (x.dias_restantes === 0 ? 'vence hoy' : `${x.dias_restantes} día(s) hábil(es)`));
+function renderGestion() {
+  const f = $('g_filtro').value;
+  const rows = SAU_ROWS.filter(x => f === 'todas' || (f === 'abiertas' && x.estado !== 'Respondida') || (f === 'sin' && x.estado === 'Radicada')
+    || (f === 'venc' && ['rojo', 'amarillo'].includes(x.semaforo)) || (f === 'resp' && x.estado === 'Respondida'));
+  $('g_body').innerHTML = rows.map(x => `<tr><td>${semHTML(x.semaforo)}</td>
+    <td><b>${esc(x.radicado)}</b><br><small>${esc(x.tipo)}</small></td>
+    <td>${esc(x.asunto)}<br><small>${esc(x.nombre)} · ${esc(x.correo)}</small></td>
+    <td>${esc(x.estado)}</td>
+    <td>${x.asignado_nombre ? esc(x.asignado_nombre) + '<br><small>' + esc(x.asignado_cargo || '') + '</small>' : '<span class="tag t-no">Sin asignar</span>'}</td>
+    <td>${esc(x.fecha_vencimiento)}<br><small>${venceTxt(x)}</small></td>
+    <td><button class="btn sm" onclick="abrirPqrs('${x.id}')">Gestionar</button></td></tr>`).join('')
+    || '<tr><td colspan="7">No hay solicitudes en esta vista.</td></tr>';
+}
+
+async function abrirPqrs(id) {
+  const p = SAU_ROWS.find(x => x.id === id); if (!p) return;
+  const gestor = esGestor(), mio = p.asignado_a === me.id;
+  if (gestor && !RESP) { const r = await db.rpc('responsables_sau'); RESP = r.data || []; }
+  const [h, ad] = await Promise.all([
+    db.from('pqrs_historial').select('*').eq('pqrs_id', id).order('fecha'),
+    db.storage.from('pqrs-adjuntos').list(id)
+  ]);
+  const adj = (ad.data || []).filter(a => a.name && !a.name.startsWith('.'));
+  let acc = '';
+  if (gestor && p.estado !== 'Respondida') {
+    acc += `<h3 class="sec">Asignar a un responsable</h3>
+      <div class="g2"><div><label>Responsable</label><select id="d_resp"><option value="">Seleccione…</option>${(RESP || []).map(r => `<option value="${esc(r.id)}" ${r.id === p.asignado_a ? 'selected' : ''}>${esc(r.nombre)} — ${esc(r.cargo)}</option>`).join('')}</select></div>
+      <div><label>Plazo de respuesta (días hábiles)</label><input type="number" id="d_plazo" min="1" max="60" value="${esc(p.plazo_dias)}"></div></div>
+      <button class="btn sm" style="margin-top:.6rem" onclick="accionPqrs('asignar','${id}')">${p.asignado_a ? 'Reasignar' : 'Asignar'}</button>`;
+  }
+  if (mio && p.estado === 'Asignada') {
+    acc += `<h3 class="sec">Su respuesta</h3>${p.nota_monitor ? `<p class="d"><b>El monitor la devolvió:</b> ${conBr(p.nota_monitor)}</p>` : ''}
+      <textarea id="d_resp_resp" rows="5" placeholder="Escriba la respuesta que se enviará al monitor para revisión.">${esc(p.respuesta_responsable || '')}</textarea>
+      <button class="btn sm green" style="margin-top:.6rem" onclick="accionPqrs('resolver','${id}')">Enviar al monitor para revisión</button>`;
+  }
+  if (gestor && p.estado !== 'Respondida') {
+    acc += `<h3 class="sec">Respuesta al usuario</h3>
+      <textarea id="d_final" rows="5" placeholder="Texto que recibirá el usuario por correo.">${esc(p.respuesta_responsable || '')}</textarea>
+      <button class="btn sm green" style="margin-top:.6rem" onclick="accionPqrs('responder','${id}')">Enviar respuesta al usuario</button>
+      ${p.estado === 'En revisión' ? `<button class="btn sm gold" style="margin-top:.6rem" onclick="accionPqrs('devolver','${id}')">Devolver al responsable</button>` : ''}
+      <button class="btn sm" style="margin-top:.6rem" onclick="accionPqrs('reenviar','${id}')">Reenviar aviso</button>`;
+  }
+  $('g_det').innerHTML = `<h2>${semHTML(p.semaforo)} &nbsp;${esc(p.radicado)} · ${esc(p.tipo)}</h2>
+    <p class="d">Estado: <b>${esc(p.estado)}</b> · Vence: <b>${esc(p.fecha_vencimiento)}</b> ${venceTxt(p) ? '(' + venceTxt(p) + ')' : ''}</p>
+    <p><b>Solicitante:</b> ${esc(p.nombre)} · ${esc(p.correo)} ${p.telefono ? '· ' + esc(p.telefono) : ''}</p>
+    <p><b>Asunto:</b> ${esc(p.asunto)}</p>
+    <p style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:.8rem 1rem;margin:.6rem 0">${conBr(p.descripcion)}</p>
+    ${adj.length ? `<p><b>Adjuntos:</b> ${adj.map(a => `<button class="btn sm gold" onclick="verAdjunto('${esc(id)}/${esc(a.name)}')">${esc(a.name.replace(/^\d+-/, ''))}</button>`).join('')}</p>` : ''}
+    ${p.respuesta_responsable && p.estado !== 'Respondida' ? `<p><b>Respuesta del responsable:</b><br>${conBr(p.respuesta_responsable)}</p>` : ''}
+    ${p.estado === 'Respondida' ? `<p><b>Respuesta enviada al usuario</b> (${esc(p.respondida_por || '')}):<br>${conBr(p.respuesta_final)}</p>` : ''}
+    ${acc}
+    <h3 class="sec">Historial</h3>
+    <div class="wrap"><table><tbody>${(h.data || []).map(x => `<tr><td style="white-space:nowrap">${esc(new Date(x.fecha).toLocaleString('es-CO', { timeZone: 'America/Bogota' }))}</td><td><b>${esc(x.accion)}</b><br><small>${esc(x.actor || '')} — ${esc(x.detalle || '')}</small></td></tr>`).join('')}</tbody></table></div>
+    <button class="link" onclick="$('g_det').classList.add('hidden')">Cerrar</button>`;
+  $('g_det').classList.remove('hidden');
+  $('g_det').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function verAdjunto(path) {
+  const w = window.open('', '_blank');
+  const { data, error } = await db.storage.from('pqrs-adjuntos').createSignedUrl(path, 300);
+  if (error) { if (w) w.close(); return alert('No se pudo abrir el archivo: ' + traducir(error.message)); }
+  if (w) w.location = data.signedUrl;
+}
+
+async function accionPqrs(acc, id) {
+  try {
+    let r;
+    if (acc === 'asignar') {
+      if (!$('d_resp').value) throw new Error('Seleccione el responsable.');
+      r = await db.rpc('asignar_pqrs', { p_id: id, p_resp: $('d_resp').value, p_plazo: parseInt($('d_plazo').value) || null });
+    } else if (acc === 'resolver') {
+      r = await db.rpc('resolver_pqrs', { p_id: id, p_respuesta: $('d_resp_resp').value });
+    } else if (acc === 'responder') {
+      r = await db.rpc('responder_pqrs', { p_id: id, p_respuesta: $('d_final').value });
+    } else if (acc === 'devolver') {
+      const nota = prompt('Escriba qué debe corregir el responsable:');
+      if (!nota || !nota.trim()) return;
+      r = await db.rpc('devolver_pqrs', { p_id: id, p_nota: nota });
+    } else if (acc === 'reenviar') {
+      const a = await avisoSau(id, true);
+      return msg('g_msg', a.ok ? textoSau(a) : 'No se pudo enviar: ' + a.error, a.ok);
+    }
+    if (r.error) throw new Error(r.error.message);
+    const a = await avisoSau(id);
+    $('g_det').classList.add('hidden');
+    await loadGestion();
+    msg('g_msg', 'Listo. ' + (a.ok ? textoSau(a) : 'El aviso por correo no se pudo enviar: ' + a.error), true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) { msg('g_msg', e.message); }
+}
+
+
+/* ---------- Reporte de eficiencia (rector) ---------- */
+const pct = (a, b) => b ? Math.round(100 * a / b) + '%' : '—';
+const barra = v => { const n = parseInt(v); return isNaN(n) ? '' : `<div style="background:#e2e8f0;border-radius:6px;height:8px;min-width:70px"><div style="width:${n}%;height:8px;border-radius:6px;background:${n >= 85 ? '#22c55e' : n >= 60 ? '#f59e0b' : '#e11d48'}"></div></div>`; };
+let REP_HTML = '';
+async function verReporte() {
+  msg('rp_msg', 'Generando…', true);
+  const d = $('rp_d').value, h = $('rp_h').value;
+  if (!d || !h || d > h) return msg('rp_msg', 'Revise las fechas del período.');
+  const { data, error } = await db.rpc('reporte_sau', { p_desde: d, p_hasta: h });
+  if (error) return msg('rp_msg', error.message);
+  msg('rp_msg', '');
+  const r = data.resumen, cumpl = pct(r.a_tiempo, r.respondidas);
+  const kpi = (t, v) => `<div style="flex:1;min-width:130px;border:1px solid #e2e8f0;border-radius:14px;padding:.8rem;text-align:center"><div style="font-size:1.5rem;font-weight:800">${v}</div><small>${t}</small></div>`;
+  REP_HTML = `<h3 class="sec">Resumen ${esc(fLarga(d))} – ${esc(fLarga(h))}</h3>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
+      ${kpi('Radicadas', r.total)}${kpi('Respondidas', r.respondidas)}${kpi('Abiertas', r.abiertas)}${kpi('Sin asignar', r.sin_asignar)}
+      ${kpi('Vencidas sin responder', r.vencidas_abiertas)}${kpi('Respondidas a tiempo', cumpl)}${kpi('Promedio de respuesta (días hábiles)', r.prom_dias ?? '—')}
+    </div>
+    <p class="d" style="margin-top:.6rem">Respondidas a tiempo: ${r.a_tiempo} · fuera de plazo: ${r.tardias}.</p>
+    <h3 class="sec">Por tipo de solicitud</h3>
+    <div class="wrap"><table><thead><tr><th>Tipo</th><th>Radicadas</th><th>Respondidas</th></tr></thead><tbody>
+      ${data.por_tipo.map(t => `<tr><td>${esc(t.tipo)}</td><td>${t.total}</td><td>${t.respondidas}</td></tr>`).join('') || '<tr><td colspan="3">Sin datos.</td></tr>'}</tbody></table></div>
+    <h3 class="sec">Eficiencia por funcionario</h3>
+    <div class="wrap"><table><thead><tr><th>Funcionario</th><th>Asignadas</th><th>Resueltas</th><th>A tiempo</th><th>Tardías</th><th>Pendientes</th><th>Vencidas</th><th>Prom. días hábiles</th><th>Cumplimiento</th></tr></thead><tbody>
+      ${data.por_funcionario.map(f => { const c = pct(f.a_tiempo, f.resueltas); return `<tr><td><b>${esc(f.nombre)}</b><br><small>${esc(f.cargo || '')}</small></td><td>${f.asignadas}</td><td>${f.resueltas}</td><td>${f.a_tiempo}</td><td>${f.tardias}</td><td>${f.pendientes}</td><td>${f.vencidas}</td><td>${f.prom_dias ?? '—'}</td><td>${c}${barra(c)}</td></tr>`; }).join('') || '<tr><td colspan="9">Sin solicitudes asignadas en el período.</td></tr>'}</tbody></table></div>
+    <p class="d" style="margin-top:.6rem"><small>Cumplimiento = solicitudes resueltas dentro del plazo / solicitudes resueltas. Pendientes y vencidas aún no cuentan en el cumplimiento.</small></p>
+    <button class="btn sm gold" onclick="imprimirReporte()">Imprimir / guardar PDF</button>`;
+  $('rp_out').innerHTML = REP_HTML;
+}
+function imprimirReporte() {
+  const w = window.open('', '_blank');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Reporte SAU</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:24px;font-size:13px}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;padding:6px;text-align:left}h3{margin-top:18px}button{display:none}</style></head><body><h2>${esc(colegio ? colegio.nombre : '')} — Reporte de eficiencia del SAU</h2>${REP_HTML}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 400);
 }
 
 /* ---------- RESOLUCIÓN (imprimible / PDF) ---------- */
@@ -852,6 +1192,7 @@ ${articulos}
 }
 
 /* ---------- INICIO ---------- */
+iniciarSau();
 loadSchools();
 if (RECUPERANDO) verForm('f-newpass');
 db.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') { RECUPERANDO = true; verForm('f-newpass'); } });

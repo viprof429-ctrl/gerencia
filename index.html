@@ -349,8 +349,10 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
             <div><label>Rol</label><select id="u_rol"><option value="coordinador">Coordinador</option><option value="docente">Docente</option><option value="administrativo">Administrativo</option></select></div>
             <div><label>Jornada (obligatoria para coordinadores y docentes)</label><select id="u_jor"><option value="">No aplica</option><option>Mañana</option><option>Tarde</option></select></div>
             <div><label>Régimen (obligatorio para docentes)</label><select id="u_reg"><option value="">No aplica</option><option value="2277">Decreto 2277 de 1979</option><option value="1278">Decreto 1278 de 2002</option></select></div>
-            <div><label>Cargo (ej.: Tesorero, Secretaria, Coordinador de convivencia)</label><input id="u_cargo" list="dl_cargos" maxlength="60">
-              <datalist id="dl_cargos"><option>Coordinador académico</option><option>Coordinador de convivencia</option><option>Docente</option><option>Tesorero(a)</option><option>Secretario(a)</option><option>Orientador(a)</option><option>Bibliotecario(a)</option><option>Auxiliar administrativo</option><option>Servicios generales</option></datalist></div>
+            <div><label>Cargo</label>
+              <select id="u_cargo_sel" onchange="cargoSel()"><option value="">Sin cargo específico</option></select>
+              <input id="u_cargo" class="hidden" maxlength="60" placeholder="Escriba el nuevo cargo" style="margin-top:.5rem"></div>
+              <datalist id="dl_cargos"><option>Coordinador académico</option><option>Coordinador de convivencia</option><option>Docente</option><option>Tesorero(a)</option><option>Secretario(a)</option><option>Orientador(a)</option><option>Bibliotecario(a)</option><option>Auxiliar administrativo</option><option>Servicios generales</option></datalist>
             <div><label>Contraseña inicial</label><input id="u_pass" required minlength="6" autocomplete="off" placeholder="Mínimo 6 caracteres"></div>
           </div>
           <button class="btn" id="u_btn">Crear usuario</button>
@@ -851,9 +853,20 @@ const JORNADAS = [['','—'],['Mañana','Mañana'],['Tarde','Tarde']];
 const opts = (list, cur) => list.map(([v, t]) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${t}</option>`).join('');
 
 const REGIMENES = [['','—'],['2277','Decreto 2277/1979'],['1278','Decreto 1278/2002']];
+const CARGOS_BASE = ['Coordinador académico', 'Coordinador de convivencia', 'Docente', 'Tesorero(a)', 'Secretario(a)', 'Orientador(a)', 'Bibliotecario(a)', 'Auxiliar administrativo', 'Servicios generales'];
+function cargoSel() { const o = $('u_cargo_sel').value === '__otro'; $('u_cargo').classList.toggle('hidden', !o); if (o) $('u_cargo').focus(); else $('u_cargo').value = ''; }
+const cargoElegido = () => $('u_cargo_sel').value === '__otro' ? val('u_cargo') : $('u_cargo_sel').value;
+function actualizarCargos(usados) {
+  const todos = [...new Set([...CARGOS_BASE, ...usados.filter(Boolean)])].sort((a, b) => a.localeCompare(b));
+  const cur = $('u_cargo_sel').value;
+  $('u_cargo_sel').innerHTML = '<option value="">Sin cargo específico</option>' + todos.map(c => `<option>${esc(c)}</option>`).join('') + '<option value="__otro">➕ Otro (escribir un cargo nuevo)…</option>';
+  $('u_cargo_sel').value = cur;
+  $('dl_cargos').innerHTML = todos.map(c => `<option>${esc(c)}</option>`).join('');
+}
 async function loadUsuarios() {
   loadMatriz(); cargarConfig();
   const { data } = await db.from('perfiles').select('id,nombres,apellidos,correo,telefono,rol,jornada,regimen,cargo,es_monitor_sau,mant_rol,activo').order('creado_en', { ascending: false });
+  actualizarCargos((data || []).map(x => x.cargo));
   $('u_body').innerHTML = (data || []).map(x => {
     const fijo = x.id === me.id || x.rol === 'rector';
     return `<tr><td>${esc(x.nombres)} ${esc(x.apellidos)}</td><td style="word-break:break-all">${esc(x.correo || '—')}</td><td>${esc(x.telefono || '')}</td>
@@ -881,6 +894,8 @@ async function crearUsuario(e) {
     if (['docente','coordinador'].includes(rol) && !jor) throw new Error('Seleccione la jornada.');
     const reg = $('u_reg').value || null;
     if (rol === 'docente' && !reg) throw new Error('Seleccione el régimen del docente.');
+    const cargo = cargoElegido();
+    if ($('u_cargo_sel').value === '__otro' && !cargo) throw new Error('Escriba el nombre del cargo.');
     const aux = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'gie-aux' } });
     const { data, error } = await aux.auth.signUp({
       email: val('u_mail'), password: $('u_pass').value,
@@ -888,9 +903,9 @@ async function crearUsuario(e) {
     });
     if (error) throw new Error(/already/i.test(error.message) ? 'Ese correo ya está registrado.' : error.message);
     if (!data.user) throw new Error('No se pudo crear el usuario.');
-    const { error: e2 } = await db.from('perfiles').update({ rol, activo: true, cargo: val('u_cargo') || null }).eq('id', data.user.id);
+    const { error: e2 } = await db.from('perfiles').update({ rol, activo: true, cargo: cargo || null }).eq('id', data.user.id);
     if (e2) throw new Error('Usuario creado, pero no se pudo activar: ' + e2.message);
-    form.reset();
+    form.reset(); cargoSel();
     msg('u_msg', 'Usuario creado. Ya puede ingresar con su correo y contraseña.', true);
     loadUsuarios();
   } catch (err) { msg('u_msg', err.message); }
@@ -1275,6 +1290,9 @@ const CATS_MANT = ['Eléctrico', 'Hidráulico', 'Locativo', 'Mobiliario', 'Tecno
 const ESTADO_MANT = { 'Reportado': 'Por atender', 'En proceso': 'En proceso', 'Solucionado': 'Solucionado' };
 const esGestorMant = () => me && (me.rol === 'rector' || !!me.mant_rol);
 const semMant = s => `<span class="dot ${(SEM[s] || SEM.gris)[1]}"></span> <small>${s === 'gris' ? 'Solucionado' : (SEM[s] || SEM.gris)[0]}</small>`;
+const miles = n => (n === null || n === undefined || n === '') ? '' : String(Math.round(Number(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const fmtMoneda = el => { el.value = el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+const numMoneda = id => { const v = $(id).value.replace(/\./g, ''); return v === '' ? null : Number(v); };
 const pesos = n => (n === null || n === undefined || n === '') ? '—' : '$' + Number(n).toLocaleString('es-CO');
 const limTxt = x => x.estado === 'Solucionado' ? '' : (x.semaforo === 'rojo' ? 'vencido' : (x.dias_restantes === 0 ? 'vence hoy' : `${x.dias_restantes} día(s) hábil(es)`));
 const limEtq = e => e === 'Reportado' ? 'Atender antes del' : 'Solución prevista';
@@ -1386,7 +1404,7 @@ async function reportarMant(e) {
       if (up.error) fallidas.push(n);
     }
     const r = await avisoMant(data.id);
-    $('m_ok').innerHTML = `<b>Reporte enviado.</b><br>Su número es <b style="font-size:1.1rem">${esc(data.radicado)}</b>. El jefe de mantenimiento lo atenderá y le avisaremos por correo.<br><small>${r.ok ? '' : 'El reporte quedó registrado, pero el aviso por correo no se pudo enviar.'}${fallidas.length ? ' No se pudieron subir ' + fallidas.length + ' foto(s).' : ''}</small>`;
+    $('m_ok').innerHTML = `<b>Reporte enviado.</b><br>Su número es <b style="font-size:1.1rem">${esc(data.radicado)}</b>. El jefe de mantenimiento lo atenderá y le avisaremos por correo.<br><small>${r.ok ? esc(textoSau(r)) : 'El reporte quedó registrado, pero el aviso por correo no se pudo enviar: ' + esc(r.error || '')}${fallidas.length ? ' No se pudieron subir ' + fallidas.length + ' foto(s).' : ''}</small>`;
     $('m_ok').classList.remove('hidden'); msg('m_msg', '');
     $('mn_form').reset(); FOTOS.m_fotos = []; pintarFotos('m_fotos');
     loadMisMant();
@@ -1448,13 +1466,13 @@ async function abrirMant(id) {
       <label>Respuesta para el solicitante (qué se hará)</label>
       <textarea id="dm_resp" rows="3" placeholder="Ej.: Se programó al electricista para revisar el tablero.">${esc(x.respuesta_jefe || '')}</textarea>
       <div class="g2"><div><label>Fecha en que quedará solucionado</label><input type="date" id="dm_fecha" min="${new Date().toISOString().slice(0, 10)}" value="${esc(x.fecha_compromiso || '')}"></div>
-      <div><label>Costo estimado (opcional, en pesos)</label><input type="number" id="dm_costo" min="0" step="1000" value="${esc(x.costo_estimado ?? '')}"></div></div>
+      <div><label>Costo estimado (opcional, en pesos)</label><input id="dm_costo" inputmode="numeric" autocomplete="off" placeholder="Ej.: 180.000" oninput="fmtMoneda(this)" value="${miles(x.costo_estimado)}"></div></div>
       <button class="btn sm green" style="margin-top:.6rem" onclick="accionMant('atender','${id}')">${x.estado === 'Reportado' ? 'Registrar: en proceso' : 'Guardar plan'}</button>`;
   }
   if (x.estado === 'En proceso') {
     acc += `<h3 class="sec">Cerrar el caso</h3>
       <label>Qué se hizo</label><textarea id="dm_nota" rows="3" placeholder="Describa brevemente la solución."></textarea>
-      <label>Costo real (opcional, en pesos)</label><input type="number" id="dm_costor" min="0" step="1000" value="${esc(x.costo_estimado ?? '')}">
+      <label>Costo real (opcional, en pesos)</label><input id="dm_costor" inputmode="numeric" autocomplete="off" placeholder="Ej.: 180.000" oninput="fmtMoneda(this)" value="${miles(x.costo_estimado)}">
       <label>Fotos del arreglo terminado (opcional, hasta 3)</label>${botonesFoto('s_fotos', 's_')}
       <button class="btn sm green" style="margin-top:.6rem" onclick="accionMant('solucionar','${id}')">Marcar como solucionado</button>`;
   }
@@ -1484,9 +1502,9 @@ async function accionMant(acc, id) {
     }
     let r;
     if (acc === 'atender') {
-      r = await db.rpc('atender_mant', { p_id: id, p_respuesta: $('dm_resp').value, p_fecha: $('dm_fecha').value || null, p_costo: $('dm_costo').value === '' ? null : Number($('dm_costo').value) });
+      r = await db.rpc('atender_mant', { p_id: id, p_respuesta: $('dm_resp').value, p_fecha: $('dm_fecha').value || null, p_costo: numMoneda('dm_costo') });
     } else {
-      r = await db.rpc('solucionar_mant', { p_id: id, p_nota: $('dm_nota').value, p_costo_real: $('dm_costor').value === '' ? null : Number($('dm_costor').value) });
+      r = await db.rpc('solucionar_mant', { p_id: id, p_nota: $('dm_nota').value, p_costo_real: numMoneda('dm_costor') });
     }
     if (r.error) throw new Error(r.error.message);
     let fallidas = 0;

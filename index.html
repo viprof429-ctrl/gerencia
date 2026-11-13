@@ -63,6 +63,12 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
 .fin-form{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:1rem 1.2rem;margin:.8rem 0}
 .fin-sub{background:#fff;border:1px dashed #94a3b8;border-radius:12px;padding:.6rem 1rem;margin:.5rem 0}
 .fin-tot{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}
+.gmodal{position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow:auto}
+.gmodal-box{background:#fff;border-radius:16px;max-width:1100px;width:100%;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);margin:auto}
+.gmodal-bar{display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.8rem 1.1rem;border-bottom:1px solid #e2e8f0;position:sticky;top:0;background:#fff;border-radius:16px 16px 0 0;z-index:2}
+.gmodal-body{padding:1.2rem 1.4rem;overflow-x:auto}
+.rt{margin-top:.2rem}.rt th,.rt td{border-bottom:1px solid #e2e8f0;padding:.4rem .55rem;font-size:.82rem}.rt tr.tb td{font-weight:800;background:#f8fafc}
+.rt-h{font-size:.92rem;margin:1rem 0 .2rem;color:#1e1b4b}
 @media(max-width:640px){.g2{grid-template-columns:1fr}}
 </style>
 </head>
@@ -332,6 +338,24 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       </div>
     </section>
 
+    <section id="v-con" class="hidden">
+      <div class="card">
+        <h2>Contabilidad</h2>
+        <p class="d">Los movimientos de Finanzas se contabilizan solos (partida doble). Aquí están el plan de cuentas, los asientos manuales, los libros y los informes.</p>
+        <div class="fin-tabs" id="con_tabs"></div>
+        <div id="con_pane"></div>
+      </div>
+    </section>
+
+    <section id="v-inv" class="hidden">
+      <div class="card">
+        <h2>Inventario del comedor escolar</h2>
+        <p class="d">Productos con su hoja de vida, entradas y salidas de mercancía. Solo se llevan cantidades.</p>
+        <div class="fin-tabs" id="inv_tabs"></div>
+        <div id="inv_pane"></div>
+      </div>
+    </section>
+
     <section id="v-usuarios" class="hidden">
       <div class="card">
         <h2>Configuración del colegio</h2>
@@ -460,7 +484,7 @@ async function nuevaClave(e) {
   verForm('f-login');
   msg('l_msg', 'Contraseña actualizada. Ya puede ingresar con la nueva.', true);
 }
-const VIEWS = ['home','magister','permisos','bandeja','sau','mant','fin','usuarios'];
+const VIEWS = ['home','magister','permisos','bandeja','sau','mant','fin','con','inv','usuarios'];
 function showView(v) { VIEWS.forEach(x => $('v-' + x).classList.toggle('hidden', x !== v)); $('btn-home').classList.toggle('hidden', v === 'home' || v === 'magister'); }
 
 async function loadSchools() {
@@ -680,7 +704,9 @@ const MODS = [
   { k:'permisos', t:'Control de Permisos', i:'📋' },
   { k:'sau', t:'SAU (Atención al Usuario)', i:'🎧' },
   { k:'mantenimiento', t:'Gestión de Mantenimiento', i:'🛠️' },
-  { k:'fin', t:'Finanzas y Contabilidad', i:'💰', fin:true }
+  { k:'fin', t:'Finanzas y Tesorería', i:'💰', fin:true },
+  { k:'con', t:'Contabilidad', i:'📒', fin:true },
+  { k:'inv', t:'Inventario del Comedor', i:'🥦', fin:true }
 ];
 async function cargarAccesos() {
   ACCESOS = {};
@@ -703,12 +729,14 @@ async function goHome() {
   if (esGestorMant()) { const { data } = await db.from('mant_vista').select('estado,semaforo');
     (data || []).forEach(x => { if (x.estado === 'Reportado') mant.sin++; if (x.estado !== 'Solucionado' && x.semaforo === 'amarillo') mant.por++; if (x.estado !== 'Solucionado' && x.semaforo === 'rojo') mant.venc++; }); }
   const cards = [];
-  MODS.filter(m => (m.k === 'fin' ? finAlguno() : puede(m.k)) || (m.k === 'sau' && (esGestor() || sau.mias > 0)) || (m.k === 'mantenimiento' && !!me.mant_rol)).forEach(m => {
+  MODS.filter(m => (m.k === 'fin' ? finTes() : m.k === 'con' ? finPuede('contable') : m.k === 'inv' ? finPuede('inventario') : puede(m.k)) || (m.k === 'sau' && (esGestor() || sau.mias > 0)) || (m.k === 'mantenimiento' && !!me.mant_rol)).forEach(m => {
     if (m.k === 'mantenimiento') {
       const al = esGestorMant() ? [mant.sin && `${mant.sin} por atender`, mant.por && `${mant.por} por vencer`, mant.venc && `${mant.venc} vencido(s)`] : [];
       return cards.push({ t:m.t, i:m.i, go:'mant', d: esGestorMant() ? 'Atienda los reportes de daños, haga seguimiento y consulte estadísticas.' : 'Reporte un daño con fotos y siga el estado del arreglo.', x: al.filter(Boolean).map(a => `<span class="tag t-bad" style="margin:.1rem">${a}</span>`).join('') });
     }
-    if (m.k === 'fin') return cards.push({ t:m.t, i:m.i, go:'fin', d:'Ingresos, egresos, cartera y proveedores del colegio.' });
+    if (m.k === 'fin') return cards.push({ t:m.t, i:m.i, go:'fin', d:'Ingresos, egresos, cartera, proveedores, comprobantes y reportes.' });
+    if (m.k === 'con') return cards.push({ t:m.t, i:m.i, go:'con', d:'Plan de cuentas, asientos, libros, balances y estado de resultados.' });
+    if (m.k === 'inv') return cards.push({ t:m.t, i:m.i, go:'inv', d:'Productos, entradas, salidas, existencias y kardex del comedor escolar.' });
     if (m.k === 'sau') {
       const alertas = esGestor() ? [sau.sin && `${sau.sin} sin asignar`, sau.por && `${sau.por} por vencer`, sau.venc && `${sau.venc} vencida(s)`] : [sau.mias && `${sau.mias} por responder`];
       return cards.push({ t:m.t, i:m.i, go:'sau', d:'Radique y consulte solicitudes' + (esGestor() ? '; asigne y responda las del colegio.' : '.'), x: alertas.filter(Boolean).map(a => `<span class="tag t-bad" style="margin:.1rem">${a}</span>`).join('') });
@@ -729,6 +757,8 @@ function openMod(v) {
   if (v === 'sau') initSau();
   if (v === 'mant') initMant();
   if (v === 'fin') initFin();
+  if (v === 'con') initCon();
+  if (v === 'inv') initInv();
   if (v === 'usuarios') loadUsuarios();
 }
 const ST = { Pendiente:'t-no', Preaprobado:'t-info', Aprobado:'t-ok', Rechazado:'t-bad' };
@@ -1609,22 +1639,107 @@ async function toggleArea(id, activo) {
   await cargarAreas(); cargarConfigMant();
 }
 
+/* ---------- UTILIDADES COMUNES: ventana, reportes (ver → PDF / Excel) y comprobantes ---------- */
+const nf = (n, d) => Number(n || 0).toLocaleString('es-CO', d ? { maximumFractionDigits: d } : undefined);
+const Mo = v => ({ t: (Number(v) < 0 ? '-' : '') + '$' + nf(Math.abs(Number(v) || 0)), v: Math.round(Number(v) || 0) });         // dinero
+const Q = v => ({ t: nf(v, 3), v: Number(v) || 0 });                        // cantidades
+const B = a => Object.assign(a, { b: true });                               // fila en negrita
+async function finTodas(build) {   // trae todas las filas, de 1000 en 1000
+  let out = [], i = 0;
+  for (;;) {
+    const { data, error } = await build().range(i, i + 999);
+    if (error) throw new Error(error.message);
+    out = out.concat(data || []);
+    if (!data || data.length < 1000 || out.length >= 30000) break;
+    i += 1000;
+  }
+  return out;
+}
+function numALetras(n) {
+  n = Math.floor(Number(n) || 0); if (n <= 0) return 'Cero pesos';
+  const U = ['','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte','veintiuno','veintidós','veintitrés','veinticuatro','veinticinco','veintiséis','veintisiete','veintiocho','veintinueve'];
+  const D = ['','','','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'];
+  const C = ['','ciento','doscientos','trescientos','cuatrocientos','quinientos','seiscientos','setecientos','ochocientos','novecientos'];
+  const tres = x => { if (x === 100) return 'cien'; let s = ''; const c = Math.floor(x / 100), r = x % 100; if (c) s += C[c] + ' '; if (r < 30) s += U[r]; else { s += D[Math.floor(r / 10)]; if (r % 10) s += ' y ' + U[r % 10]; } return s.trim(); };
+  const apoc = s => s.replace(/veintiuno$/, 'veintiún').replace(/uno$/, 'un');
+  const txt = x => {
+    if (x < 1000) return tres(x);
+    if (x < 1e6) { const m = Math.floor(x / 1000), r = x % 1000; return (m === 1 ? 'mil' : apoc(tres(m)) + ' mil') + (r ? ' ' + tres(r) : ''); }
+    const mi = Math.floor(x / 1e6), r = x % 1e6;
+    return (mi === 1 ? 'un millón' : apoc(txt(mi)) + ' millones') + (r ? ' ' + txt(r) : '');
+  };
+  const s = apoc(txt(n)) + (n % 1e6 === 0 ? ' de' : '') + (n === 1 ? ' peso' : ' pesos');
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+/* ventana flotante */
+function modalAbrir(titulo, cuerpo, botones) {
+  let m = $('gie_modal');
+  if (!m) { m = document.createElement('div'); m.id = 'gie_modal'; document.body.appendChild(m); }
+  m.className = 'gmodal';
+  m.innerHTML = `<div class="gmodal-box"><div class="gmodal-bar"><b>${esc(titulo)}</b><span>${botones || ''}<button class="btn sm" style="background:#64748b" onclick="modalCerrar()">Cerrar</button></span></div><div class="gmodal-body">${cuerpo}</div></div>`;
+}
+function modalCerrar() { const m = $('gie_modal'); if (m) m.className = 'hidden'; }
+function encabezadoDoc(c) {
+  c = c || {}; const u = escudoUrl(c);
+  return `<div style="display:flex;align-items:center;gap:14px;border-bottom:2px solid #1e1b4b;padding-bottom:10px;margin-bottom:14px">${u ? `<img src="${esc(u)}" style="height:60px;width:60px;object-fit:contain" alt="">` : ''}<div><div style="font-size:17px;font-weight:800">${esc(c.nombre || '')}</div><div style="font-size:12px;color:#475569">${c.nit ? 'NIT ' + esc(c.nit) : ''}${c.direccion ? ' · ' + esc(c.direccion) : ''}${c.telefono ? ' · Tel. ' + esc(c.telefono) : ''}${c.correo ? ' · ' + esc(c.correo) : ''}</div></div></div>`;
+}
+let DOC = null;   // documento que se está viendo: { titulo, cuerpo, secciones }
+const celT = c => (c && typeof c === 'object' && 't' in c) ? c.t : c;
+function tablaHTML(s) {
+  const al = s.aligns || [];
+  const th = s.cols.map((h, i) => `<th style="text-align:${al[i] || 'left'}">${esc(h)}</th>`).join('');
+  const tr = rows => rows.map(r => `<tr${r.b ? ' class="tb"' : ''}>${r.map((c, i) => { const right = (c && typeof c === 'object' && 't' in c) || al[i] === 'right'; return `<td style="text-align:${right ? 'right' : (al[i] || 'left')}">${esc(celT(c) ?? '')}</td>`; }).join('')}</tr>`).join('');
+  return `${s.titulo ? `<h3 class="rt-h">${esc(s.titulo)}</h3>` : ''}<div class="wrap"><table class="rt"><thead><tr>${th}</tr></thead><tbody>${tr(s.rows) || `<tr><td colspan="${s.cols.length}">Sin datos.</td></tr>`}${s.foot ? tr([B(s.foot)]) : ''}</tbody></table></div>`;
+}
+function repMostrar(def) {   // def: { titulo, sub, secciones:[{titulo, cols, aligns, rows, foot}], nota }
+  const cuerpo = `${encabezadoDoc(colegio)}<h2 style="font-size:16px;margin:0">${esc(def.titulo)}</h2><div style="font-size:12px;color:#475569;margin:2px 0 10px">${esc(def.sub || '')} · Generado el ${esc(fLarga(finHoy()))}</div>${def.secciones.map(tablaHTML).join('')}${def.nota ? `<p style="font-size:11.5px;color:#475569;margin-top:10px">${def.nota}</p>` : ''}`;
+  DOC = { titulo: def.titulo, cuerpo, secciones: def.secciones };
+  modalAbrir(def.titulo, cuerpo, `<button class="btn sm" onclick="docImprimir()">🖨 PDF / Imprimir</button><button class="btn sm green" onclick="docExcel()">⬇ Excel</button>`);
+}
+function docMostrar(titulo, cuerpo, enviar) {
+  DOC = { titulo, cuerpo, secciones: null };
+  modalAbrir(titulo, cuerpo, `<button class="btn sm" onclick="docImprimir()">🖨 PDF / Imprimir</button>${enviar ? `<button class="btn sm green" onclick="finCorreo('${enviar}')">✉ Enviar por correo</button>` : ''}`);
+}
+function docImprimir() {
+  if (!DOC) return;
+  const w = window.open('', '_blank'); if (!w) return alert('Permita las ventanas emergentes para imprimir o guardar el PDF.');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(DOC.titulo)}</title><style>@page{size:letter;margin:12mm}body{font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;font-size:12.5px;max-width:900px;margin:0 auto;padding:18px}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #cbd5e1;padding:5px 6px;font-size:11.5px}th{background:#f1f5f9;text-transform:uppercase;font-size:10.5px}.tb td{font-weight:800;background:#f8fafc}.rt-h{font-size:13px;margin:14px 0 4px;color:#1e1b4b}.no-print{display:none}@media print{body{padding:0}}</style></head><body>${DOC.cuerpo}<script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>`);
+  w.document.close();
+}
+function docExcel() {
+  if (!DOC || !DOC.secciones) return;
+  const cel = c => { let v = (c && typeof c === 'object' && 'v' in c) ? c.v : c; v = v == null ? '' : String(v); if (typeof c === 'object' && c && 'v' in c) v = v.replace('.', ','); else if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+  const lineas = [[colegio ? colegio.nombre : ''], [DOC.titulo], []].map(l => l.map(cel).join(';'));
+  DOC.secciones.forEach(s => { if (s.titulo) lineas.push(cel(s.titulo)); lineas.push(s.cols.map(cel).join(';')); s.rows.forEach(r => lineas.push(r.map(cel).join(';'))); if (s.foot) lineas.push(s.foot.map(cel).join(';')); lineas.push(''); });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + lineas.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+  a.download = DOC.titulo.toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi, '-') + '-' + finHoy() + '.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
 /* ---------- FINANZAS (fase 1: terceros, ingresos, egresos, cartera, proveedores) ---------- */
 const FIN_TABS = {
   ingresos:    { t:'Ingresos',    vista:'fin_ingresos_v', kind:'ingreso', pago:true,  cargoVista:'fin_cartera_v', cargoLbl:'cobro',  nuevo:'Nuevo ingreso' },
   egresos:     { t:'Egresos',     vista:'fin_egresos_v',  kind:'egreso',  pago:true,  cargoVista:'fin_deudas_v',  cargoLbl:'cuenta por pagar', nuevo:'Nuevo egreso' },
   cartera:     { t:'Cartera',     vista:'fin_cartera_v',  kind:'cartera', pago:false, nuevo:'Nuevo cobro' },
   proveedores: { t:'Proveedores', vista:'fin_deudas_v',   kind:'deuda',   pago:false, nuevo:'Nueva cuenta por pagar' },
+  consultar:   { t:'Consultar' },
+  reportes:    { t:'Reportes' },
   terceros:    { t:'Terceros' }
 };
-let FIN = { tab:null, ter:[], terMap:{}, rows:[], abiertos:[], editTer:null };
+let FIN = { tab:null, ter:[], terMap:{}, rows:[], abiertos:[], editTer:null, conc:{ ingreso:[], egreso:[] } };
+const FIN_BASE = {   // lista básica; cada colegio agrega los suyos al escribirlos
+  ingreso: ['Matrícula','Pensión','Derechos académicos','Certificados y constancias','Carné estudiantil','Venta de uniformes','Alquiler de tienda escolar','Transferencia de gratuidad (SGP)','Recursos del municipio','Donaciones','Rendimientos financieros','Otros ingresos'],
+  egreso:  ['Servicios públicos','Mantenimiento y reparaciones','Material didáctico','Papelería y útiles de oficina','Aseo y cafetería','Compra de alimentos (comedor escolar)','Honorarios','Dotación','Transporte','Impuestos y retenciones','Seguros','Capacitación','Otros gastos']
+};
+const finTipoConc = () => (['ingreso','cartera'].includes(FIN_TABS[FIN.tab].kind) ? 'ingreso' : 'egreso');
 const finPuede = m => me.rol === 'rector' || (me.fin_modulos || []).includes(m);
+const finTes = () => me.rol === 'rector' || ['ingresos','egresos','cartera','proveedores'].some(m => (me.fin_modulos || []).includes(m));
 const finAlguno = () => me.rol === 'rector' || (me.fin_modulos || []).length > 0;
 const finHoy = () => new Intl.DateTimeFormat('en-CA', { timeZone:'America/Bogota' }).format(new Date());
 const finFecha = s => { if (!s) return ''; const [y,m,d] = String(s).slice(0,10).split('-'); return `${d}/${m}/${y}`; };
 
 async function initFin() {
-  const tabs = Object.keys(FIN_TABS).filter(k => k === 'terceros' ? finAlguno() : finPuede(k));
+  const tabs = Object.keys(FIN_TABS).filter(k => ['terceros','consultar','reportes'].includes(k) ? finTes() : finPuede(k));
   $('fin_tabs').innerHTML = tabs.map(k => `<button type="button" id="fint_${k}" onclick="finTab('${k}')">${FIN_TABS[k].t}</button>`).join('');
   await finCargarTer();
   if (tabs.length) finTab(FIN.tab && tabs.includes(FIN.tab) ? FIN.tab : tabs[0]);
@@ -1633,11 +1748,25 @@ async function initFin() {
 async function finCargarTer() {
   const { data } = await db.from('fin_terceros').select('*').eq('colegio_id', me.colegio_id).order('nombre');
   FIN.ter = data || []; FIN.terMap = {}; FIN.ter.forEach(t => FIN.terMap[t.id] = t);
+  const r = await db.from('fin_conceptos').select('tipo,nombre').eq('colegio_id', me.colegio_id).order('nombre');
+  FIN.conc = { ingreso: [], egreso: [] };
+  (r.data || []).forEach(x => FIN.conc[x.tipo] && FIN.conc[x.tipo].push(x.nombre));
+  ['ingreso','egreso'].forEach(t => { const ya = FIN.conc[t].map(x => x.toLowerCase());
+    FIN_BASE[t].forEach(x => { if (!ya.includes(x.toLowerCase())) FIN.conc[t].push(x); });
+    FIN.conc[t].sort((a, b) => a.localeCompare(b, 'es')); });
+}
+async function finGuardarConcepto(texto) {   // guarda el concepto nuevo para la próxima vez (si ya existe, no hace nada)
+  const t = finTipoConc(), n = (texto || '').trim().replace(/\s+/g, ' ');
+  if (n.length < 3 || /^abono a /i.test(n) || FIN.conc[t].some(x => x.toLowerCase() === n.toLowerCase())) return;
+  const { error } = await db.from('fin_conceptos').insert({ colegio_id: me.colegio_id, tipo: t, nombre: n });
+  if (!error) FIN.conc[t].push(n);
 }
 function finTab(k) {
   FIN.tab = k;
   document.querySelectorAll('#fin_tabs button').forEach(b => b.classList.toggle('on', b.id === 'fint_' + k));
   if (k === 'terceros') return finPaneTerceros();
+  if (k === 'consultar') return finPaneConsultar();
+  if (k === 'reportes') return finPaneReportes();
   const c = FIN_TABS[k], y = finHoy().slice(0, 4);
   $('fin_pane').innerHTML = `
     <div class="bar"><b>${c.t}</b><button class="btn sm green" onclick="finNuevo()">➕ ${c.nuevo}</button></div>
@@ -1653,7 +1782,7 @@ function finTab(k) {
     <div id="fin_msg" class="msg"></div>
     <div id="fin_tot" class="fin-tot"></div>
     <div class="wrap"><table id="fin_tbl"></table></div>
-    <button class="btn sm" style="margin-top:.8rem" onclick="finCSV()">⬇ Descargar para Excel</button>`;
+    <button class="btn sm" style="margin-top:.8rem" onclick="finRepLista()">Ver reporte (PDF / Excel)</button>`;
   finCargar();
 }
 async function finCargar() {
@@ -1665,8 +1794,7 @@ async function finCargar() {
   const { data, error } = await q;
   if (tab !== FIN.tab) return;
   if (error) { msg('fin_msg', error.message); return; }
-  msg('fin_msg', '', true);
-  FIN.rows = data || [];
+  FIN.rows = data || []; finReg(FIN.rows, c.kind);
   finPintar();
 }
 function finFiltradas() {
@@ -1692,8 +1820,8 @@ function finPintar() {
   const stCls = { Vigente:'t-info', Vencida:'t-bad', Pagada:'t-ok', Anulada:'t-no' };
   const body = rows.map(r => {
     const t = T(r), x = r.anulado ? ' style="opacity:.55;text-decoration:line-through"' : '';
-    const acc = r.anulado ? `<span class="tag t-no" title="${esc(r.anulado_motivo || '')}">Anulado</span>` : `<button class="btn sm red" onclick="finAnular('${r.id}')">Anular</button>`;
-    const base = `<td${x}><b>${esc(r.consecutivo)}</b></td><td${x}>${finFecha(r.fecha)}</td>`;
+    const acc = `<button class="btn sm" onclick="finComp('${r.id}')">Comprobante</button>` + (r.anulado ? `<span class="tag t-no" title="${esc(r.anulado_motivo || '')}">Anulado</span>` : `<button class="btn sm red" onclick="finAnular('${r.id}')">Anular</button>`);
+    const base = `<td${x}><b>${esc(r.consecutivo)}</b>${r.saldo_inicial ? '<br><span class="tag t-info">Saldo inicial</span>' : ''}</td><td${x}>${finFecha(r.fecha)}</td>`;
     const ter = `<td${x}>${esc(r.identificacion)}</td><td${x}>${esc(r.tercero_nombre)}</td><td${x}>${esc(t.telefono || '')}</td><td${x}>${esc(t.correo || '')}</td><td${x}>${esc(t.direccion || '')}</td>`;
     if (c.pago) return `<tr>${base}${ter}<td${x}>${esc(r.concepto)}</td><td${x} style="text-align:right">${pesos(r.monto)}</td><td style="text-align:right">${r.saldo == null ? '—' : pesos(r.saldo)}</td><td>${esc((r.cargo_consecutivo) || '—')}</td><td>${acc}</td></tr>`;
     return `<tr>${base}<td${x}>${r.plazo_dias} d</td><td${x}>${finFecha(r.vence)}</td>${ter}<td${x}>${esc(r.concepto)}</td><td${x} style="text-align:right">${pesos(r.monto)}</td><td style="text-align:right">${pesos(r.abonado)}</td><td style="text-align:right"><b>${pesos(r.saldo)}</b></td><td><span class="tag ${stCls[r.estado] || ''}">${esc(r.estado)}${r.dias_vencido > 0 ? ` (${r.dias_vencido} d)` : ''}</span></td><td style="white-space:nowrap">${r.anulado || Number(r.saldo) <= 0 ? '' : `<button class="btn sm green" onclick="finAbonar('${r.id}')">${FIN.tab === 'cartera' ? 'Recibir pago' : 'Pagar'}</button>`}${acc}</td></tr>`;
@@ -1709,19 +1837,6 @@ async function finAnular(id) {
   msg('fin_msg', 'Registro anulado.', true);
   finCargar();
 }
-function finCSV() {
-  const c = FIN_TABS[FIN.tab], rows = finFiltradas(); if (!c || !c.vista) return;
-  const T = r => FIN.terMap[r.tercero_id] || {};
-  const cols = c.pago
-    ? [['Consecutivo',r=>r.consecutivo],['Fecha',r=>r.fecha],['Identificación',r=>r.identificacion],['Tercero',r=>r.tercero_nombre],['Teléfono',r=>T(r).telefono],['Correo',r=>T(r).correo],['Dirección',r=>T(r).direccion],['Concepto',r=>r.concepto],['Monto',r=>r.monto],['Saldo',r=>r.saldo],['Aplicado a',r=>r.cargo_consecutivo],['Anulado',r=>r.anulado ? 'Sí: ' + (r.anulado_motivo || '') : '']]
-    : [['Consecutivo',r=>r.consecutivo],['Fecha inicial',r=>r.fecha],['Plazo (días)',r=>r.plazo_dias],['Vence',r=>r.vence],['Identificación',r=>r.identificacion],['Tercero',r=>r.tercero_nombre],['Teléfono',r=>T(r).telefono],['Correo',r=>T(r).correo],['Dirección',r=>T(r).direccion],['Concepto',r=>r.concepto],['Monto',r=>r.monto],['Abonado',r=>r.abonado],['Saldo',r=>r.saldo],['Estado',r=>r.estado]];
-  const cel = v => { v = v == null ? '' : String(v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
-  const txt = '﻿' + [cols.map(x => cel(x[0])).join(';')].concat(rows.map(r => cols.map(x => cel(x[1](r))).join(';'))).join('\r\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([txt], { type:'text/csv;charset=utf-8' }));
-  a.download = `${c.t.toLowerCase()}-${finHoy()}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-}
-
 /* --- formulario de un movimiento --- */
 function finTerFields(p) {
   return `<div class="g2"><div><label>Tipo de documento</label><select id="${p}_td">${['CC','NIT','CE','TI','PAS','OTRO'].map(x => `<option>${x}</option>`).join('')}</select></div>
@@ -1740,17 +1855,21 @@ function finNuevo(cargoId) {
     <div id="fm_info" class="d" style="font-size:.8rem;margin:.3rem 0"></div>
     <button type="button" class="link" style="margin-top:0" onclick="$('fm_tnew').classList.toggle('hidden')">➕ ¿No está? Crear tercero nuevo</button>
     <div id="fm_tnew" class="hidden fin-sub">${finTerFields('fn')}<button type="button" class="btn sm green" style="margin-top:.8rem" onclick="finGuardarTerNuevo()">Guardar tercero</button><div id="fn_msg" class="msg"></div></div>
-    ${c.pago ? `<label>¿A qué ${c.cargoLbl} corresponde?</label><select id="fm_cargo" onchange="finCargoElegido()"><option value="">Sin ${c.cargoLbl} asociado (${c.kind} libre)</option></select>` : ''}
+    ${c.pago ? `<label>¿A qué ${c.cargoLbl} corresponde?</label><select id="fm_cargo" onchange="finCargoElegido()"><option value="">Sin ${c.cargoLbl} asociado (${c.kind} libre)</option>${finPuede(finModCargo()) ? `<option value="__nuevo">➕ Crear ${c.cargoLbl === 'cobro' ? 'un cobro nuevo' : 'una cuenta por pagar nueva'} para este tercero</option>` : ''}</select>
+    <div id="fm_nuevo" class="hidden fin-sub"><div class="g2"><div><label>Valor total del ${c.cargoLbl}</label><input type="number" id="fm_total" min="1" step="1" inputmode="numeric"></div><div><label>Plazo (días)</label><input type="number" id="fm_plazo2" value="30" min="0" max="3650"></div></div><p class="d" style="font-size:.8rem;margin:.3rem 0 0">Se crea el ${c.cargoLbl} en ${c.kind === 'ingreso' ? 'Cartera' : 'Proveedores'} y este pago queda como su primer abono. Lo que falte queda como saldo.</p></div>` : ''}
     <div class="g2">
       <div><label>${c.pago ? 'Fecha' : 'Fecha inicial'}</label><input type="date" id="fm_fecha" value="${finHoy()}" ${c.pago ? `max="${finHoy()}"` : ''}></div>
-      ${c.pago ? '' : '<div><label>Plazo (días)</label><input type="number" id="fm_plazo" value="30" min="0" max="3650"></div>'}
+      ${c.pago ? '<div><label>Medio de pago</label><select id="fm_medio"><option value="banco">Banco / transferencia</option><option value="efectivo">Efectivo</option></select></div>' : '<div><label>Plazo (días)</label><input type="number" id="fm_plazo" value="30" min="0" max="3650"></div>'}
     </div>
-    <label>Concepto</label><input id="fm_con" maxlength="300">
-    <label>Monto (pesos)</label><input type="number" id="fm_monto" min="1" step="1" inputmode="numeric">
+    ${c.pago ? '' : `<label style="display:flex;gap:.5rem;align-items:center;margin-top:.6rem"><input type="checkbox" id="fm_si" style="width:auto" onchange="finSaldoIni()"> Es un saldo inicial (lo que ya se ${FIN.tab === 'cartera' ? 'les debía al colegio' : 'debía a este proveedor'} antes de usar GIE)</label>`}
+    <label>Concepto</label><input id="fm_con" maxlength="300" list="fin_dlc" placeholder="Elija uno de la lista o escriba uno nuevo" autocomplete="off">
+    <datalist id="fin_dlc">${FIN.conc[finTipoConc()].map(x => `<option value="${esc(x)}"></option>`).join('')}</datalist>
+    <label id="fm_montolbl">Monto (pesos)</label><input type="number" id="fm_monto" min="1" step="1" inputmode="numeric">
     <div style="margin-top:.4rem"><button class="btn green sm" id="fm_btn" onclick="finGuardar()">Guardar</button> <button class="btn sm" style="background:#64748b" onclick="$('fin_form').classList.add('hidden')">Cancelar</button></div>
     <div id="fm_msg" class="msg"></div>`;
   f.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
+const finModCargo = () => (FIN.tab === 'ingresos' ? 'cartera' : 'proveedores');
 function finTerSel() {
   const v = ($('fm_ter') || {}).value || '';
   const idn = v.split(' — ')[0].trim().replace(/[\s.]/g, '');
@@ -1760,13 +1879,19 @@ async function finTerElegido() {
   const t = finTerSel();
   $('fm_info').textContent = t ? [t.telefono, t.correo, t.direccion].filter(Boolean).join(' · ') || 'Sin más datos de contacto.' : '';
   const c = FIN_TABS[FIN.tab]; if (!c.pago || !$('fm_cargo')) return;
-  const sel = $('fm_cargo'); sel.innerHTML = `<option value="">Sin ${c.cargoLbl} asociado (${c.kind} libre)</option>`; FIN.abiertos = [];
+  const sel = $('fm_cargo'); FIN.abiertos = [];
+  const base = `<option value="">Sin ${c.cargoLbl} asociado (${c.kind} libre)</option>` + (finPuede(finModCargo()) ? `<option value="__nuevo">➕ Crear ${c.cargoLbl === 'cobro' ? 'un cobro nuevo' : 'una cuenta por pagar nueva'} para este tercero</option>` : '');
+  sel.innerHTML = base; finCargoElegido();
   if (!t) return;
   const { data } = await db.from(c.cargoVista).select('id,consecutivo,concepto,saldo,vence,estado').eq('colegio_id', me.colegio_id).eq('tercero_id', t.id).eq('anulado', false).gt('saldo', 0).order('fecha');
   FIN.abiertos = data || [];
-  sel.innerHTML += FIN.abiertos.map(k => `<option value="${k.id}">${esc(k.consecutivo)} · ${esc(k.concepto)} · debe ${pesos(k.saldo)}${k.estado === 'Vencida' ? ' (vencido)' : ''}</option>`).join('');
+  sel.innerHTML = base + FIN.abiertos.map(k => `<option value="${k.id}">${esc(k.consecutivo)} · ${esc(k.concepto)} · debe ${pesos(k.saldo)}${k.estado === 'Vencida' ? ' (vencido)' : ''}</option>`).join('');
 }
 function finCargoElegido() {
+  const nuevo = $('fm_cargo').value === '__nuevo';
+  $('fm_nuevo').classList.toggle('hidden', !nuevo);
+  $('fm_montolbl').textContent = nuevo ? 'Monto que paga ahora (pesos)' : 'Monto (pesos)';
+  if (nuevo) return;
   const k = FIN.abiertos.find(x => x.id === $('fm_cargo').value); if (!k) return;
   $('fm_monto').value = k.saldo;
   if (!$('fm_con').value.trim()) $('fm_con').value = 'Abono a ' + k.consecutivo + ' — ' + k.concepto;
@@ -1777,14 +1902,19 @@ async function finGuardar() {
   const monto = Number($('fm_monto').value);
   if (!Number.isInteger(monto) || monto <= 0) return msg('fm_msg', 'Escriba el monto en pesos enteros, mayor que cero.');
   if ($('fm_con').value.trim().length < 3) return msg('fm_msg', 'Escriba el concepto.');
+  const nuevo = c.pago && $('fm_cargo').value === '__nuevo', total = nuevo ? Number($('fm_total').value) : 0;
+  if (nuevo && (!Number.isInteger(total) || total < monto)) return msg('fm_msg', 'Escriba el valor total (en pesos enteros); no puede ser menor que lo que paga ahora.');
   btn.disabled = true; msg('fm_msg', 'Guardando…', true);
-  const r = c.pago
-    ? await db.rpc('fin_pago_crear', { p_tipo: c.kind, p_fecha: $('fm_fecha').value, p_tercero: t.id, p_concepto: $('fm_con').value.trim(), p_monto: monto, p_cargo: $('fm_cargo').value || null })
-    : await db.rpc('fin_cargo_crear', { p_tipo: c.kind, p_fecha: $('fm_fecha').value, p_plazo: Number($('fm_plazo').value), p_tercero: t.id, p_concepto: $('fm_con').value.trim(), p_monto: monto });
+  const r = nuevo
+    ? await db.rpc('fin_pago_con_cargo', { p_tipo: c.kind, p_fecha: $('fm_fecha').value, p_plazo: Number($('fm_plazo2').value), p_tercero: t.id, p_concepto: $('fm_con').value.trim(), p_total: total, p_pago: monto, p_medio: $('fm_medio').value })
+    : c.pago
+    ? await db.rpc('fin_pago_crear', { p_tipo: c.kind, p_fecha: $('fm_fecha').value, p_tercero: t.id, p_concepto: $('fm_con').value.trim(), p_monto: monto, p_cargo: $('fm_cargo').value || null, p_medio: $('fm_medio').value })
+    : await db.rpc('fin_cargo_crear', { p_tipo: c.kind, p_fecha: $('fm_fecha').value, p_plazo: Number($('fm_plazo').value), p_tercero: t.id, p_concepto: $('fm_con').value.trim(), p_monto: monto, p_saldo_inicial: $('fm_si').checked });
   btn.disabled = false;
   if (r.error) return msg('fm_msg', r.error.message);
+  if (c.pago || !$('fm_si').checked) await finGuardarConcepto($('fm_con').value);
   $('fin_form').classList.add('hidden');
-  msg('fin_msg', `Guardado: ${r.data.consecutivo}.`, true);
+  msg('fin_msg', nuevo ? `Guardado: cobro ${r.data.cargo.consecutivo} y pago ${r.data.pago.consecutivo}.` : `Guardado: ${r.data.consecutivo}.`, true);
   finCargar();
 }
 async function finAbonar(id) {   // desde Cartera/Proveedores: abre el pago ya apuntando a ese cargo
@@ -1856,7 +1986,7 @@ async function finActivarTer(id, activo) {
   await finCargarTer(); finPintarTer();
 }
 /* quién ve Finanzas (columna del rector en Usuarios) */
-const FIN_MODS_USR = [['ingresos','Ingresos'],['egresos','Egresos'],['cartera','Cartera'],['proveedores','Proveedores']];
+const FIN_MODS_USR = [['ingresos','Ingresos'],['egresos','Egresos'],['cartera','Cartera'],['proveedores','Proveedores'],['contable','Contabilidad'],['inventario','Inventario']];
 function finUsrCelda(x) {
   if (x.rol === 'rector') return '—';
   const m = x.fin_modulos || [];
@@ -1868,6 +1998,555 @@ async function setFin(id) {
   const { error } = await db.from('perfiles').update({ fin_modulos: m }).eq('id', id);
   if (error) alert(traducir(error.message));
   loadUsuarios();
+}
+
+/* ---------- FINANZAS: comprobantes, consulta por identificación y reportes ---------- */
+const FIN_TIT = { ingreso:'RECIBO DE INGRESO', egreso:'COMPROBANTE DE EGRESO', cartera:'CUENTA DE COBRO', deuda:'CUENTA POR PAGAR' };
+function finReg(rows, kind) { FIN.reg = FIN.reg || {}; FIN.regTipo = FIN.regTipo || {}; rows.forEach(r => { FIN.reg[r.id] = r; FIN.regTipo[r.id] = kind; }); }
+function finTitComp(kind, r) { return r.saldo_inicial ? (kind === 'cartera' ? 'SALDO INICIAL DE CARTERA' : 'SALDO INICIAL DE PROVEEDOR') : FIN_TIT[kind]; }
+function finCompHTML(kind, r) {
+  const t = FIN.terMap[r.tercero_id] || {}, pago = kind === 'ingreso' || kind === 'egreso';
+  const fila = (a, b) => `<tr><td style="width:34%;color:#475569;font-weight:700">${esc(a)}</td><td>${b}</td></tr>`;
+  const ter = [fila('Tercero', `<b>${esc(r.tercero_nombre)}</b>`), fila('Identificación', esc(`${r.tipo_doc} ${r.identificacion}`)),
+    t.telefono ? fila('Teléfono', esc(t.telefono)) : '', t.correo ? fila('Correo', esc(t.correo)) : '', t.direccion ? fila('Dirección', esc(t.direccion)) : ''].join('');
+  let det = '';
+  if (pago) {
+    det = fila('Concepto', esc(r.concepto)) + fila('Medio de pago', r.medio === 'efectivo' ? 'Efectivo' : 'Banco / transferencia')
+      + (r.cargo_consecutivo ? fila(kind === 'ingreso' ? 'Abono al cobro' : 'Abono a la cuenta por pagar', esc(r.cargo_consecutivo)) + fila('Saldo pendiente después de este pago', `<b>${pesosC(r.saldo)}</b>`) : '');
+  } else {
+    det = fila('Concepto', esc(r.concepto)) + fila('Fecha inicial', esc(finFecha(r.fecha))) + fila('Plazo', `${r.plazo_dias} días (vence el ${esc(finFecha(r.vence))})`)
+      + fila('Abonado', pesosC(r.abonado)) + fila('Saldo pendiente', `<b>${pesosC(r.saldo)}</b>`) + fila('Estado', esc(r.estado) + (r.dias_vencido > 0 ? ` (${r.dias_vencido} días de vencida)` : ''));
+  }
+  const valor = pago ? r.monto : r.monto;
+  const rect = (colegio && colegio.rector_nombres) ? `${colegio.rector_nombres} ${colegio.rector_apellidos || ''}`.trim() : 'Rector(a)';
+  return `<div style="position:relative">
+    ${r.anulado ? `<div style="border:2px solid #e11d48;color:#e11d48;font-weight:800;padding:6px 10px;margin-bottom:10px;border-radius:8px">ANULADO${r.anulado_motivo ? ' — ' + esc(r.anulado_motivo) : ''}</div>` : ''}
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px"><h2 style="font-size:17px;margin:0">${esc(finTitComp(kind, r))}</h2><div style="text-align:right"><div style="font-size:15px;font-weight:800">No. ${esc(r.consecutivo)}</div><div style="font-size:12px;color:#475569">Fecha: ${esc(finFecha(r.fecha))}</div></div></div>
+    <table class="rt" style="margin-bottom:8px"><tbody>${ter}</tbody></table>
+    <table class="rt" style="margin-bottom:8px"><tbody>${det}</tbody></table>
+    <div style="border:1.5px solid #1e1b4b;border-radius:10px;padding:10px 14px;margin:10px 0"><div style="font-size:12px;color:#475569">VALOR</div><div style="font-size:22px;font-weight:800">${pesosC(valor)}</div><div style="font-size:12px">${esc(numALetras(valor))}</div></div>
+    <div style="display:flex;gap:40px;margin-top:46px"><div style="flex:1;border-top:1px solid #0f172a;padding-top:4px;font-size:12px">Elaboró: ${esc(r.creado_por || '')}</div><div style="flex:1;border-top:1px solid #0f172a;padding-top:4px;font-size:12px">${kind === 'egreso' ? 'Recibí conforme' : (kind === 'ingreso' ? 'Recibido por' : 'Autorizó')}: ${esc(kind === 'egreso' ? r.tercero_nombre : rect)}</div></div>
+  </div>`;
+}
+const pesosC = v => '$' + nf(v);
+function finComp(id) {
+  const r = (FIN.reg || {})[id], kind = (FIN.regTipo || {})[id]; if (!r) return;
+  docMostrar(finTitComp(kind, r) + ' ' + r.consecutivo, encabezadoDoc(colegio) + finCompHTML(kind, r), id);
+}
+async function finCorreo(id) {
+  const r = FIN.reg[id], kind = FIN.regTipo[id], t = FIN.terMap[r.tercero_id] || {};
+  const correo = prompt(`Correo al que se enviará el ${finTitComp(kind, r).toLowerCase()}:`, t.correo || '');
+  if (!correo) return;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo.trim())) return alert('El correo no es válido.');
+  const { data, error } = await db.functions.invoke('fin-enviar', { body: { tipo: kind, id, correo: correo.trim() } });
+  if (error || !data || !data.ok) return alert('No se pudo enviar: ' + ((data && data.error) || (error && error.message) || 'error desconocido'));
+  alert('Enviado a ' + data.enviado_a + '.');
+}
+function finSaldoIni() {
+  const on = $('fm_si').checked;
+  if (on && !$('fm_con').value.trim()) $('fm_con').value = FIN.tab === 'cartera' ? 'Saldo inicial de cartera' : 'Saldo inicial de proveedor';
+  $('fm_fecha').title = on ? 'Fecha en que nació esa deuda' : '';
+}
+
+/* --- Consultar por identificación --- */
+function finPaneConsultar() {
+  $('fin_pane').innerHTML = `<div class="bar"><b>Consultar recibos y movimientos por identificación</b></div>
+    <div class="g2"><div><input id="fq_id" placeholder="Número de identificación (cédula o NIT)" inputmode="numeric" onkeydown="if(event.key==='Enter')finConsultar()"></div>
+    <div><button class="btn sm green" style="margin-top:.2rem;padding:.7rem 1.2rem" onclick="finConsultar()">Buscar</button></div></div>
+    <div id="fq_msg" class="msg"></div><div id="fq_out"></div>`;
+}
+function finConsultar() {
+  const v = $('fq_id').value.replace(/[\s.]/g, ''); $('fq_out').innerHTML = '';
+  if (v.length < 3) return msg('fq_msg', 'Escriba al menos 3 números de la identificación.');
+  const ex = FIN.ter.filter(t => t.identificacion === v), par = FIN.ter.filter(t => t.identificacion.includes(v));
+  const lista = ex.length ? ex : par;
+  if (!lista.length) return msg('fq_msg', 'No hay ningún tercero con esa identificación.');
+  msg('fq_msg', '', true);
+  if (lista.length > 1) { $('fq_out').innerHTML = `<p class="d">Hay varios terceros parecidos. Elija uno:</p>` + lista.slice(0, 20).map(t => `<button class="btn sm" onclick="finConsultarTer('${t.id}')">${esc(t.identificacion)} — ${esc(t.nombre)}</button>`).join(' '); return; }
+  finConsultarTer(lista[0].id);
+}
+async function finConsultarTer(tid) {
+  const t = FIN.terMap[tid]; if (!t) return;
+  $('fq_out').innerHTML = '<p class="d">Cargando…</p>';
+  const q = v => finTodas(() => db.from(v).select('*').eq('colegio_id', me.colegio_id).eq('tercero_id', tid).order('fecha', { ascending: false }).order('id'));
+  const mods = [['ingresos', 'fin_ingresos_v', 'ingreso'], ['egresos', 'fin_egresos_v', 'egreso'], ['cartera', 'fin_cartera_v', 'cartera'], ['proveedores', 'fin_deudas_v', 'deuda']].filter(m => finPuede(m[0]));
+  let res; try { res = await Promise.all(mods.map(m => q(m[1]))); } catch (e) { return msg('fq_msg', e.message); }
+  const D = {}; mods.forEach((m, i) => { D[m[2]] = res[i]; finReg(res[i], m[2]); });
+  const sal = k => (D[k] || []).reduce((a, r) => a + (r.anulado ? 0 : Number(r.saldo || 0)), 0);
+  const sec = (k, titulo, pago) => D[k] ? `<h3 class="sec">${titulo} (${D[k].length})</h3><div class="wrap"><table><thead><tr><th>No.</th><th>Fecha</th><th>Concepto</th><th>Valor</th>${pago ? '<th>Aplicado a</th>' : '<th>Saldo</th><th>Estado</th>'}<th></th></tr></thead><tbody>${D[k].map(r => `<tr${r.anulado ? ' style="opacity:.55"' : ''}><td><b>${esc(r.consecutivo)}</b>${r.saldo_inicial ? ' <span class="tag t-info">Saldo inicial</span>' : ''}</td><td>${finFecha(r.fecha)}</td><td>${esc(r.concepto)}</td><td style="text-align:right">${pesos(r.monto)}</td>${pago ? `<td>${esc(r.cargo_consecutivo || '—')}</td>` : `<td style="text-align:right">${pesos(r.saldo)}</td><td>${esc(r.estado)}</td>`}<td><button class="btn sm" onclick="finComp('${r.id}')">Ver comprobante</button></td></tr>`).join('') || '<tr><td colspan="6">Sin registros.</td></tr>'}</tbody></table></div>` : '';
+  $('fq_out').innerHTML = `<div class="okbox" style="background:#eef2ff;border-color:#c7d2fe;color:#1e1b4b"><b>${esc(t.nombre)}</b> · ${esc(t.tipo_doc)} ${esc(t.identificacion)}<br>${[t.telefono, t.correo, t.direccion].filter(Boolean).map(esc).join(' · ')}
+    <br><span class="pill" style="margin-top:.4rem;display:inline-block">${D.cartera ? 'Debe al colegio: ' + pesos(sal('cartera')) : ''}</span> <span class="pill" style="display:inline-block">${D.deuda ? 'El colegio le debe: ' + pesos(sal('deuda')) : ''}</span>
+    <br><button class="btn sm green" style="margin-top:.5rem" onclick="finRepTercero('${tid}')">Ver estado de cuenta (PDF / Excel)</button></div>
+    ${sec('ingreso', 'Recibos de ingreso', true)}${sec('egreso', 'Comprobantes de egreso', true)}${sec('cartera', 'Cobros (cartera)', false)}${sec('deuda', 'Cuentas por pagar (proveedores)', false)}`;
+  FIN.consulta = D;
+}
+function finRepTercero(tid) {
+  const t = FIN.terMap[tid], D = FIN.consulta || {}; const sec = [];
+  const mov = (k, titulo) => D[k] && sec.push({ titulo, cols: ['No.', 'Fecha', 'Concepto', 'Valor', 'Aplicado a', 'Estado'], rows: D[k].map(r => [r.consecutivo, finFecha(r.fecha), r.concepto, Mo(r.monto), r.cargo_consecutivo || '—', r.anulado ? 'Anulado' : 'Vigente']) });
+  const car = (k, titulo) => D[k] && sec.push({ titulo, cols: ['No.', 'Fecha', 'Vence', 'Concepto', 'Valor', 'Abonado', 'Saldo', 'Estado'], rows: D[k].map(r => [r.consecutivo, finFecha(r.fecha), finFecha(r.vence), r.concepto, Mo(r.monto), Mo(r.abonado), Mo(r.saldo), r.estado]), foot: ['', '', '', 'Saldo total', '', '', Mo(D[k].reduce((a, r) => a + (r.anulado ? 0 : Number(r.saldo)), 0)), ''] });
+  car('cartera', 'Cobros (cartera)'); car('deuda', 'Cuentas por pagar'); mov('ingreso', 'Recibos de ingreso'); mov('egreso', 'Comprobantes de egreso');
+  repMostrar({ titulo: 'Estado de cuenta de ' + t.nombre, sub: `${t.tipo_doc} ${t.identificacion}`, secciones: sec });
+}
+
+/* --- Reportes de finanzas --- */
+const FIN_REPS = [
+  ['ing',  'Ingresos del período', 'ingresos', true], ['egr',  'Egresos del período', 'egresos', true],
+  ['resumen', 'Resumen de tesorería por concepto', 'ingresos', true],
+  ['car',  'Estado de cartera (cobros)', 'cartera', false], ['pro',  'Estado de proveedores (cuentas por pagar)', 'proveedores', false],
+  ['edc',  'Edades de cartera', 'cartera', false], ['edp',  'Edades de proveedores', 'proveedores', false],
+  ['saldos', 'Saldos de terceros', 'cartera', false]
+];
+function finPaneReportes() {
+  const ok = FIN_REPS.filter(r => r[0] === 'resumen' ? (finPuede('ingresos') || finPuede('egresos')) : r[0] === 'saldos' ? (finPuede('cartera') || finPuede('proveedores')) : finPuede(r[2]));
+  $('fin_pane').innerHTML = `<div class="bar"><b>Reportes</b><span class="d" style="margin:0">Primero se ven en pantalla; desde ahí los descarga en PDF o Excel.</span></div>
+    <label>Reporte</label><select id="fr_rep">${ok.map(r => `<option value="${r[0]}">${esc(r[1])}</option>`).join('')}</select>
+    <div class="g2"><div><label>Desde</label><input type="date" id="fr_d" value="${finHoy().slice(0, 4)}-01-01"></div><div><label>Hasta</label><input type="date" id="fr_h" value="${finHoy()}"></div></div>
+    <p class="d" style="font-size:.8rem">Las fechas aplican a los reportes de período. Las edades y los saldos se calculan al día de hoy.</p>
+    <button class="btn green" onclick="finVerReporte()">Ver reporte</button><div id="fr_msg" class="msg"></div>`;
+}
+const finRango = () => ({ d: $('fr_d').value || '2000-01-01', h: $('fr_h').value || finHoy() });
+async function finVerReporte() {
+  const k = $('fr_rep').value, { d, h } = finRango(); msg('fr_msg', 'Generando…', true);
+  try {
+    if (k === 'ing' || k === 'egr') await repMovs(k === 'ing' ? 'ingreso' : 'egreso', d, h);
+    else if (k === 'resumen') await repResumen(d, h);
+    else if (k === 'car' || k === 'pro') await repEstado(k === 'car' ? 'cartera' : 'deuda');
+    else if (k === 'edc' || k === 'edp') await repEdades(k === 'edc' ? 'cartera' : 'deuda');
+    else if (k === 'saldos') await repSaldosTer();
+    msg('fr_msg', '', true);
+  } catch (e) { msg('fr_msg', e.message); }
+}
+const vistaDe = k => ({ ingreso: 'fin_ingresos_v', egreso: 'fin_egresos_v', cartera: 'fin_cartera_v', deuda: 'fin_deudas_v' }[k]);
+const fil = (v, extra) => finTodas(() => { let q = db.from(v).select('*').eq('colegio_id', me.colegio_id); if (extra) q = extra(q); return q.order('fecha').order('id'); });
+async function repMovs(kind, d, h) {
+  const rows = (await fil(vistaDe(kind), q => q.gte('fecha', d).lte('fecha', h))).filter(r => !r.anulado);
+  const tot = rows.reduce((a, r) => a + Number(r.monto), 0);
+  repMostrar({ titulo: kind === 'ingreso' ? 'Relación de ingresos' : 'Relación de egresos', sub: `Del ${finFecha(d)} al ${finFecha(h)}`,
+    secciones: [{ cols: ['No.', 'Fecha', 'Identificación', 'Tercero', 'Concepto', 'Medio', 'Aplicado a', 'Valor'],
+      rows: rows.map(r => [r.consecutivo, finFecha(r.fecha), r.identificacion, r.tercero_nombre, r.concepto, r.medio === 'efectivo' ? 'Efectivo' : 'Banco', r.cargo_consecutivo || '—', Mo(r.monto)]),
+      foot: ['', '', '', '', `${rows.length} registros`, '', 'Total', Mo(tot)] }], nota: 'No incluye registros anulados.' });
+}
+async function repResumen(d, h) {
+  const out = [];
+  for (const kind of ['ingreso', 'egreso']) {
+    if (!finPuede(kind === 'ingreso' ? 'ingresos' : 'egresos')) continue;
+    const rows = (await fil(vistaDe(kind), q => q.gte('fecha', d).lte('fecha', h))).filter(r => !r.anulado), by = {};
+    rows.forEach(r => { const c = r.cargo_consecutivo ? 'Abonos a ' + (kind === 'ingreso' ? 'cobros' : 'cuentas por pagar') : r.concepto; by[c] = by[c] || { n: 0, v: 0 }; by[c].n++; by[c].v += Number(r.monto); });
+    const tot = rows.reduce((a, r) => a + Number(r.monto), 0);
+    out.push({ titulo: kind === 'ingreso' ? 'Ingresos' : 'Egresos', cols: ['Concepto', 'Cantidad', 'Valor'], rows: Object.entries(by).sort((a, b) => b[1].v - a[1].v).map(([c, x]) => [c, x.n, Mo(x.v)]), foot: ['Total', rows.length, Mo(tot)], _tot: tot });
+  }
+  const neto = out.length === 2 ? [{ titulo: 'Resultado de tesorería', cols: ['Detalle', 'Valor'], rows: [['Total ingresos', Mo(out[0]._tot)], ['Total egresos', Mo(out[1]._tot)]], foot: ['Ingresos menos egresos', Mo(out[0]._tot - out[1]._tot)] }] : [];
+  repMostrar({ titulo: 'Resumen de tesorería por concepto', sub: `Del ${finFecha(d)} al ${finFecha(h)}`, secciones: out.concat(neto) });
+}
+async function repEstado(kind) {
+  const rows = (await fil(vistaDe(kind))).filter(r => !r.anulado);
+  const s = k => rows.reduce((a, r) => a + Number(r[k]), 0);
+  repMostrar({ titulo: kind === 'cartera' ? 'Estado de cartera' : 'Estado de proveedores', sub: 'Todos los registros no anulados',
+    secciones: [{ cols: ['No.', 'Fecha', 'Vence', 'Identificación', 'Tercero', 'Concepto', 'Valor', 'Abonado', 'Saldo', 'Estado'],
+      rows: rows.map(r => [r.consecutivo + (r.saldo_inicial ? ' (saldo inicial)' : ''), finFecha(r.fecha), finFecha(r.vence), r.identificacion, r.tercero_nombre, r.concepto, Mo(r.monto), Mo(r.abonado), Mo(r.saldo), r.estado]),
+      foot: ['', '', '', '', '', 'Totales', Mo(s('monto')), Mo(s('abonado')), Mo(s('saldo')), ''] }] });
+}
+const EDADES = ['Al día', '1 a 30 días', '31 a 60 días', '61 a 90 días', '91 a 180 días', 'Más de 180 días'];
+const edadIdx = d => d <= 0 ? 0 : d <= 30 ? 1 : d <= 60 ? 2 : d <= 90 ? 3 : d <= 180 ? 4 : 5;
+async function repEdades(kind) {
+  const rows = (await fil(vistaDe(kind), q => q.eq('anulado', false).gt('saldo', 0)));
+  const by = {};
+  rows.forEach(r => { const k = r.tercero_id; by[k] = by[k] || { id: r.identificacion, n: r.tercero_nombre, b: [0, 0, 0, 0, 0, 0] }; by[k].b[edadIdx(r.dias_vencido)] += Number(r.saldo); });
+  const L = Object.values(by).sort((a, b) => a.n.localeCompare(b.n, 'es')), tb = [0, 0, 0, 0, 0, 0];
+  L.forEach(x => x.b.forEach((v, i) => tb[i] += v));
+  const tot = tb.reduce((a, v) => a + v, 0);
+  const resumen = { titulo: 'Resumen por tercero', cols: ['Identificación', 'Tercero'].concat(EDADES, ['Total']),
+    rows: L.map(x => [x.id, x.n].concat(x.b.map(Mo), [Mo(x.b.reduce((a, v) => a + v, 0))])), foot: ['', 'TOTAL'].concat(tb.map(Mo), [Mo(tot)]) };
+  const porc = { titulo: 'Participación por edad', cols: ['Edad', 'Saldo', '% del total'], rows: EDADES.map((e, i) => [e, Mo(tb[i]), tot ? (tb[i] * 100 / tot).toFixed(1) + '%' : '0%']) };
+  const det = { titulo: 'Detalle de cada cuenta pendiente', cols: ['No.', 'Tercero', 'Concepto', 'Fecha', 'Vence', 'Días vencida', 'Saldo'],
+    rows: rows.sort((a, b) => b.dias_vencido - a.dias_vencido).map(r => [r.consecutivo, r.tercero_nombre, r.concepto, finFecha(r.fecha), finFecha(r.vence), r.dias_vencido > 0 ? r.dias_vencido : 'Al día', Mo(r.saldo)]) };
+  repMostrar({ titulo: kind === 'cartera' ? 'Edades de cartera' : 'Edades de proveedores', sub: 'Saldos pendientes según los días de vencimiento, al ' + finFecha(finHoy()), secciones: [resumen, porc, det] });
+}
+async function repSaldosTer() {
+  const [c, p] = await Promise.all([finPuede('cartera') ? fil('fin_cartera_v', q => q.eq('anulado', false).gt('saldo', 0)) : [], finPuede('proveedores') ? fil('fin_deudas_v', q => q.eq('anulado', false).gt('saldo', 0)) : []]);
+  const by = {}; const add = (r, k) => { const x = by[r.tercero_id] = by[r.tercero_id] || { id: r.identificacion, n: r.tercero_nombre, c: 0, p: 0 }; x[k] += Number(r.saldo); };
+  c.forEach(r => add(r, 'c')); p.forEach(r => add(r, 'p'));
+  const L = Object.values(by).sort((a, b) => a.n.localeCompare(b.n, 'es')), tc = L.reduce((a, x) => a + x.c, 0), tp = L.reduce((a, x) => a + x.p, 0);
+  repMostrar({ titulo: 'Saldos de terceros', sub: 'Lo que cada tercero debe al colegio y lo que el colegio le debe, al ' + finFecha(finHoy()),
+    secciones: [{ cols: ['Identificación', 'Tercero', 'Debe al colegio', 'El colegio le debe', 'Saldo neto a favor del colegio'], rows: L.map(x => [x.id, x.n, Mo(x.c), Mo(x.p), Mo(x.c - x.p)]), foot: ['', 'TOTAL', Mo(tc), Mo(tp), Mo(tc - tp)] }] });
+}
+function finRepLista() {   // reporte de la lista que se está viendo (con los filtros aplicados)
+  const c = FIN_TABS[FIN.tab], rows = finFiltradas().filter(r => !r.anulado); if (!c || !c.vista) return;
+  const s = k => rows.reduce((a, r) => a + Number(r[k] || 0), 0), T = r => FIN.terMap[r.tercero_id] || {};
+  if (c.pago) return repMostrar({ titulo: 'Relación de ' + c.t.toLowerCase(), sub: 'Según los filtros de la pantalla', secciones: [{ cols: ['No.', 'Fecha', 'Identificación', 'Tercero', 'Teléfono', 'Correo', 'Concepto', 'Valor', 'Saldo'], rows: rows.map(r => [r.consecutivo, finFecha(r.fecha), r.identificacion, r.tercero_nombre, T(r).telefono || '', T(r).correo || '', r.concepto, Mo(r.monto), r.saldo == null ? '—' : Mo(r.saldo)]), foot: ['', '', '', '', '', '', 'Total', Mo(s('monto')), ''] }] });
+  repMostrar({ titulo: 'Relación de ' + c.t.toLowerCase(), sub: 'Según los filtros de la pantalla', secciones: [{ cols: ['No.', 'Fecha', 'Plazo', 'Vence', 'Identificación', 'Tercero', 'Concepto', 'Valor', 'Abonado', 'Saldo', 'Estado'], rows: rows.map(r => [r.consecutivo, finFecha(r.fecha), r.plazo_dias + ' d', finFecha(r.vence), r.identificacion, r.tercero_nombre, r.concepto, Mo(r.monto), Mo(r.abonado), Mo(r.saldo), r.estado]), foot: ['', '', '', '', '', '', 'Totales', Mo(s('monto')), Mo(s('abonado')), Mo(s('saldo')), ''] }] });
+}
+
+
+/* ---------- CONTABILIDAD ---------- */
+const CON_TABS = [['plan','Plan de cuentas'],['asientos','Asientos'],['diario','Libro diario'],['mayor','Libro mayor'],['prueba','Balance de prueba'],['balance','Balance general'],['resultados','Estado de resultados'],['config','Configuración']];
+let CON = { tab: null, cuentas: [], cfg: {}, map: [] };
+const NAT = { activo: 'D', pasivo: 'C', patrimonio: 'C', ingreso: 'C', gasto: 'D', costo: 'D' };
+async function initCon() {
+  $('con_tabs').innerHTML = CON_TABS.map(t => `<button type="button" id="cont_${t[0]}" onclick="conTab('${t[0]}')">${t[1]}</button>`).join('');
+  $('con_pane').innerHTML = '<p class="d">Cargando…</p>';
+  if (!AUD) { const r = await db.rpc('con_iniciar'); if (r.error) { $('con_pane').innerHTML = `<p class="msg">${esc(traducir(r.error.message))}</p>`; return; } }
+  await finCargarTer(); await conCargar();
+  conTab(CON.tab || 'plan');
+}
+async function conCargar() {
+  const q = t => db.from(t).select('*').eq('colegio_id', me.colegio_id);
+  const [c, f, m] = await Promise.all([q('con_cuentas').order('codigo'), q('con_config'), q('con_concepto_cuenta')]);
+  CON.cuentas = c.data || []; CON.cfg = {}; (f.data || []).forEach(x => CON.cfg[x.clave] = x.cuenta_id); CON.map = m.data || [];
+  CON.byId = {}; CON.cuentas.forEach(x => CON.byId[x.id] = x);
+}
+const conNivel = c => CON.cuentas.filter(o => o.id !== c.id && c.codigo.startsWith(o.codigo)).length;
+const conOpts = (filtro, sel) => CON.cuentas.filter(c => c.activo && c.acepta_mov && (!filtro || filtro(c))).map(c => `<option value="${c.id}" ${c.id === sel ? 'selected' : ''}>${esc(c.codigo)} — ${esc(c.nombre)}</option>`).join('');
+function conTab(k) {
+  CON.tab = k;
+  document.querySelectorAll('#con_tabs button').forEach(b => b.classList.toggle('on', b.id === 'cont_' + k));
+  ({ plan: conPlan, asientos: conAsientos, diario: () => conFiltro('diario'), mayor: () => conFiltro('mayor'), prueba: () => conFiltro('prueba'), balance: () => conFiltro('balance'), resultados: () => conFiltro('resultados'), config: conConfig })[k]();
+}
+/* --- plan de cuentas --- */
+function conPlan() {
+  $('con_pane').innerHTML = `<div class="okbox" style="background:#fffbeb;border-color:#fcd34d;color:#78350f">Este plan de cuentas es una <b>base</b> pensada para un fondo de servicios educativos. Pídale a su contador que lo revise y lo ajuste antes de usarlo para informes oficiales.</div>
+    <div class="fin-form"><h3 class="sec" id="cp_tit">Nueva cuenta</h3>
+      <div class="g2"><div><label>Código (solo números)</label><input id="cp_cod" maxlength="12" inputmode="numeric"></div><div><label>Nombre</label><input id="cp_nom" maxlength="120"></div></div>
+      <div class="g2"><div><label>Tipo</label><select id="cp_tip" onchange="$('cp_nat').value=NAT[this.value]">${Object.keys(NAT).map(x => `<option>${x}</option>`).join('')}</select></div>
+      <div><label>Naturaleza</label><select id="cp_nat"><option value="D">Débito</option><option value="C">Crédito</option></select></div></div>
+      <label style="display:flex;gap:.5rem;align-items:center"><input type="checkbox" id="cp_mov" style="width:auto" checked> Acepta movimientos (si no, es una cuenta «título» que agrupa a otras)</label>
+      <button class="btn sm green" style="margin-top:.8rem" onclick="conGuardarCuenta()">Guardar</button> <button class="btn sm" style="background:#64748b" onclick="conEditar(null)">Limpiar</button><div id="cp_msg" class="msg"></div></div>
+    <input id="cp_q" placeholder="Buscar por código o nombre…" oninput="conPintarPlan()" style="margin-top:1rem"><div class="wrap"><table id="cp_tbl"></table></div>`;
+  CON.edit = null; $('cp_tip').value = 'activo'; $('cp_nat').value = 'D'; conPintarPlan();
+}
+function conPintarPlan() {
+  const t = (($('cp_q') || {}).value || '').toLowerCase();
+  $('cp_tbl').innerHTML = `<thead><tr><th>Código</th><th>Cuenta</th><th>Tipo</th><th>Naturaleza</th><th>Movimiento</th><th>Estado</th><th></th></tr></thead><tbody>${CON.cuentas.filter(c => !t || (c.codigo + ' ' + c.nombre).toLowerCase().includes(t)).map(c =>
+    `<tr${c.acepta_mov ? '' : ' style="background:#f8fafc;font-weight:700"'}><td>${esc(c.codigo)}</td><td style="padding-left:${0.7 + conNivel(c) * 1.1}rem">${esc(c.nombre)}</td><td>${esc(c.tipo)}</td><td>${c.naturaleza === 'D' ? 'Débito' : 'Crédito'}</td><td>${c.acepta_mov ? 'Sí' : 'Título'}</td><td><span class="tag ${c.activo ? 't-ok' : 't-no'}">${c.activo ? 'Activa' : 'Inactiva'}</span></td>
+     <td style="white-space:nowrap"><button class="btn sm" onclick="conEditar('${c.id}')">Editar</button><button class="btn sm ${c.activo ? 'red' : 'green'}" onclick="conActivar('${c.id}',${!c.activo})">${c.activo ? 'Desactivar' : 'Activar'}</button></td></tr>`).join('')}</tbody>`;
+}
+function conEditar(id) {
+  const c = id ? CON.byId[id] : null; CON.edit = id;
+  $('cp_tit').textContent = c ? 'Editar cuenta' : 'Nueva cuenta';
+  $('cp_cod').value = c ? c.codigo : ''; $('cp_nom').value = c ? c.nombre : ''; $('cp_tip').value = c ? c.tipo : 'activo'; $('cp_nat').value = c ? c.naturaleza : 'D'; $('cp_mov').checked = c ? c.acepta_mov : true;
+  msg('cp_msg', '', true); if (c) $('cp_tit').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+async function conGuardarCuenta() {
+  const reg = { codigo: $('cp_cod').value.trim(), nombre: $('cp_nom').value.trim(), tipo: $('cp_tip').value, naturaleza: $('cp_nat').value, acepta_mov: $('cp_mov').checked };
+  if (!/^[0-9]{1,12}$/.test(reg.codigo)) return msg('cp_msg', 'El código debe tener solo números.');
+  if (reg.nombre.length < 3) return msg('cp_msg', 'Escriba el nombre de la cuenta.');
+  const { error } = CON.edit ? await db.from('con_cuentas').update(reg).eq('id', CON.edit) : await db.from('con_cuentas').insert({ ...reg, colegio_id: me.colegio_id });
+  if (error) return msg('cp_msg', /con_cuentas_colegio_id_codigo_key/.test(error.message) ? 'Ya existe una cuenta con ese código.' : error.message);
+  await conCargar(); conPlan(); msg('cp_msg', 'Cuenta guardada.', true);
+}
+async function conActivar(id, activo) {
+  const { error } = await db.from('con_cuentas').update({ activo }).eq('id', id);
+  if (error) return alert(traducir(error.message)); await conCargar(); conPintarPlan();
+}
+/* --- asientos manuales --- */
+async function conAsientos() {
+  $('con_pane').innerHTML = `<div class="okbox" style="background:#eef2ff;border-color:#c7d2fe;color:#1e1b4b">Los ingresos, egresos, cobros y cuentas por pagar de Finanzas se contabilizan <b>solos</b>. Aquí solo registra asientos manuales: ajustes, depreciaciones, saldos de apertura, etc.</div>
+    <div class="fin-form"><h3 class="sec">Nuevo asiento manual</h3>
+    <div class="g2"><div><label>Fecha</label><input type="date" id="ca_f" value="${finHoy()}" max="${finHoy()}"></div><div><label>Descripción</label><input id="ca_d" maxlength="300"></div></div>
+    <datalist id="ca_dl">${FIN.ter.filter(t => t.activo).map(t => `<option value="${esc(t.identificacion)} — ${esc(t.nombre)}"></option>`).join('')}</datalist>
+    <div class="wrap"><table><thead><tr><th>Cuenta</th><th>Tercero (opcional)</th><th>Débito</th><th>Crédito</th><th></th></tr></thead><tbody id="ca_lin"></tbody><tfoot><tr><th colspan="2" style="text-align:right">Totales</th><th id="ca_td" style="text-align:right">$0</th><th id="ca_tc" style="text-align:right">$0</th><th id="ca_ok"></th></tr></tfoot></table></div>
+    <button class="btn sm" onclick="conLinea()">➕ Agregar línea</button> <button class="btn sm green" id="ca_btn" onclick="conGuardarAsiento()">Guardar asiento</button><div id="ca_msg" class="msg"></div></div>
+    <h3 class="sec">Asientos manuales registrados</h3><div class="wrap"><table id="ca_tbl"></table></div>`;
+  conLinea(); conLinea(); conListaAsientos();
+}
+function conLinea() {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><select class="cl_c" style="min-width:16rem"><option value="">Elija la cuenta…</option>${conOpts()}</select></td><td><input class="cl_t" list="ca_dl" style="min-width:12rem" autocomplete="off"></td><td><input class="cl_d" type="number" min="0" step="1" oninput="conTotales()" style="width:8rem"></td><td><input class="cl_h" type="number" min="0" step="1" oninput="conTotales()" style="width:8rem"></td><td><button class="btn sm red" onclick="this.closest('tr').remove();conTotales()">✕</button></td>`;
+  $('ca_lin').appendChild(tr);
+}
+function conTotales() {
+  let d = 0, c = 0; document.querySelectorAll('#ca_lin tr').forEach(r => { d += Number(r.querySelector('.cl_d').value) || 0; c += Number(r.querySelector('.cl_h').value) || 0; });
+  $('ca_td').textContent = pesos(d); $('ca_tc').textContent = pesos(c);
+  $('ca_ok').innerHTML = d === c && d > 0 ? '<span class="tag t-ok">Cuadra</span>' : '<span class="tag t-no">No cuadra</span>';
+}
+async function conGuardarAsiento() {
+  const lineas = []; let mal = '';
+  document.querySelectorAll('#ca_lin tr').forEach(r => {
+    const cta = r.querySelector('.cl_c').value, d = Number(r.querySelector('.cl_d').value) || 0, h = Number(r.querySelector('.cl_h').value) || 0;
+    if (!cta && !d && !h) return;
+    if (!cta || (d > 0) === (h > 0)) { mal = 'Cada línea necesita una cuenta y un valor en débito o en crédito (no en ambos).'; return; }
+    const tv = r.querySelector('.cl_t').value, tid = tv ? (FIN.ter.find(t => tv.startsWith(t.identificacion + ' — ')) || {}).id : null;
+    if (tv && !tid) { mal = 'Elija el tercero de la lista o deje el campo vacío.'; return; }
+    lineas.push({ cuenta_id: cta, tercero_id: tid || null, debito: d, credito: h });
+  });
+  if (mal) return msg('ca_msg', mal);
+  if (lineas.length < 2) return msg('ca_msg', 'Un asiento necesita al menos dos líneas.');
+  $('ca_btn').disabled = true;
+  const { data, error } = await db.rpc('con_asiento_crear', { p_fecha: $('ca_f').value, p_desc: $('ca_d').value, p_lineas: lineas });
+  $('ca_btn').disabled = false;
+  if (error) return msg('ca_msg', error.message);
+  await conAsientos(); msg('ca_msg', 'Asiento registrado: ' + data.consecutivo, true);
+}
+async function conListaAsientos() {
+  const { data } = await db.from('con_asientos').select('*').eq('colegio_id', me.colegio_id).order('fecha', { ascending: false }).order('creado_en', { ascending: false }).limit(200);
+  CON.asientos = data || [];
+  $('ca_tbl').innerHTML = `<thead><tr><th>No.</th><th>Fecha</th><th>Descripción</th><th>Elaboró</th><th></th></tr></thead><tbody>${CON.asientos.map(a => `<tr${a.anulado ? ' style="opacity:.55;text-decoration:line-through"' : ''}><td><b>${esc(a.consecutivo)}</b></td><td>${finFecha(a.fecha)}</td><td>${esc(a.descripcion)}</td><td>${esc(a.creado_por || '')}</td><td style="white-space:nowrap"><button class="btn sm" onclick="conVerAsiento('${a.id}')">Ver</button>${a.anulado ? '<span class="tag t-no" title="' + esc(a.anulado_motivo || '') + '">Anulado</span>' : `<button class="btn sm red" onclick="conAnular('${a.id}')">Anular</button>`}</td></tr>`).join('') || '<tr><td colspan="5">Sin asientos manuales.</td></tr>'}</tbody>`;
+}
+async function conVerAsiento(id) {
+  const a = CON.asientos.find(x => x.id === id);
+  const { data } = await db.from('con_asiento_lineas').select('*').eq('asiento_id', id);
+  const L = data || [], d = L.reduce((s, l) => s + Number(l.debito), 0), c = L.reduce((s, l) => s + Number(l.credito), 0);
+  repMostrar({ titulo: 'Asiento ' + a.consecutivo, sub: `${finFecha(a.fecha)} · ${a.descripcion}${a.anulado ? ' · ANULADO: ' + (a.anulado_motivo || '') : ''}`,
+    secciones: [{ cols: ['Cuenta', 'Nombre', 'Tercero', 'Débito', 'Crédito'], rows: L.map(l => { const cu = CON.byId[l.cuenta_id] || {}, t = FIN.terMap[l.tercero_id]; return [cu.codigo || '', cu.nombre || '', t ? t.nombre : '', Mo(l.debito), Mo(l.credito)]; }), foot: ['', '', 'Totales', Mo(d), Mo(c)] }] });
+}
+async function conAnular(id) {
+  const motivo = prompt('Motivo de la anulación (mínimo 5 letras):'); if (!motivo) return;
+  const { error } = await db.rpc('con_asiento_anular', { p_id: id, p_motivo: motivo });
+  if (error) return alert(traducir(error.message)); conListaAsientos();
+}
+/* --- informes --- */
+function conFiltro(k) {
+  const y = finHoy().slice(0, 4), t = { diario: 'Libro diario', mayor: 'Libro mayor', prueba: 'Balance de prueba', balance: 'Balance general', resultados: 'Estado de resultados' }[k];
+  $('con_pane').innerHTML = `<div class="bar"><b>${t}</b><span class="d" style="margin:0">Se ve primero en pantalla; después lo descarga en PDF o Excel.</span></div>
+    ${k === 'mayor' ? `<label>Cuenta</label><select id="cf_cta"><option value="">Elija la cuenta…</option>${conOpts()}</select>` : ''}
+    <div class="g2">${k === 'balance' ? '' : `<div><label>Desde</label><input type="date" id="cf_d" value="${y}-01-01"></div>`}<div><label>${k === 'balance' ? 'Fecha de corte' : 'Hasta'}</label><input type="date" id="cf_h" value="${finHoy()}"></div></div>
+    <button class="btn green" onclick="conInforme('${k}')">Ver informe</button><div id="cn_msg" class="msg"></div>`;
+}
+async function conInforme(k) {
+  const d = ($('cf_d') || {}).value || '2000-01-01', h = $('cf_h').value || finHoy(); msg('cn_msg', 'Generando…', true);
+  try { await ({ diario: conDiario, mayor: conMayor, prueba: conPrueba, balance: conBalance, resultados: conResultados })[k](d, h); msg('cn_msg', '', true); } catch (e) { msg('cn_msg', e.message); }
+}
+const conLibro = (q) => finTodas(() => { let b = db.from('con_libro_v').select('*').eq('colegio_id', me.colegio_id); if (q) b = q(b); return b.order('fecha').order('creado_en').order('doc').order('ord'); });
+const conCta = r => r.codigo ? `${r.codigo} ${r.cuenta_nombre}` : 'SIN CUENTA CONFIGURADA';
+async function conDiario(d, h) {
+  const rows = await conLibro(b => b.gte('fecha', d).lte('fecha', h)), td = rows.reduce((a, r) => a + Number(r.debito), 0), tc = rows.reduce((a, r) => a + Number(r.credito), 0);
+  repMostrar({ titulo: 'Libro diario', sub: `Del ${finFecha(d)} al ${finFecha(h)}`, secciones: [{ cols: ['Fecha', 'Documento', 'Cuenta', 'Tercero', 'Detalle', 'Débito', 'Crédito'], rows: rows.map(r => [finFecha(r.fecha), r.doc, conCta(r), r.tercero_nombre || '', r.descr || '', r.debito > 0 ? Mo(r.debito) : '', r.credito > 0 ? Mo(r.credito) : '']), foot: ['', '', '', '', 'Totales', Mo(td), Mo(tc)] }], nota: td === tc ? 'Los débitos y los créditos son iguales.' : '<b>Atención: los débitos y créditos no coinciden.</b>' });
+}
+async function conMayor(d, h) {
+  const id = $('cf_cta').value; if (!id) throw new Error('Elija la cuenta.');
+  const c = CON.byId[id], rows = await conLibro(b => b.eq('cuenta_id', id).lte('fecha', h)), sg = c.naturaleza === 'D' ? 1 : -1;
+  let saldo = rows.filter(r => r.fecha < d).reduce((a, r) => a + sg * (Number(r.debito) - Number(r.credito)), 0); const ini = saldo;
+  const en = rows.filter(r => r.fecha >= d), L = en.map(r => { saldo += sg * (Number(r.debito) - Number(r.credito)); return [finFecha(r.fecha), r.doc, r.tercero_nombre || '', r.descr || '', r.debito > 0 ? Mo(r.debito) : '', r.credito > 0 ? Mo(r.credito) : '', Mo(saldo)]; });
+  repMostrar({ titulo: `Libro mayor — ${c.codigo} ${c.nombre}`, sub: `Del ${finFecha(d)} al ${finFecha(h)} · naturaleza ${c.naturaleza === 'D' ? 'débito' : 'crédito'}`, secciones: [{ cols: ['Fecha', 'Documento', 'Tercero', 'Detalle', 'Débito', 'Crédito', 'Saldo'], rows: [B(['', '', '', 'Saldo anterior', '', '', Mo(ini)])].concat(L), foot: ['', '', '', 'Saldo final', Mo(en.reduce((a, r) => a + Number(r.debito), 0)), Mo(en.reduce((a, r) => a + Number(r.credito), 0)), Mo(saldo)] }] });
+}
+const conSaldos = async (d, h) => { const { data, error } = await db.rpc('con_saldos', { p_desde: d, p_hasta: h, p_colegio: me.colegio_id }); if (error) throw new Error(error.message); return data || []; };
+async function conPrueba(d, h) {
+  const R = (await conSaldos(d, h)).filter(r => r.acepta_mov), cols = ['Código', 'Cuenta', 'Saldo inicial débito', 'Saldo inicial crédito', 'Débitos', 'Créditos', 'Saldo final débito', 'Saldo final crédito'];
+  const dc = (v, nat) => { const s = nat === 'D' ? Number(v) : -Number(v); return s >= 0 ? [s, 0] : [0, -s]; };
+  const T = [0, 0, 0, 0, 0, 0];
+  const rows = R.map(r => { const a = dc(r.saldo_ini, r.naturaleza), b = dc(r.saldo_fin, r.naturaleza), x = [a[0], a[1], Number(r.debitos), Number(r.creditos), b[0], b[1]]; x.forEach((v, i) => T[i] += v); return [r.codigo, r.nombre].concat(x.map(Mo)); });
+  repMostrar({ titulo: 'Balance de prueba', sub: `Del ${finFecha(d)} al ${finFecha(h)}`, secciones: [{ cols, rows, foot: ['', 'TOTALES'].concat(T.map(Mo)) }], nota: T[0] === T[1] && T[2] === T[3] && T[4] === T[5] ? 'La suma de débitos es igual a la de créditos: la contabilidad cuadra.' : '<b>Atención: los totales no cuadran. Revise que todas las cuentas estén configuradas.</b>' });
+}
+function conArbol(items) {   // items: hojas con su valor ya con el signo de presentación
+  const v = {}; items.forEach(i => { v[i.codigo] = (v[i.codigo] || 0) + i.val; CON.cuentas.forEach(a => { if (a.codigo !== i.codigo && i.codigo.startsWith(a.codigo)) v[a.codigo] = (v[a.codigo] || 0) + i.val; }); });
+  const nom = {}; CON.cuentas.forEach(a => nom[a.codigo] = a.nombre); items.forEach(i => nom[i.codigo] = i.nombre);
+  return Object.keys(v).filter(c => v[c] !== 0).sort().map(c => { const par = Object.keys(v).filter(o => o !== c && c.startsWith(o)).length, hoja = !Object.keys(v).some(o => o !== c && o.startsWith(c)); const r = [' '.repeat(0) + c, ' '.repeat(par * 3) + nom[c], Mo(v[c])]; return hoja ? r : B(r); });
+}
+async function conBalance(_d, h) {
+  const y0 = h.slice(0, 4) + '-01-01', R = (await conSaldos(y0, h)).filter(r => r.acepta_mov);
+  const sec = (tipos, sg) => R.filter(r => tipos.includes(r.tipo)).map(r => ({ codigo: r.codigo, nombre: r.nombre, val: sg * (r.naturaleza === 'D' ? Number(r.saldo_fin) : -Number(r.saldo_fin)) }));
+  const act = sec(['activo'], 1), pas = sec(['pasivo'], -1), pat = sec(['patrimonio'], -1);
+  const res = t => R.filter(r => r.tipo === t), sum = (a, f) => a.reduce((x, r) => x + f(r), 0);
+  const ing = f => sum(res('ingreso'), f), gas = f => sum(res('gasto').concat(res('costo')), f);
+  const resAnt = ing(r => Number(r.saldo_ini)) - gas(r => Number(r.saldo_ini)), resEj = (ing(r => Number(r.saldo_fin)) - gas(r => Number(r.saldo_fin))) - resAnt;
+  const tA = sum(act, x => x.val), tP = sum(pas, x => x.val), tPt = sum(pat, x => x.val) + resAnt + resEj;
+  const fila = (n, v) => ['', n, Mo(v)];
+  repMostrar({ titulo: 'Balance general (Estado de situación financiera)', sub: 'Al ' + finFecha(h), secciones: [
+    { titulo: 'ACTIVO', cols: ['Código', 'Cuenta', 'Valor'], rows: conArbol(act), foot: ['', 'TOTAL ACTIVO', Mo(tA)] },
+    { titulo: 'PASIVO', cols: ['Código', 'Cuenta', 'Valor'], rows: conArbol(pas), foot: ['', 'TOTAL PASIVO', Mo(tP)] },
+    { titulo: 'PATRIMONIO', cols: ['Código', 'Cuenta', 'Valor'], rows: conArbol(pat).concat([fila('Resultados de ejercicios anteriores (calculado)', resAnt), fila('Resultado del ejercicio (calculado)', resEj)]), foot: ['', 'TOTAL PATRIMONIO', Mo(tPt)] },
+    { titulo: 'Verificación', cols: ['Detalle', 'Valor'], rows: [['Total activo', Mo(tA)], ['Total pasivo + patrimonio', Mo(tP + tPt)]], foot: [tA === tP + tPt ? 'La ecuación contable cuadra' : 'NO CUADRA — revise la configuración de cuentas', Mo(tA - tP - tPt)] }] });
+}
+async function conResultados(d, h) {
+  const R = (await conSaldos(d, h)).filter(r => r.acepta_mov), fl = r => Number(r.creditos) - Number(r.debitos);
+  const ing = R.filter(r => r.tipo === 'ingreso').map(r => ({ codigo: r.codigo, nombre: r.nombre, val: fl(r) })), gas = R.filter(r => r.tipo === 'gasto').map(r => ({ codigo: r.codigo, nombre: r.nombre, val: -fl(r) })), cos = R.filter(r => r.tipo === 'costo').map(r => ({ codigo: r.codigo, nombre: r.nombre, val: -fl(r) }));
+  const s = a => a.reduce((x, i) => x + i.val, 0), net = s(ing) - s(gas) - s(cos);
+  repMostrar({ titulo: 'Estado de resultados', sub: `Del ${finFecha(d)} al ${finFecha(h)}`, secciones: [
+    { titulo: 'INGRESOS', cols: ['Código', 'Cuenta', 'Valor'], rows: conArbol(ing), foot: ['', 'TOTAL INGRESOS', Mo(s(ing))] },
+    { titulo: 'GASTOS', cols: ['Código', 'Cuenta', 'Valor'], rows: conArbol(gas), foot: ['', 'TOTAL GASTOS', Mo(s(gas))] },
+    ...(cos.length ? [{ titulo: 'COSTOS', cols: ['Código', 'Cuenta', 'Valor'], rows: conArbol(cos), foot: ['', 'TOTAL COSTOS', Mo(s(cos))] }] : []),
+    { titulo: 'Resultado', cols: ['Detalle', 'Valor'], rows: [['Total ingresos', Mo(s(ing))], ['Total gastos', Mo(s(gas))], ['Total costos', Mo(s(cos))]], foot: [net >= 0 ? 'EXCEDENTE DEL PERÍODO' : 'DÉFICIT DEL PERÍODO', Mo(net)] }] });
+}
+/* --- configuración --- */
+const CFG_ETQ = [['tesoreria_caja', 'Caja (efectivo)'], ['tesoreria_banco', 'Bancos'], ['cxc', 'Cuentas por cobrar (cartera)'], ['cxp', 'Cuentas por pagar (proveedores)'], ['patrimonio_inicial', 'Patrimonio para saldos iniciales'], ['ingreso_default', 'Ingresos sin concepto asignado'], ['gasto_default', 'Gastos sin concepto asignado']];
+function conConfig() {
+  const conc = tipo => { const m = {}; CON.map.filter(x => x.tipo === tipo).forEach(x => m[x.concepto.toLowerCase()] = x); (FIN.conc[tipo] || []).forEach(n => { if (!m[n.toLowerCase()]) m[n.toLowerCase()] = { concepto: n, cuenta_id: null }; }); return Object.values(m).sort((a, b) => a.concepto.localeCompare(b.concepto, 'es')); };
+  const fila = (tipo, x) => `<tr><td>${esc(x.concepto)}</td><td><select style="min-width:18rem" onchange="conMapear('${tipo}',this.dataset.c,this.value,this)" data-c="${esc(x.concepto)}"><option value="">Sin asignar (usa la cuenta por defecto)</option>${conOpts(c => tipo === 'ingreso' ? c.tipo === 'ingreso' : c.tipo === 'gasto', x.cuenta_id)}</select></td></tr>`;
+  $('con_pane').innerHTML = `<h3 class="sec">Cuentas principales</h3><p class="d">Con estas cuentas se arman solos los asientos de Finanzas.</p>
+    ${CFG_ETQ.map(([k, n]) => `<label>${n}</label><select onchange="conCfg('${k}',this.value,this)">${conOpts(null, CON.cfg[k])}</select>`).join('')}
+    <h3 class="sec">Concepto → cuenta contable</h3><p class="d">Cada concepto de ingreso o egreso se contabiliza en la cuenta que elija aquí. Los conceptos nuevos usan la cuenta por defecto hasta que usted los asigne.</p>
+    <div class="g2"><div><h4 style="margin:.6rem 0">Ingresos</h4><div class="wrap"><table><tbody>${conc('ingreso').map(x => fila('ingreso', x)).join('')}</tbody></table></div></div><div><h4 style="margin:.6rem 0">Egresos</h4><div class="wrap"><table><tbody>${conc('egreso').map(x => fila('egreso', x)).join('')}</tbody></table></div></div></div><div id="cg_msg" class="msg"></div>`;
+}
+async function conCfg(k, v, el) { const { error } = await db.rpc('con_config_set', { p_clave: k, p_cuenta: v }); msg('cg_msg', error ? error.message : 'Guardado.', !error); if (!error) CON.cfg[k] = v; }
+async function conMapear(tipo, concepto, v, el) { if (!v) return msg('cg_msg', 'Para quitar la asignación elija otra cuenta: los conceptos sin asignar solo existen si nunca se asignaron.'); const { error } = await db.rpc('con_mapear', { p_tipo: tipo, p_concepto: concepto, p_cuenta: v }); msg('cg_msg', error ? error.message : 'Guardado.', !error); if (!error) { await conCargar(); } }
+
+/* ---------- INVENTARIO DEL COMEDOR (solo cantidades) ---------- */
+const INV_TABS = [['stock','Existencias'],['productos','Productos'],['entradas','Entradas'],['salidas','Salidas'],['kardex','Kardex']];
+const INV_BASE = {
+  entrada: ['Compra','Donación recibida','Programa de alimentación (PAE)','Ajuste por inventario físico (más)'],
+  salida: ['Consumo del comedor','Merma o vencimiento','Daño o deterioro','Devolución al proveedor','Donación entregada','Ajuste por inventario físico (menos)']
+};
+const INV_CAT = ['Proteína','Verdura','Legumbre','Cereal','Fruta','Lácteo','Grasa o aceite','Condimento','Bebida','Otro'];
+const INV_UNI = ['kg','g','lb','litro','unidad','paquete','bolsa','caja'];
+let INV = { tab: null, prod: [], conc: { entrada: [], salida: [] }, rows: [], edit: null };
+async function initInv() {
+  $('inv_tabs').innerHTML = INV_TABS.map(t => `<button type="button" id="invt_${t[0]}" onclick="invTab('${t[0]}')">${t[1]}</button>`).join('');
+  await finCargarTer(); await invCargar(); invTab(INV.tab || 'stock');
+}
+async function invCargar() {
+  const [p, c] = await Promise.all([db.from('inv_stock_v').select('*').eq('colegio_id', me.colegio_id).order('nombre'), db.from('inv_conceptos').select('tipo,nombre').eq('colegio_id', me.colegio_id)]);
+  INV.prod = p.data || []; INV.pmap = {}; INV.prod.forEach(x => INV.pmap[x.id] = x);
+  INV.conc = { entrada: INV_BASE.entrada.slice(), salida: INV_BASE.salida.slice() };
+  (c.data || []).forEach(x => { if (!INV.conc[x.tipo].some(n => n.toLowerCase() === x.nombre.toLowerCase())) INV.conc[x.tipo].push(x.nombre); });
+}
+function invTab(k) {
+  INV.tab = k;
+  document.querySelectorAll('#inv_tabs button').forEach(b => b.classList.toggle('on', b.id === 'invt_' + k));
+  ({ stock: invStock, productos: invProductos, entradas: () => invMovs('entrada'), salidas: () => invMovs('salida'), kardex: invKardexPane })[k]();
+}
+const cant = v => nf(v, 3);
+/* existencias */
+function invStock() {
+  $('inv_pane').innerHTML = `<div class="bar"><b>Existencias actuales</b><button class="btn sm green" onclick="invRepStock()">Ver reporte (PDF / Excel)</button></div>
+    <div class="g2"><div><input id="is_q" placeholder="Buscar producto…" oninput="invPintarStock()"></div><div><select id="is_f" onchange="invPintarStock()"><option value="">Todos los productos</option><option value="bajo">Solo los que están en el mínimo o por debajo</option></select></div></div>
+    <div class="wrap"><table id="is_tbl"></table></div>`;
+  invPintarStock();
+}
+const invFiltrados = () => { const t = (($('is_q') || {}).value || '').toLowerCase(), f = ($('is_f') || {}).value; return INV.prod.filter(p => p.activo && (!t || (p.nombre + ' ' + p.codigo + ' ' + p.categoria).toLowerCase().includes(t)) && (f !== 'bajo' || p.bajo_minimo)); };
+function invPintarStock() {
+  const L = invFiltrados();
+  $('is_tbl').innerHTML = `<thead><tr><th>Código</th><th>Producto</th><th>Categoría</th><th>Entradas</th><th>Salidas</th><th>Existencia</th><th>Mínimo</th><th></th></tr></thead><tbody>${L.map(p => `<tr><td>${esc(p.codigo)}</td><td><b>${esc(p.nombre)}</b></td><td>${esc(p.categoria)}</td><td style="text-align:right">${cant(p.entradas)}</td><td style="text-align:right">${cant(p.salidas)}</td><td style="text-align:right"><b>${cant(p.stock)} ${esc(p.unidad)}</b></td><td style="text-align:right">${cant(p.stock_minimo)}</td><td>${p.bajo_minimo ? '<span class="tag t-bad">Por reponer</span>' : '<span class="tag t-ok">Bien</span>'}</td></tr>`).join('') || '<tr><td colspan="8">Sin productos. Créelos en la pestaña «Productos».</td></tr>'}</tbody>`;
+}
+function invRepStock() {
+  const L = invFiltrados();
+  repMostrar({ titulo: 'Existencias del comedor escolar', sub: 'Al ' + finFecha(finHoy()), secciones: [{ cols: ['Código', 'Producto', 'Categoría', 'Unidad', 'Entradas', 'Salidas', 'Existencia', 'Mínimo', 'Estado'], rows: L.map(p => [p.codigo, p.nombre, p.categoria, p.unidad, Q(p.entradas), Q(p.salidas), Q(p.stock), Q(p.stock_minimo), p.bajo_minimo ? 'Por reponer' : 'Bien']) }], nota: 'Solo cantidades; el inventario no maneja valores en pesos.' });
+}
+/* productos y hoja de vida */
+function invProductos() {
+  $('inv_pane').innerHTML = `<div class="fin-form"><h3 class="sec" id="ip_tit">Nuevo producto (hoja de vida)</h3>
+    <datalist id="ip_cat">${INV_CAT.map(x => `<option>${x}</option>`).join('')}</datalist><datalist id="ip_uni">${INV_UNI.map(x => `<option>${x}</option>`).join('')}</datalist>
+    <datalist id="ip_prov">${FIN.ter.filter(t => t.activo).map(t => `<option value="${esc(t.identificacion)} — ${esc(t.nombre)}"></option>`).join('')}</datalist>
+    <div class="g2"><div><label>Nombre del producto</label><input id="ip_nom" maxlength="120"></div><div><label>Categoría</label><input id="ip_cat_i" list="ip_cat" maxlength="60" placeholder="Proteína, verdura, legumbre…"></div></div>
+    <div class="g2"><div><label>Unidad de medida</label><input id="ip_uni_i" list="ip_uni" maxlength="20" placeholder="kg, litro, unidad…"></div><div><label>Cantidad mínima (alerta de reposición)</label><input id="ip_min" type="number" min="0" step="0.001" value="0"></div></div>
+    <div class="g2"><div><label>Marca</label><input id="ip_mar" maxlength="80"></div><div><label>Presentación (ej.: bulto de 50 kg)</label><input id="ip_pre" maxlength="80"></div></div>
+    <div class="g2"><div><label>Almacenamiento</label><select id="ip_alm"><option value="">—</option><option>Seco</option><option>Ambiente fresco</option><option>Refrigerado</option><option>Congelado</option></select></div><div><label>Temperatura ideal</label><input id="ip_tem" maxlength="40" placeholder="Ej.: 0 a 4 °C"></div></div>
+    <div class="g2"><div><label>Vida útil (días)</label><input id="ip_vid" type="number" min="1" max="3650"></div><div><label>Registro sanitario (INVIMA)</label><input id="ip_inv" maxlength="60"></div></div>
+    <div class="g2"><div><label>Alérgenos o advertencias</label><input id="ip_ale" maxlength="200"></div><div><label>Proveedor habitual</label><input id="ip_pro" list="ip_prov" autocomplete="off" placeholder="Elija de la lista (opcional)"></div></div>
+    <label>Descripción</label><input id="ip_des" maxlength="500"><label>Observaciones</label><input id="ip_obs" maxlength="500">
+    <button class="btn sm green" style="margin-top:.8rem" onclick="invGuardarProd()">Guardar producto</button> <button class="btn sm" style="background:#64748b" onclick="invEditar(null)">Limpiar</button><div id="ip_msg" class="msg"></div></div>
+    <input id="ip_q" placeholder="Buscar producto…" oninput="invPintarProd()" style="margin-top:1rem"><div class="wrap"><table id="ip_tbl"></table></div>`;
+  INV.edit = null; invPintarProd();
+}
+function invPintarProd() {
+  const t = (($('ip_q') || {}).value || '').toLowerCase();
+  $('ip_tbl').innerHTML = `<thead><tr><th>Código</th><th>Producto</th><th>Categoría</th><th>Unidad</th><th>Existencia</th><th>Estado</th><th></th></tr></thead><tbody>${INV.prod.filter(p => !t || (p.nombre + p.codigo + p.categoria).toLowerCase().includes(t)).map(p => `<tr><td>${esc(p.codigo)}</td><td><b>${esc(p.nombre)}</b></td><td>${esc(p.categoria)}</td><td>${esc(p.unidad)}</td><td style="text-align:right">${cant(p.stock)}</td><td><span class="tag ${p.activo ? 't-ok' : 't-no'}">${p.activo ? 'Activo' : 'Inactivo'}</span></td><td style="white-space:nowrap"><button class="btn sm" onclick="invHoja('${p.id}')">Hoja de vida</button><button class="btn sm" onclick="invEditar('${p.id}')">Editar</button><button class="btn sm ${p.activo ? 'red' : 'green'}" onclick="invActivar('${p.id}',${!p.activo})">${p.activo ? 'Desactivar' : 'Activar'}</button></td></tr>`).join('')}</tbody>`;
+}
+const IP = { nom: 'nombre', cat_i: 'categoria', uni_i: 'unidad', min: 'stock_minimo', mar: 'marca', pre: 'presentacion', alm: 'almacenamiento', tem: 'temperatura', vid: 'vida_util_dias', inv: 'registro_sanitario', ale: 'alergenos', des: 'descripcion', obs: 'observaciones' };
+function invEditar(id) {
+  const p = id ? INV.pmap[id] : null; INV.edit = id;
+  $('ip_tit').textContent = p ? 'Editar producto' : 'Nuevo producto (hoja de vida)';
+  Object.entries(IP).forEach(([k, c]) => $('ip_' + k).value = p ? (p[c] ?? '') : (c === 'stock_minimo' ? 0 : ''));
+  const pr = p && p.proveedor_id ? FIN.terMap[p.proveedor_id] : null; $('ip_pro').value = pr ? `${pr.identificacion} — ${pr.nombre}` : '';
+  msg('ip_msg', '', true); if (p) $('ip_tit').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+async function invGuardarProd() {
+  const reg = {}; Object.entries(IP).forEach(([k, c]) => { const v = $('ip_' + k).value.trim(); reg[c] = v === '' ? null : v; });
+  if (!reg.nombre || !reg.categoria || !reg.unidad) return msg('ip_msg', 'El nombre, la categoría y la unidad son obligatorios.');
+  reg.stock_minimo = Number(reg.stock_minimo || 0); reg.vida_util_dias = reg.vida_util_dias ? Number(reg.vida_util_dias) : null;
+  const pv = $('ip_pro').value, pt = pv ? FIN.ter.find(t => pv.startsWith(t.identificacion + ' — ')) : null;
+  if (pv && !pt) return msg('ip_msg', 'Elija el proveedor de la lista o deje el campo vacío.');
+  reg.proveedor_id = pt ? pt.id : null;
+  const { error } = INV.edit ? await db.from('inv_productos').update(reg).eq('id', INV.edit) : await db.from('inv_productos').insert({ ...reg, colegio_id: me.colegio_id });
+  if (error) return msg('ip_msg', error.message);
+  await invCargar(); invProductos(); msg('ip_msg', 'Producto guardado.', true);
+}
+async function invActivar(id, activo) { const { error } = await db.from('inv_productos').update({ activo }).eq('id', id); if (error) return alert(traducir(error.message)); await invCargar(); invPintarProd(); }
+async function invHoja(id) {
+  const p = INV.pmap[id], pr = p.proveedor_id ? FIN.terMap[p.proveedor_id] : null;
+  const { data } = await db.from('inv_mov_v').select('*').eq('colegio_id', me.colegio_id).eq('producto_id', id).eq('anulado', false).order('fecha', { ascending: false }).order('creado_en', { ascending: false }).limit(10);
+  const f = (a, b) => b ? `<tr><td style="width:32%;color:#475569;font-weight:700">${esc(a)}</td><td>${esc(b)}</td></tr>` : '';
+  const cuerpo = `${encabezadoDoc(colegio)}<h2 style="font-size:17px;margin:0">HOJA DE VIDA DEL PRODUCTO</h2><div style="font-size:12px;color:#475569;margin-bottom:8px">${esc(p.codigo)} · ${esc(p.nombre)}</div>
+    <table class="rt"><tbody>${f('Categoría', p.categoria)}${f('Unidad de medida', p.unidad)}${f('Descripción', p.descripcion)}${f('Marca', p.marca)}${f('Presentación', p.presentacion)}${f('Almacenamiento', p.almacenamiento)}${f('Temperatura ideal', p.temperatura)}${f('Vida útil', p.vida_util_dias ? p.vida_util_dias + ' días' : '')}${f('Registro sanitario', p.registro_sanitario)}${f('Alérgenos / advertencias', p.alergenos)}${f('Proveedor habitual', pr ? pr.nombre + ' (' + pr.identificacion + ')' : '')}${f('Cantidad mínima', cant(p.stock_minimo) + ' ' + p.unidad)}${f('Existencia actual', cant(p.stock) + ' ' + p.unidad)}${f('Observaciones', p.observaciones)}${f('Estado', p.activo ? 'Activo' : 'Inactivo')}</tbody></table>
+    ${tablaHTML({ titulo: 'Últimos 10 movimientos', cols: ['No.', 'Fecha', 'Concepto', 'Entrada', 'Salida', 'Saldo'], rows: (data || []).map(m => [m.consecutivo, finFecha(m.fecha), m.concepto, m.tipo === 'entrada' ? Q(m.cantidad) : '', m.tipo === 'salida' ? Q(m.cantidad) : '', Q(m.saldo)]) })}`;
+  docMostrar('Hoja de vida — ' + p.nombre, cuerpo, null);
+}
+/* entradas y salidas */
+async function invMovs(tipo) {
+  const ent = tipo === 'entrada';
+  $('inv_pane').innerHTML = `<div class="bar"><b>${ent ? 'Entradas de mercancía' : 'Salidas de mercancía'}</b><button class="btn sm green" onclick="invForm('${tipo}')">➕ ${ent ? 'Nueva entrada' : 'Nueva salida'}</button></div>
+    <div id="im_form" class="hidden fin-form"></div>
+    <div class="g2"><div><label>Desde</label><input type="date" id="im_d" value="${finHoy().slice(0, 4)}-01-01" onchange="invCargarMovs()"></div><div><label>Hasta</label><input type="date" id="im_h" onchange="invCargarMovs()"></div></div>
+    <input id="im_q" placeholder="Buscar por producto, concepto o consecutivo…" oninput="invPintarMovs()" style="margin-top:.6rem"><div id="im_msg" class="msg"></div>
+    <div class="wrap"><table id="im_tbl"></table></div><button class="btn sm green" style="margin-top:.8rem" onclick="invRepMovs()">Ver reporte (PDF / Excel)</button>`;
+  invCargarMovs();
+}
+async function invCargarMovs() {
+  const tipo = INV.tab === 'entradas' ? 'entrada' : 'salida', t = INV.tab;
+  try { INV.rows = await finTodas(() => { let q = db.from('inv_mov_v').select('*').eq('colegio_id', me.colegio_id).eq('tipo', tipo); if ($('im_d').value) q = q.gte('fecha', $('im_d').value); if ($('im_h').value) q = q.lte('fecha', $('im_h').value); return q.order('fecha', { ascending: false }).order('creado_en', { ascending: false }).order('id'); }); } catch (e) { return msg('im_msg', e.message); }
+  if (t === INV.tab) invPintarMovs();
+}
+const invMovFiltradas = () => { const t = (($('im_q') || {}).value || '').toLowerCase(); return INV.rows.filter(r => !t || (r.producto + r.concepto + r.consecutivo).toLowerCase().includes(t)); };
+function invPintarMovs() {
+  const ent = INV.tab === 'entradas', L = invMovFiltradas();
+  $('im_tbl').innerHTML = `<thead><tr><th>No.</th><th>Fecha</th><th>Producto</th><th>Cantidad</th><th>Concepto</th>${ent ? '<th>Proveedor</th><th>Lote</th><th>Vence</th>' : ''}<th>Saldo</th><th></th></tr></thead><tbody>${L.map(r => { const x = r.anulado ? ' style="opacity:.55;text-decoration:line-through"' : ''; return `<tr><td${x}><b>${esc(r.consecutivo)}</b></td><td${x}>${finFecha(r.fecha)}</td><td${x}>${esc(r.producto)}</td><td${x} style="text-align:right">${cant(r.cantidad)} ${esc(r.unidad)}</td><td${x}>${esc(r.concepto)}</td>${ent ? `<td${x}>${esc(r.tercero_nombre || '')}</td><td${x}>${esc(r.lote || '')}</td><td${x}>${r.vence ? finFecha(r.vence) : ''}</td>` : ''}<td style="text-align:right">${r.saldo == null ? '—' : cant(r.saldo)}</td><td style="white-space:nowrap"><button class="btn sm" onclick="invComp('${r.id}')">Comprobante</button>${r.anulado ? `<span class="tag t-no" title="${esc(r.anulado_motivo || '')}">Anulado</span>` : `<button class="btn sm red" onclick="invAnular('${r.id}')">Anular</button>`}</td></tr>`; }).join('') || `<tr><td colspan="${ent ? 10 : 7}">Sin registros.</td></tr>`}</tbody>`;
+}
+function invRepMovs() {
+  const ent = INV.tab === 'entradas', L = invMovFiltradas().filter(r => !r.anulado);
+  repMostrar({ titulo: ent ? 'Relación de entradas de mercancía' : 'Relación de salidas de mercancía', sub: `Del ${finFecha($('im_d').value || '2000-01-01')} al ${finFecha($('im_h').value || finHoy())}`, secciones: [{ cols: ['No.', 'Fecha', 'Producto', 'Unidad', 'Cantidad', 'Concepto'].concat(ent ? ['Proveedor', 'Lote', 'Vence'] : []), rows: L.map(r => [r.consecutivo, finFecha(r.fecha), r.producto, r.unidad, Q(r.cantidad), r.concepto].concat(ent ? [r.tercero_nombre || '', r.lote || '', r.vence ? finFecha(r.vence) : ''] : [])) }], nota: 'No incluye registros anulados.' });
+}
+function invForm(tipo) {
+  const ent = tipo === 'entrada', f = $('im_form'); f.classList.remove('hidden');
+  f.innerHTML = `<h3 class="sec">${ent ? 'Nueva entrada de mercancía' : 'Nueva salida de mercancía'}</h3>
+    <label>Producto</label><select id="iv_prod" onchange="invProdElegido()"><option value="">Elija el producto…</option>${INV.prod.filter(p => p.activo).map(p => `<option value="${p.id}">${esc(p.codigo)} — ${esc(p.nombre)} (hay ${cant(p.stock)} ${esc(p.unidad)})</option>`).join('')}</select>
+    <button type="button" class="link" style="margin-top:.2rem" onclick="$('iv_new').classList.toggle('hidden')">➕ ¿No está? Crear producto rápido</button>
+    <div id="iv_new" class="hidden fin-sub"><div class="g2"><div><label>Nombre</label><input id="iq_nom" maxlength="120"></div><div><label>Categoría</label><input id="iq_cat" list="ip_cat2" maxlength="60"></div></div><datalist id="ip_cat2">${INV_CAT.map(x => `<option>${x}</option>`).join('')}</datalist><datalist id="ip_uni2">${INV_UNI.map(x => `<option>${x}</option>`).join('')}</datalist>
+      <div class="g2"><div><label>Unidad</label><input id="iq_uni" list="ip_uni2" maxlength="20"></div><div><p class="d" style="margin-top:2rem;font-size:.78rem">La hoja de vida completa se llena después en «Productos».</p></div></div><button type="button" class="btn sm green" onclick="invProdRapido('${tipo}')">Guardar producto</button><div id="iq_msg" class="msg"></div></div>
+    <div class="g2"><div><label>Fecha</label><input type="date" id="iv_f" value="${finHoy()}" max="${finHoy()}"></div><div><label>Cantidad <span id="iv_u"></span></label><input type="number" id="iv_c" min="0.001" step="0.001" inputmode="decimal"></div></div>
+    <label>Concepto</label><input id="iv_con" list="iv_dlc" maxlength="120" placeholder="Elija uno o escriba uno nuevo" autocomplete="off"><datalist id="iv_dlc">${INV.conc[tipo].map(x => `<option value="${esc(x)}"></option>`).join('')}</datalist>
+    ${ent ? `<div class="g2"><div><label>Proveedor (opcional)</label><input id="iv_ter" list="iv_dlt" autocomplete="off" placeholder="Identificación o nombre"></div><div><label>Lote (opcional)</label><input id="iv_lot" maxlength="40"></div></div><datalist id="iv_dlt">${FIN.ter.filter(t => t.activo).map(t => `<option value="${esc(t.identificacion)} — ${esc(t.nombre)}"></option>`).join('')}</datalist><label>Fecha de vencimiento (opcional)</label><input type="date" id="iv_ven">` : ''}
+    <label>Observación (opcional)</label><input id="iv_obs" maxlength="300">
+    <div style="margin-top:.6rem"><button class="btn green sm" id="iv_btn" onclick="invGuardarMov('${tipo}')">Guardar</button> <button class="btn sm" style="background:#64748b" onclick="$('im_form').classList.add('hidden')">Cancelar</button></div><div id="iv_msg" class="msg"></div>`;
+  f.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function invProdElegido() { const p = INV.pmap[$('iv_prod').value]; $('iv_u').textContent = p ? '(' + p.unidad + ')' : ''; }
+async function invProdRapido(tipo) {
+  const reg = { colegio_id: me.colegio_id, nombre: $('iq_nom').value.trim(), categoria: $('iq_cat').value.trim(), unidad: $('iq_uni').value.trim() };
+  if (!reg.nombre || !reg.categoria || !reg.unidad) return msg('iq_msg', 'Escriba nombre, categoría y unidad.');
+  const { data, error } = await db.from('inv_productos').insert(reg).select().single();
+  if (error) return msg('iq_msg', error.message);
+  await invCargar(); invForm(tipo); $('iv_prod').value = data.id; invProdElegido();
+}
+async function invGuardarMov(tipo) {
+  const ent = tipo === 'entrada', pid = $('iv_prod').value, cn = Number($('iv_c').value), con = $('iv_con').value.trim();
+  if (!pid) return msg('iv_msg', 'Elija el producto.'); if (!(cn > 0)) return msg('iv_msg', 'Escriba la cantidad.'); if (con.length < 3) return msg('iv_msg', 'Escriba el concepto.');
+  let ter = null; if (ent && $('iv_ter').value) { const t = FIN.ter.find(x => $('iv_ter').value.startsWith(x.identificacion + ' — ')); if (!t) return msg('iv_msg', 'Elija el proveedor de la lista o deje el campo vacío.'); ter = t.id; }
+  $('iv_btn').disabled = true;
+  const { data, error } = await db.rpc('inv_mov_crear', { p_tipo: tipo, p_fecha: $('iv_f').value, p_producto: pid, p_cantidad: cn, p_concepto: con, p_tercero: ter, p_lote: ent ? $('iv_lot').value : null, p_vence: ent && $('iv_ven').value ? $('iv_ven').value : null, p_obs: $('iv_obs').value });
+  $('iv_btn').disabled = false;
+  if (error) return msg('iv_msg', error.message);
+  if (!INV.conc[tipo].some(n => n.toLowerCase() === con.toLowerCase())) { await db.from('inv_conceptos').insert({ colegio_id: me.colegio_id, tipo, nombre: con }); }
+  await invCargar(); $('im_form').classList.add('hidden'); await invCargarMovs(); msg('im_msg', 'Guardado: ' + data.consecutivo, true);
+}
+async function invAnular(id) {
+  const motivo = prompt('Motivo de la anulación (mínimo 5 letras):'); if (!motivo) return;
+  const { error } = await db.rpc('inv_anular', { p_id: id, p_motivo: motivo });
+  if (error) return msg('im_msg', error.message);
+  await invCargar(); await invCargarMovs(); msg('im_msg', 'Registro anulado.', true);
+}
+function invComp(id) {
+  const r = INV.rows.find(x => x.id === id), ent = r.tipo === 'entrada';
+  const f = (a, b) => b ? `<tr><td style="width:34%;color:#475569;font-weight:700">${esc(a)}</td><td>${b}</td></tr>` : '';
+  const rect = (colegio && colegio.rector_nombres) ? `${colegio.rector_nombres} ${colegio.rector_apellidos || ''}`.trim() : 'Responsable';
+  docMostrar((ent ? 'Entrada de mercancía ' : 'Salida de mercancía ') + r.consecutivo, `${encabezadoDoc(colegio)}${r.anulado ? `<div style="border:2px solid #e11d48;color:#e11d48;font-weight:800;padding:6px 10px;margin-bottom:10px;border-radius:8px">ANULADO — ${esc(r.anulado_motivo || '')}</div>` : ''}
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px"><h2 style="font-size:17px;margin:0">${ent ? 'ENTRADA DE MERCANCÍA' : 'SALIDA DE MERCANCÍA'}</h2><div style="text-align:right"><div style="font-size:15px;font-weight:800">No. ${esc(r.consecutivo)}</div><div style="font-size:12px;color:#475569">Fecha: ${esc(finFecha(r.fecha))}</div></div></div>
+    <table class="rt"><tbody>${f('Producto', `<b>${esc(r.producto)}</b> (${esc(r.codigo)})`)}${f('Cantidad', `<b>${cant(r.cantidad)} ${esc(r.unidad)}</b>`)}${f('Concepto', esc(r.concepto))}${f('Proveedor', r.tercero_nombre ? esc(r.tercero_nombre + ' · ' + (r.tercero_identificacion || '')) : '')}${f('Lote', esc(r.lote || ''))}${f('Fecha de vencimiento', r.vence ? esc(finFecha(r.vence)) : '')}${f('Observación', esc(r.observacion || ''))}${f('Existencia después del movimiento', r.saldo == null ? '' : cant(r.saldo) + ' ' + esc(r.unidad))}</tbody></table>
+    <div style="display:flex;gap:40px;margin-top:46px"><div style="flex:1;border-top:1px solid #0f172a;padding-top:4px;font-size:12px">Registró: ${esc(r.creado_por || '')}</div><div style="flex:1;border-top:1px solid #0f172a;padding-top:4px;font-size:12px">${ent ? 'Recibió' : 'Autorizó'}: ${esc(rect)}</div></div>`, null);
+}
+/* kardex */
+function invKardexPane() {
+  $('inv_pane').innerHTML = `<div class="bar"><b>Kardex por producto</b><span class="d" style="margin:0">Todas las entradas y salidas con su saldo.</span></div>
+    <label>Producto</label><select id="ik_p"><option value="">Elija el producto…</option>${INV.prod.map(p => `<option value="${p.id}">${esc(p.codigo)} — ${esc(p.nombre)}</option>`).join('')}</select>
+    <div class="g2"><div><label>Desde</label><input type="date" id="ik_d" value="${finHoy().slice(0, 4)}-01-01"></div><div><label>Hasta</label><input type="date" id="ik_h" value="${finHoy()}"></div></div>
+    <button class="btn green" onclick="invKardex()">Ver kardex</button><div id="ik_msg" class="msg"></div>`;
+}
+async function invKardex() {
+  const id = $('ik_p').value; if (!id) return msg('ik_msg', 'Elija el producto.');
+  const d = $('ik_d').value || '2000-01-01', h = $('ik_h').value || finHoy(), p = INV.pmap[id];
+  let rows; try { rows = (await finTodas(() => db.from('inv_mov_v').select('*').eq('colegio_id', me.colegio_id).eq('producto_id', id).eq('anulado', false).lte('fecha', h).order('fecha').order('creado_en').order('id'))); } catch (e) { return msg('ik_msg', e.message); }
+  let s = 0; const ini = rows.filter(r => r.fecha < d).reduce((a, r) => a + (r.tipo === 'entrada' ? 1 : -1) * Number(r.cantidad), 0); s = ini;
+  const en = rows.filter(r => r.fecha >= d), L = en.map(r => { s += (r.tipo === 'entrada' ? 1 : -1) * Number(r.cantidad); return [r.consecutivo, finFecha(r.fecha), r.concepto, r.tipo === 'entrada' ? Q(r.cantidad) : '', r.tipo === 'salida' ? Q(r.cantidad) : '', Q(s)]; });
+  repMostrar({ titulo: `Kardex — ${p.nombre}`, sub: `${p.codigo} · unidad: ${p.unidad} · del ${finFecha(d)} al ${finFecha(h)}`, secciones: [{ cols: ['No.', 'Fecha', 'Concepto', 'Entrada', 'Salida', 'Saldo'], rows: [B(['', '', 'Saldo anterior', '', '', Q(ini)])].concat(L), foot: ['', '', 'Saldo final', Q(en.filter(r => r.tipo === 'entrada').reduce((a, r) => a + Number(r.cantidad), 0)), Q(en.filter(r => r.tipo === 'salida').reduce((a, r) => a + Number(r.cantidad), 0)), Q(s)] }] });
+  msg('ik_msg', '', true);
 }
 
 /* ---------- RESOLUCIÓN (imprimible / PDF) ---------- */

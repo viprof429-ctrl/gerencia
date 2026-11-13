@@ -369,6 +369,15 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       </div>
     </section>
 
+    <section id="v-asi" class="hidden">
+      <div class="card">
+        <h2>Control de asistencia de estudiantes</h2>
+        <p class="d">Registre las llegadas tarde: el sistema avisa de inmediato al acudiente por correo (y puede abrir WhatsApp) y deja la constancia para los reportes.</p>
+        <div class="fin-tabs" id="asi_tabs"></div>
+        <div id="asi_pane"></div>
+      </div>
+    </section>
+
     <section id="v-ayuda" class="hidden">
       <div class="card">
         <div class="bar"><h2 style="margin:0">❓ Ayuda y manual de usuario</h2><button class="btn sm" onclick="ayImprimir()">🖨 Manual completo (PDF)</button></div>
@@ -408,7 +417,8 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
             <div><label>Apellidos</label><input id="u_ape" required></div>
             <div><label>Teléfono / WhatsApp</label><input type="tel" id="u_tel" required></div>
             <div><label>Correo (usuario de ingreso)</label><input type="email" id="u_mail" required autocomplete="off"></div>
-            <div><label>Rol</label><select id="u_rol" onchange="uModsPintar()"><option value="coordinador">Coordinador</option><option value="docente">Docente</option><option value="administrativo">Administrativo</option></select></div>
+            <div><label>Rol</label><select id="u_rol" onchange="uModsPintar();uTcVer()"><option value="coordinador">Coordinador</option><option value="docente">Docente</option><option value="administrativo">Administrativo</option></select></div>
+            <div id="u_tc_w" class="hidden"><label>Tipo de coordinador</label><select id="u_tc"><option value="">Seleccione…</option><option value="academico">Coordinador académico</option><option value="convivencia">Coordinador de convivencia</option></select></div>
             <div><label>Jornada (obligatoria para coordinadores y docentes)</label><select id="u_jor"><option value="">No aplica</option><option>Mañana</option><option>Tarde</option></select></div>
             <div><label>Régimen (obligatorio para docentes)</label><select id="u_reg"><option value="">No aplica</option><option value="2277">Decreto 2277 de 1979</option><option value="1278">Decreto 1278 de 2002</option></select></div>
             <div><label>Cargo</label>
@@ -510,7 +520,7 @@ async function nuevaClave(e) {
   verForm('f-login');
   msg('l_msg', 'Contraseña actualizada. Ya puede ingresar con la nueva.', true);
 }
-const VIEWS = ['home','magister','permisos','bandeja','sau','mant','fin','con','inv','ayuda','usuarios'];
+const VIEWS = ['home','magister','permisos','bandeja','sau','mant','fin','con','inv','asi','ayuda','usuarios'];
 function showView(v) { VIEWS.forEach(x => $('v-' + x).classList.toggle('hidden', x !== v)); $('btn-home').classList.toggle('hidden', v === 'home' || v === 'magister'); $('btn-ayuda').classList.toggle('hidden', v === 'ayuda'); }
 
 async function loadSchools() {
@@ -732,12 +742,13 @@ const MODS = [
   { k:'mantenimiento', t:'Gestión de Mantenimiento', i:'🛠️' },
   { k:'fin', t:'Finanzas y Tesorería', i:'💰', fin:true },
   { k:'con', t:'Contabilidad', i:'📒', fin:true },
-  { k:'inv', t:'Inventario del Comedor', i:'🥦', fin:true }
+  { k:'inv', t:'Inventario del Comedor', i:'🥦', fin:true },
+  { k:'asistencia', t:'Control de asistencia', i:'⏰' }
 ];
 let MIS = [];
 const MOD_ACC = [['permisos','Control de Permisos','Atención y gestión'],['sau','SAU (Atención al Usuario)','Atención y gestión'],['mantenimiento','Gestión de Mantenimiento','Atención y gestión'],
   ['ingresos','Finanzas · Ingresos','Finanzas y comedor'],['egresos','Finanzas · Egresos','Finanzas y comedor'],['cartera','Finanzas · Cartera','Finanzas y comedor'],['proveedores','Finanzas · Proveedores','Finanzas y comedor'],
-  ['contable','Contabilidad','Finanzas y comedor'],['inventario','Inventario del comedor','Finanzas y comedor']];
+  ['contable','Contabilidad','Finanzas y comedor'],['inventario','Inventario del comedor','Finanzas y comedor'],['asistencia','Control de asistencia','Convivencia y asistencia']];
 async function cargarAccesos() {
   ACCESOS = {};
   const { data } = await db.from('accesos_rol').select('rol,modulo,permitido');
@@ -763,7 +774,7 @@ async function goHome() {
   if (esGestorMant()) { const { data } = await db.from('mant_vista').select('estado,semaforo');
     (data || []).forEach(x => { if (x.estado === 'Reportado') mant.sin++; if (x.estado !== 'Solucionado' && x.semaforo === 'amarillo') mant.por++; if (x.estado !== 'Solucionado' && x.semaforo === 'rojo') mant.venc++; }); }
   const cards = [];
-  MODS.filter(m => (m.k === 'fin' ? finTes() : m.k === 'con' ? finPuede('contable') : m.k === 'inv' ? finPuede('inventario') : puede(m.k)) || (m.k === 'sau' && (esGestor() || sau.mias > 0)) || (m.k === 'mantenimiento' && !!me.mant_rol)).forEach(m => {
+  MODS.filter(m => (m.k === 'fin' ? finTes() : m.k === 'con' ? finPuede('contable') : m.k === 'inv' ? finPuede('inventario') : m.k === 'asistencia' ? puede('asistencia') : puede(m.k)) || (m.k === 'sau' && (esGestor() || sau.mias > 0)) || (m.k === 'mantenimiento' && !!me.mant_rol)).forEach(m => {
     if (m.k === 'mantenimiento') {
       const al = esGestorMant() ? [mant.sin && `${mant.sin} por atender`, mant.por && `${mant.por} por vencer`, mant.venc && `${mant.venc} vencido(s)`] : [];
       return cards.push({ t:m.t, i:m.i, go:'mant', d: esGestorMant() ? 'Atienda los reportes de daños, haga seguimiento y consulte estadísticas.' : 'Reporte un daño con fotos y siga el estado del arreglo.', x: al.filter(Boolean).map(a => `<span class="tag t-bad" style="margin:.1rem">${a}</span>`).join('') });
@@ -771,6 +782,7 @@ async function goHome() {
     if (m.k === 'fin') return cards.push({ t:m.t, i:m.i, go:'fin', d:'Ingresos, egresos, cartera, proveedores, comprobantes y reportes.' });
     if (m.k === 'con') return cards.push({ t:m.t, i:m.i, go:'con', d:'Plan de cuentas, asientos, libros, balances y estado de resultados.' });
     if (m.k === 'inv') return cards.push({ t:m.t, i:m.i, go:'inv', d:'Productos, entradas, salidas, existencias y kardex del comedor escolar.' });
+    if (m.k === 'asistencia') return cards.push({ t:m.t, i:m.i, go:'asi', d:'Registre llegadas tarde, avise al acudiente y consulte reportes por grado, estudiante y fecha.' });
     if (m.k === 'sau') {
       const alertas = esGestor() ? [sau.sin && `${sau.sin} sin asignar`, sau.por && `${sau.por} por vencer`, sau.venc && `${sau.venc} vencida(s)`] : [sau.mias && `${sau.mias} por responder`];
       return cards.push({ t:m.t, i:m.i, go:'sau', d:'Radique y consulte solicitudes' + (esGestor() ? '; asigne y responda las del colegio.' : '.'), x: alertas.filter(Boolean).map(a => `<span class="tag t-bad" style="margin:.1rem">${a}</span>`).join('') });
@@ -794,6 +806,7 @@ function openMod(v) {
   if (v === 'fin') initFin();
   if (v === 'con') initCon();
   if (v === 'inv') initInv();
+  if (v === 'asi') initAsi();
   if (v === 'ayuda') initAyuda();
   if (v === 'usuarios') loadUsuarios();
 }
@@ -955,7 +968,7 @@ function actualizarCargos(usados) {
 async function loadUsuarios() {
   loadMatriz(); cargarConfig();
   const [{ data }, { data: ov }, { data: ar }] = await Promise.all([
-    db.from('perfiles').select('id,nombres,apellidos,correo,telefono,rol,jornada,regimen,cargo,es_monitor_sau,mant_rol,activo').order('creado_en', { ascending: false }),
+    db.from('perfiles').select('id,nombres,apellidos,correo,telefono,rol,jornada,regimen,cargo,es_monitor_sau,mant_rol,activo,tipo_coordinador').order('creado_en', { ascending: false }),
     db.from('accesos_usuario').select('usuario_id,modulo,permitido'), db.from('accesos_rol').select('rol,modulo,permitido')]);
   ROL_DEF = {}; (ar || []).forEach(x => { ROL_DEF[x.rol] = ROL_DEF[x.rol] || {}; ROL_DEF[x.rol][x.modulo] = x.permitido; });
   USR_OV = {}; (ov || []).forEach(x => { USR_OV[x.usuario_id] = USR_OV[x.usuario_id] || {}; USR_OV[x.usuario_id][x.modulo] = x.permitido; });
@@ -964,7 +977,7 @@ async function loadUsuarios() {
   $('u_body').innerHTML = (data || []).map(x => {
     const fijo = x.id === me.id || x.rol === 'rector';
     return `<tr><td>${esc(x.nombres)} ${esc(x.apellidos)}</td><td style="word-break:break-all">${esc(x.correo || '—')}</td><td>${esc(x.telefono || '')}</td>
-      <td>${fijo ? esc(ROLES[x.rol] || x.rol) : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{rol:this.value})">${opts(ROLES_USR, x.rol)}</select>`}</td>
+      <td>${fijo ? esc(ROLES[x.rol] || x.rol) : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{rol:this.value})">${opts(ROLES_USR, x.rol)}</select>`}${x.rol === 'coordinador' ? (fijo ? `<br><small>${x.tipo_coordinador === 'academico' ? 'Académico' : x.tipo_coordinador === 'convivencia' ? 'Convivencia' : ''}</small>` : `<br><select style="width:auto;padding:.3rem;margin-top:.25rem" onchange="setUsr('${x.id}',{tipo_coordinador:this.value||null})">${opts([['','Tipo…'],['academico','Académico'],['convivencia','Convivencia']], x.tipo_coordinador || '')}</select>`) : ''}</td>
       <td>${fijo ? esc(x.jornada || '—') : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{jornada:this.value||null})">${opts(JORNADAS, x.jornada || '')}</select>`}</td>
       <td>${x.rol !== 'docente' ? '—' : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{regimen:this.value||null})">${opts(REGIMENES, x.regimen || '')}</select>`}</td>
       <td>${fijo ? esc(x.cargo || '—') : `<input list="dl_cargos" style="width:11rem;padding:.4rem" maxlength="60" value="${esc(x.cargo || '')}" onchange="setUsr('${x.id}',{cargo:this.value.trim()||null})">`}</td>
@@ -975,7 +988,9 @@ async function loadUsuarios() {
       <td>${fijo ? '' : `<button class="btn sm green" onclick="setUsr('${x.id}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>`}</td></tr>`;
   }).join('') || '<tr><td colspan="11">Sin usuarios.</td></tr>';
 }
+const uTcVer = () => { const w = $('u_tc_w'); if (w) w.classList.toggle('hidden', $('u_rol').value !== 'coordinador'); };
 async function setUsr(id, campos) {
+  if (campos.rol && campos.rol !== 'coordinador') campos.tipo_coordinador = null;
   const { error } = await db.from('perfiles').update(campos).eq('id', id);
   if (error) alert(traducir(error.message));
   loadUsuarios();
@@ -987,6 +1002,8 @@ async function crearUsuario(e) {
   try {
     const rol = $('u_rol').value, jor = $('u_jor').value || null;
     if (['docente','coordinador'].includes(rol) && !jor) throw new Error('Seleccione la jornada.');
+    const tc = rol === 'coordinador' ? $('u_tc').value : '';
+    if (rol === 'coordinador' && !tc) throw new Error('Seleccione si es coordinador académico o de convivencia.');
     const reg = $('u_reg').value || null;
     if (rol === 'docente' && !reg) throw new Error('Seleccione el régimen del docente.');
     const cargo = cargoElegido();
@@ -998,11 +1015,11 @@ async function crearUsuario(e) {
     });
     if (error) throw new Error(/already/i.test(error.message) ? 'Ese correo ya está registrado.' : error.message);
     if (!data.user) throw new Error('No se pudo crear el usuario.');
-    const { error: e2 } = await db.from('perfiles').update({ rol, activo: true, cargo: cargo || null }).eq('id', data.user.id);
+    const { error: e2 } = await db.from('perfiles').update({ rol, activo: true, cargo: cargo || null, tipo_coordinador: tc || null }).eq('id', data.user.id);
     if (e2) throw new Error('Usuario creado, pero no se pudo activar: ' + e2.message);
     const mods = {}; document.querySelectorAll('#u_mods input[data-nm]').forEach(i => { mods[i.dataset.nm] = i.checked; });
     const rm = await db.rpc('acceso_usuario_guardar', { p_usuario: data.user.id, p_mods: mods });
-    form.reset(); cargoSel(); uModsPintar();
+    form.reset(); cargoSel(); uModsPintar(); uTcVer();
     msg('u_msg', rm.error ? 'Usuario creado, pero no se pudieron guardar sus módulos (hágalo con el botón «Módulos»): ' + traducir(rm.error.message) : 'Usuario creado. Ya puede ingresar con su correo y contraseña.', !rm.error);
     loadUsuarios();
   } catch (err) { msg('u_msg', err.message); }
@@ -2517,6 +2534,295 @@ function conConfig() {
 }
 async function conCfg(k, v, el) { const { error } = await db.rpc('con_config_set', { p_clave: k, p_cuenta: v }); msg('cg_msg', error ? error.message : 'Guardado.', !error); if (!error) CON.cfg[k] = v; }
 async function conMapear(tipo, concepto, v, el) { if (!v) return msg('cg_msg', 'Para quitar la asignación elija otra cuenta: los conceptos sin asignar solo existen si nunca se asignaron.'); const { error } = await db.rpc('con_mapear', { p_tipo: tipo, p_concepto: concepto, p_cuenta: v }); msg('cg_msg', error ? error.message : 'Guardado.', !error); if (!error) { await conCargar(); } }
+
+/* ---------- CONTROL DE ASISTENCIA (llegadas tarde) ---------- */
+const ASI_TABS = [['registrar','Registrar llegada tarde'],['historial','Historial'],['reportes','Reportes y estadísticas'],['estudiantes','Estudiantes']];
+let ASI = { tab: null, est: [], emap: {}, ret: [], sel: null, desde: null, hasta: null, imp: null };
+const asiNom = e => `${e.apellidos} ${e.nombres}`;
+const asiGrado = e => `${e.grado}${e.grupo ? '-' + e.grupo : ''}`;
+const asiHora12 = h => { const [hh, mm] = String(h).split(':').map(Number); return `${((hh + 11) % 12) + 1}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'a. m.' : 'p. m.'}`;};
+const asiNorm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+async function initAsi() {
+  $('asi_tabs').innerHTML = ASI_TABS.map(t => `<button type="button" id="asit_${t[0]}" onclick="asiTab('${t[0]}')">${t[1]}</button>`).join('');
+  if (!ASI.desde) { const h = finHoy(); ASI.hasta = h; ASI.desde = h.slice(0, 8) + '01'; }
+  await asiCargarEst(); asiTab(ASI.tab || 'registrar');
+}
+async function asiCargarEst() {
+  try { ASI.est = await finTodas(() => db.from('asi_estudiantes').select('*').eq('colegio_id', me.colegio_id).order('apellidos').order('nombres')); } catch (e) { ASI.est = []; }
+  ASI.emap = {}; ASI.est.forEach(e => ASI.emap[e.id] = e);
+}
+async function asiCargarRet() {
+  ASI.ret = await finTodas(() => db.from('asi_retardos_v').select('*').eq('colegio_id', me.colegio_id).gte('fecha', ASI.desde).lte('fecha', ASI.hasta).order('fecha', { ascending: false }).order('hora', { ascending: false }));
+}
+function asiTab(k) {
+  ASI.tab = k;
+  document.querySelectorAll('#asi_tabs button').forEach(b => b.classList.toggle('on', b.id === 'asit_' + k));
+  ({ registrar: asiRegistrar, historial: asiHistorial, reportes: asiReportes, estudiantes: asiEstudiantes })[k]();
+}
+/* --- registrar --- */
+function asiRegistrar() {
+  ASI.sel = null;
+  const ahora = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Bogota', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+  $('asi_pane').innerHTML = `<div class="fin-form"><b>1. Busque al estudiante</b>
+    <input id="ar_q" placeholder="Escriba apellido, nombre, documento o grado…" autocomplete="off" oninput="asiBuscar()" style="margin-top:.5rem">
+    <div id="ar_res" style="margin-top:.4rem"></div><div id="ar_sel"></div></div>
+    <div class="fin-form" id="ar_form" style="opacity:.5;pointer-events:none"><b>2. Datos de la llegada</b>
+      <div class="g2" style="margin-top:.5rem"><div><label>Fecha</label><input type="date" id="ar_fec" value="${finHoy()}" max="${finHoy()}"></div>
+      <div><label>Hora de llegada</label><input type="time" id="ar_hor" value="${ahora}"></div></div>
+      <label style="margin-top:.6rem">Observación (opcional)</label><input id="ar_obs" maxlength="300" placeholder="Ej.: sin excusa, trae nota de la mamá, transporte…">
+      <button class="btn" id="ar_btn" style="margin-top:.8rem" onclick="asiGuardar()">Registrar y avisar al acudiente</button>
+      <div id="ar_msg" class="msg"></div></div><div id="ar_ok"></div>`;
+  if (!ASI.est.length) $('ar_res').innerHTML = '<p class="d">Aún no hay estudiantes. Cárguelos en la pestaña «Estudiantes» (Excel o archivo plano).</p>';
+}
+function asiBuscar() {
+  const t = asiNorm($('ar_q').value); if (t.length < 2) { $('ar_res').innerHTML = ''; return; }
+  const L = ASI.est.filter(e => e.activo && asiNorm(asiNom(e) + e.nombres + ' ' + e.identificacion + asiGrado(e)).includes(t)).slice(0, 8);
+  $('ar_res').innerHTML = L.map(e => `<button type="button" class="btn sm" style="background:#fff;color:#1e293b;border:1.5px solid #c7d2fe;margin:.15rem .3rem .15rem 0" onclick="asiElegir('${e.id}')">${esc(asiNom(e))} · ${esc(asiGrado(e))}</button>`).join('') || '<span class="d">Sin coincidencias.</span>';
+}
+function asiElegir(id) {
+  const e = ASI.emap[id]; ASI.sel = id; $('ar_res').innerHTML = ''; $('ar_q').value = '';
+  $('ar_sel').innerHTML = `<div style="margin-top:.6rem;padding:.7rem .9rem;background:#eef2ff;border-radius:12px"><b style="font-size:1.05rem">${esc(asiNom(e))}</b> · Grado ${esc(asiGrado(e))}${e.jornada ? ' · ' + esc(e.jornada) : ''}<br><span class="d">Acudiente: ${esc(e.acudiente_nombre || 'sin nombre')} · ${e.acudiente_correo ? '✉ ' + esc(e.acudiente_correo) : '<b style="color:#b91c1c">sin correo</b>'}${e.acudiente_telefono ? ' · 📱 ' + esc(e.acudiente_telefono) : ''}</span></div>`;
+  $('ar_form').style.opacity = 1; $('ar_form').style.pointerEvents = 'auto';
+}
+async function asiGuardar() {
+  if (!ASI.sel) return msg('ar_msg', 'Elija primero al estudiante.');
+  const btn = $('ar_btn'); btn.disabled = true; msg('ar_msg', 'Registrando…', true);
+  try {
+    const { data, error } = await db.rpc('asi_retardo_crear', { p_estudiante: ASI.sel, p_fecha: $('ar_fec').value, p_hora: $('ar_hor').value, p_obs: $('ar_obs').value.trim() });
+    if (error) throw new Error(error.message);
+    const e = ASI.emap[ASI.sel];
+    msg('ar_msg', 'Registrado. Avisando al acudiente…', true);
+    const res = await asiAvisar(data.id);
+    const wa = e.acudiente_telefono ? `<button class="btn sm green" onclick="asiWhatsApp('${e.id}','${$('ar_fec').value}','${$('ar_hor').value}',${JSON.stringify($('ar_obs').value.trim()).replace(/"/g, '&quot;')})">📱 Avisar también por WhatsApp</button>` : '';
+    $('ar_ok').innerHTML = `<div class="bar" style="background:#ecfdf5;border-color:#a7f3d0;display:block"><b>✔ Llegada tarde registrada (${esc(data.consecutivo)})</b><br>${esc(asiNom(e))} · Grado ${esc(asiGrado(e))} · ${esc(asiHora12($('ar_hor').value))} · Es la llegada tarde n.º <b>${data.acumulado}</b> de este año.<br><span style="display:inline-block;margin:.5rem 0">${res.ok ? `✉ Correo enviado al acudiente (${esc(res.enviado_a)}).` : `<b style="color:#b91c1c">⚠ ${esc(res.error)}</b>`}</span><br>${wa}<button class="btn sm" onclick="asiRegistrar()">Registrar otro</button></div>`;
+    $('ar_form').style.display = 'none'; $('ar_sel').innerHTML = ''; msg('ar_msg', '', true);
+  } catch (err) { msg('ar_msg', err.message); }
+  finally { btn.disabled = false; }
+}
+async function asiAvisar(id) {
+  try {
+    const { data, error } = await db.functions.invoke('asistencia-avisar', { body: { retardo_id: id } });
+    if (data && (data.ok || data.error)) return data;
+    return { ok: false, error: (error && error.message) || 'No se pudo enviar el correo.' };
+  } catch (e) { return { ok: false, error: 'No se pudo enviar el correo.' }; }
+}
+function asiTel(t) { let d = String(t || '').replace(/\D/g, ''); if (d.length === 10 && d[0] === '3') d = '57' + d; return d; }
+function asiWhatsApp(eid, fecha, hora, obs) {
+  const e = ASI.emap[eid]; if (!e || !e.acudiente_telefono) return alert('El acudiente no tiene teléfono registrado.');
+  const t = `${e.acudiente_nombre ? 'Señor(a) ' + e.acudiente_nombre : 'Señor(a) acudiente'}, le informamos que el(la) estudiante ${asiNom(e)} (grado ${asiGrado(e)}) llegó tarde a ${colegio.nombre} el ${fLarga(fecha)} a las ${asiHora12(hora)}.${obs ? ' Observación: ' + obs + '.' : ''} Coordinación.`;
+  window.open('https://wa.me/' + asiTel(e.acudiente_telefono) + '?text=' + encodeURIComponent(t), '_blank');
+}
+/* --- historial --- */
+function asiFiltroHTML(extra) {
+  return `<div class="fin-form"><div class="g2"><div><label>Desde</label><input type="date" id="ah_d" value="${ASI.desde}"></div><div><label>Hasta</label><input type="date" id="ah_h" value="${ASI.hasta}"></div>${extra || ''}</div>
+    <button class="btn sm" style="margin-top:.6rem" onclick="asiAplicar()">Consultar</button> <span id="ah_msg" class="msg"></span></div>`;
+}
+async function asiAplicar() {
+  const d = $('ah_d').value, h = $('ah_h').value; if (!d || !h || d > h) return msg('ah_msg', 'Revise las fechas.');
+  ASI.desde = d; ASI.hasta = h; msg('ah_msg', 'Consultando…', true);
+  try { await asiCargarRet(); } catch (e) { return msg('ah_msg', e.message); }
+  msg('ah_msg', '', true); ASI.tab === 'historial' ? asiPintarHist() : asiPintarRep();
+}
+async function asiHistorial() {
+  const grados = [...new Set(ASI.est.map(e => e.grado))].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+  $('asi_pane').innerHTML = asiFiltroHTML(`<div><label>Grado</label><select id="ah_g" onchange="asiPintarHist()"><option value="">Todos</option>${grados.map(g => `<option>${esc(g)}</option>`).join('')}</select></div><div><label>Estudiante</label><input id="ah_q" placeholder="Nombre o documento" oninput="asiPintarHist()"></div>`) + `<div class="bar"><b id="ah_cnt"></b><span><button class="btn sm green" onclick="asiRepHist()">Ver reporte (PDF / Excel / correo)</button></span></div><div class="wrap"><table id="ah_tbl"></table></div>`;
+  try { await asiCargarRet(); } catch (e) { return msg('ah_msg', e.message); }
+  asiPintarHist();
+}
+const asiHistFilt = () => { const g = ($('ah_g') || {}).value, q = asiNorm(($('ah_q') || {}).value); return ASI.ret.filter(r => (!g || r.grado === g) && (!q || asiNorm(r.estudiante + r.nombres + ' ' + r.identificacion).includes(q))); };
+function asiPintarHist() {
+  const L = asiHistFilt(), ok = L.filter(r => !r.anulado).length;
+  $('ah_cnt').textContent = `${ok} llegada(s) tarde en el período` + (L.length > ok ? ` (${L.length - ok} anulada(s))` : '');
+  const av = { enviado: ['t-ok', 'Correo enviado'], pendiente: ['t-no', 'Pendiente'], sin_correo: ['t-bad', 'Sin correo'], error: ['t-bad', 'No se envió'] };
+  $('ah_tbl').innerHTML = `<thead><tr><th>Constancia</th><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Grado</th><th>Observación</th><th>Registró</th><th>Aviso al acudiente</th><th></th></tr></thead><tbody>${L.map(r => `<tr style="${r.anulado ? 'opacity:.5;text-decoration:line-through' : ''}"><td>${esc(r.consecutivo)}</td><td>${esc(finFecha(r.fecha))}</td><td>${esc(asiHora12(r.hora))}</td><td><b>${esc(r.estudiante)}</b></td><td>${esc(r.grado + (r.grupo ? '-' + r.grupo : ''))}</td><td>${esc(r.observacion || '')}</td><td>${esc(r.registrado_nombre || '')}</td><td>${r.anulado ? `<span class="tag t-no" title="${esc(r.anulado_motivo || '')}">Anulado</span>` : `<span class="tag ${av[r.notif_estado][0]}">${av[r.notif_estado][1]}</span>`}</td><td style="white-space:nowrap">${r.anulado ? '' : `${r.acudiente_telefono ? `<button class="btn sm green" title="WhatsApp" onclick="asiWaHist('${r.id}')">📱</button>` : ''}<button class="btn sm" title="Enviar el correo de nuevo" onclick="asiReenviar('${r.id}')">✉</button><button class="btn sm red" onclick="asiAnular('${r.id}')">Anular</button>`}</td></tr>`).join('') || '<tr><td colspan="9">Sin registros en este período.</td></tr>'}</tbody>`;
+}
+function asiWaHist(id) { const r = ASI.ret.find(x => x.id === id); if (!r) return; ASI.emap[r.estudiante_id] ? asiWhatsApp(r.estudiante_id, r.fecha, String(r.hora).slice(0, 5), r.observacion || '') : alert('Estudiante no encontrado.'); }
+async function asiReenviar(id) {
+  const r = await asiAvisar(id); alert(r.ok ? 'Correo enviado a ' + r.enviado_a + '.' : r.error);
+  await asiCargarRet(); asiPintarHist();
+}
+async function asiAnular(id) {
+  const m = prompt('Motivo de la anulación (mínimo 5 letras):', ''); if (m === null) return;
+  const { error } = await db.rpc('asi_retardo_anular', { p_id: id, p_motivo: m }); if (error) return alert(traducir(error.message));
+  await asiCargarRet(); asiPintarHist();
+}
+function asiRepHist() {
+  const L = asiHistFilt();
+  repMostrar({ titulo: 'Control de llegadas tarde', sub: `Del ${finFecha(ASI.desde)} al ${finFecha(ASI.hasta)}`, secciones: [{ cols: ['Constancia', 'Fecha', 'Hora', 'Estudiante', 'Documento', 'Grado', 'Observación', 'Registró', 'Estado'], rows: L.map(r => [r.consecutivo, finFecha(r.fecha), asiHora12(r.hora), r.estudiante, r.identificacion, r.grado + (r.grupo ? '-' + r.grupo : ''), r.observacion || '', r.registrado_nombre || '', r.anulado ? 'Anulado' : 'Vigente']) }] });
+}
+/* --- reportes y estadísticas --- */
+async function asiReportes() {
+  $('asi_pane').innerHTML = asiFiltroHTML() + '<div id="ap_out"></div>';
+  try { await asiCargarRet(); } catch (e) { return msg('ah_msg', e.message); }
+  asiPintarRep();
+}
+const DSEM = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+function asiCalc() {
+  const L = ASI.ret.filter(r => !r.anulado), cnt = (f) => { const m = {}; L.forEach(r => { const k = f(r); m[k] = (m[k] || 0) + 1; }); return m; };
+  const porGrado = {}; L.forEach(r => { const k = r.grado + (r.grupo ? '-' + r.grupo : ''); (porGrado[k] = porGrado[k] || { n: 0, e: new Set() }).n++; porGrado[k].e.add(r.estudiante_id); });
+  const porEst = {}; L.forEach(r => { (porEst[r.estudiante_id] = porEst[r.estudiante_id] || { n: 0, nom: r.estudiante, doc: r.identificacion, g: r.grado + (r.grupo ? '-' + r.grupo : ''), ult: r.fecha }).n++; if (r.fecha > porEst[r.estudiante_id].ult) porEst[r.estudiante_id].ult = r.fecha; });
+  const porFecha = cnt(r => r.fecha);
+  const porDia = cnt(r => DSEM[new Date(r.fecha + 'T12:00:00').getDay()]);
+  const franja = cnt(r => { const [h, m] = String(r.hora).split(':').map(Number), t = h * 60 + m; return t < 7 * 60 ? 'Antes de las 7:00' : t < 7 * 60 + 30 ? '7:00 a 7:29' : t < 8 * 60 ? '7:30 a 7:59' : t < 9 * 60 ? '8:00 a 8:59' : 'Desde las 9:00'; });
+  return { L, porGrado, porEst, porFecha, porDia, franja };
+}
+function asiBarra(n, max) { return `<div style="background:#e0e7ff;border-radius:6px;height:12px;width:100%"><div style="background:#4f46e5;border-radius:6px;height:12px;width:${max ? Math.max(3, Math.round(n * 100 / max)) : 0}%"></div></div>`; }
+function asiPintarRep() {
+  const c = asiCalc(), ne = Object.keys(c.porEst).length, reinc = Object.values(c.porEst).filter(x => x.n >= 3).length;
+  const filas = (obj, orden) => Object.entries(obj).sort(orden || ((a, b) => b[1] - a[1]));
+  const gr = Object.entries(c.porGrado).sort((a, b) => b[1].n - a[1].n), mg = gr.length ? gr[0][1].n : 0;
+  const est = Object.values(c.porEst).sort((a, b) => b.n - a.n), top = est.slice(0, 15);
+  const fe = filas(c.porFecha, (a, b) => a[0].localeCompare(b[0])), mf = Math.max(0, ...fe.map(x => x[1]));
+  const dsem = DSEM.slice(1).concat(DSEM[0]).map(d => [d, c.porDia[d] || 0]), md = Math.max(0, ...dsem.map(x => x[1]));
+  const FR = ['Antes de las 7:00', '7:00 a 7:29', '7:30 a 7:59', '8:00 a 8:59', 'Desde las 9:00'].map(f => [f, c.franja[f] || 0]), mfr = Math.max(0, ...FR.map(x => x[1]));
+  const tabla = (tit, cols, rows) => `<div class="fin-form"><b>${tit}</b><div class="wrap"><table><thead><tr>${cols.map(x => `<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.join('') || `<tr><td colspan="${cols.length}">Sin datos.</td></tr>`}</tbody></table></div></div>`;
+  $('ap_out').innerHTML = `<div class="bar"><span><b>${c.L.length}</b> llegadas tarde · <b>${ne}</b> estudiantes distintos · <b>${reinc}</b> con 3 o más</span><button class="btn sm green" onclick="asiRepEst()">Ver reporte completo (PDF / Excel / correo)</button></div>
+    ${tabla('Por grado', ['Grado', 'Llegadas tarde', 'Estudiantes', ''], gr.map(([g, x]) => `<tr><td><b>${esc(g)}</b></td><td style="text-align:right">${x.n}</td><td style="text-align:right">${x.e.size}</td><td style="width:35%">${asiBarra(x.n, mg)}</td></tr>`))}
+    ${tabla('Estudiantes con más llegadas tarde (los 15 primeros)', ['Estudiante', 'Documento', 'Grado', 'Veces', 'Última', ''], top.map(x => `<tr><td><b>${esc(x.nom)}</b></td><td>${esc(x.doc)}</td><td>${esc(x.g)}</td><td style="text-align:right">${x.n}</td><td>${esc(finFecha(x.ult))}</td><td>${x.n >= 3 ? '<span class="tag t-bad">Reincidente</span>' : ''}</td></tr>`))}
+    ${tabla('Por fecha', ['Fecha', 'Llegadas tarde', ''], fe.map(([f, n]) => `<tr><td>${esc(finFecha(f))}</td><td style="text-align:right">${n}</td><td style="width:45%">${asiBarra(n, mf)}</td></tr>`))}
+    ${tabla('Por día de la semana', ['Día', 'Llegadas tarde', ''], dsem.map(([d, n]) => `<tr><td>${d}</td><td style="text-align:right">${n}</td><td style="width:45%">${asiBarra(n, md)}</td></tr>`))}
+    ${tabla('Por hora de llegada', ['Franja', 'Llegadas tarde', ''], FR.map(([f, n]) => `<tr><td>${f}</td><td style="text-align:right">${n}</td><td style="width:45%">${asiBarra(n, mfr)}</td></tr>`))}`;
+}
+function asiRepEst() {
+  const c = asiCalc(), est = Object.values(c.porEst).sort((a, b) => b.n - a.n);
+  repMostrar({ titulo: 'Llegadas tarde: estadística', sub: `Del ${finFecha(ASI.desde)} al ${finFecha(ASI.hasta)} · ${c.L.length} llegadas tarde`, secciones: [
+    { titulo: 'Por grado', cols: ['Grado', 'Llegadas tarde', 'Estudiantes'], rows: Object.entries(c.porGrado).sort((a, b) => b[1].n - a[1].n).map(([g, x]) => [g, String(x.n), String(x.e.size)]) },
+    { titulo: 'Por estudiante', cols: ['Estudiante', 'Documento', 'Grado', 'Veces', 'Última'], rows: est.map(x => [x.nom, x.doc, x.g, String(x.n), finFecha(x.ult)]) },
+    { titulo: 'Por fecha', cols: ['Fecha', 'Llegadas tarde'], rows: Object.entries(c.porFecha).sort((a, b) => a[0].localeCompare(b[0])).map(([f, n]) => [finFecha(f), String(n)]) },
+    { titulo: 'Por día de la semana', cols: ['Día', 'Llegadas tarde'], rows: DSEM.slice(1).concat(DSEM[0]).map(d => [d, String(c.porDia[d] || 0)]) }
+  ], nota: 'Se cuentan solo los registros vigentes (no anulados).' });
+}
+/* --- estudiantes --- */
+function asiEstudiantes() {
+  const grados = [...new Set(ASI.est.map(e => e.grado))].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+  $('asi_pane').innerHTML = `<div class="bar"><b>${ASI.est.filter(e => e.activo).length} estudiante(s) activos</b><span><button class="btn sm" onclick="asiEditar(null)">+ Nuevo estudiante</button> <button class="btn sm green" onclick="asiImportar()">📂 Cargar Excel o archivo plano</button> <button class="btn sm" style="background:#64748b" onclick="asiPlantilla()">⬇ Plantilla</button></span></div>
+    <div class="g2"><div><input id="ae_q" placeholder="Buscar por nombre, documento o grado…" oninput="asiPintarEst()"></div><div><select id="ae_g" onchange="asiPintarEst()"><option value="">Todos los grados</option>${grados.map(g => `<option>${esc(g)}</option>`).join('')}</select></div></div>
+    <div class="wrap"><table id="ae_tbl"></table></div><input type="file" id="ae_file" accept=".xlsx,.csv,.txt,.tsv" class="hidden" onchange="asiLeerArchivo(this)">`;
+  asiPintarEst();
+}
+function asiPintarEst() {
+  const q = asiNorm(($('ae_q') || {}).value), g = ($('ae_g') || {}).value;
+  const L = ASI.est.filter(e => (!g || e.grado === g) && (!q || asiNorm(asiNom(e) + e.nombres + e.identificacion + asiGrado(e)).includes(q))).slice(0, 300);
+  $('ae_tbl').innerHTML = `<thead><tr><th>Documento</th><th>Estudiante</th><th>Grado</th><th>Jornada</th><th>Acudiente</th><th>Correo</th><th>Teléfono</th><th>Estado</th><th></th></tr></thead><tbody>${L.map(e => `<tr><td>${esc(e.identificacion)}</td><td><b>${esc(asiNom(e))}</b></td><td>${esc(asiGrado(e))}</td><td>${esc(e.jornada || '')}</td><td>${esc(e.acudiente_nombre || '')}</td><td style="word-break:break-all">${e.acudiente_correo ? esc(e.acudiente_correo) : '<span class="tag t-bad">Sin correo</span>'}</td><td>${esc(e.acudiente_telefono || '')}</td><td><span class="tag ${e.activo ? 't-ok' : 't-no'}">${e.activo ? 'Activo' : 'Retirado'}</span></td><td style="white-space:nowrap"><button class="btn sm" onclick="asiEditar('${e.id}')">Editar</button></td></tr>`).join('') || '<tr><td colspan="9">Sin estudiantes. Use «Cargar Excel» o «Nuevo estudiante».</td></tr>'}</tbody>`
+    + (ASI.est.length > 300 ? '' : '');
+}
+const AE = { tipo: 'ae_tipo', ident: 'ae_ident', nom: 'ae_nom', ape: 'ae_ape', gra: 'ae_gra', gru: 'ae_gru', jor: 'ae_jor', acn: 'ae_acn', aco: 'ae_aco', act: 'ae_act' };
+function asiEditar(id) {
+  const e = id ? ASI.emap[id] : null; ASI.edit = id;
+  const f = (k, l, v, x) => `<div><label>${l}</label><input id="ae_${k}" value="${esc(v || '')}" ${x || ''}></div>`;
+  modalAbrir(e ? 'Editar estudiante' : 'Nuevo estudiante', `<div class="g2">
+    <div><label>Tipo de documento</label><select id="ae_tipo">${['TI', 'RC', 'CC', 'CE', 'PEP', 'NUIP'].map(t => `<option ${e && e.tipo_doc === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+    ${f('ident', 'Número de documento', e && e.identificacion, 'maxlength="20"')}${f('nom', 'Nombres', e && e.nombres)}${f('ape', 'Apellidos', e && e.apellidos)}
+    ${f('gra', 'Grado (ej.: 6, 11, Transición)', e && e.grado, 'maxlength="20"')}${f('gru', 'Grupo (ej.: A, 01)', e && e.grupo, 'maxlength="10"')}
+    <div><label>Jornada</label><select id="ae_jor"><option value="">—</option>${['Mañana', 'Tarde', 'Única'].map(t => `<option ${e && e.jornada === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div><div></div>
+    ${f('acn', 'Nombre del acudiente', e && e.acudiente_nombre)}${f('aco', 'Correo del acudiente (para el aviso)', e && e.acudiente_correo, 'type="email"')}${f('act', 'Teléfono / WhatsApp del acudiente', e && e.acudiente_telefono, 'type="tel"')}
+    ${e ? `<div><label>Estado</label><select id="ae_activo"><option value="1" ${e.activo ? 'selected' : ''}>Activo</option><option value="0" ${e.activo ? '' : 'selected'}>Retirado</option></select></div>` : ''}</div>
+    <button class="btn" style="margin-top:.8rem" onclick="asiGuardarEst()">Guardar</button><div id="ae_msg" class="msg"></div>`);
+}
+async function asiGuardarEst() {
+  const g = k => $('ae_' + k).value.trim();
+  const { error } = await db.rpc('asi_estudiante_guardar', { p_id: ASI.edit, p_tipo_doc: g('tipo'), p_ident: g('ident'), p_nombres: g('nom'), p_apellidos: g('ape'), p_grado: g('gra'), p_grupo: g('gru'), p_jornada: g('jor'), p_ac_nombre: g('acn'), p_ac_correo: g('aco'), p_ac_tel: g('act'), p_activo: $('ae_activo') ? $('ae_activo').value === '1' : true });
+  if (error) return msg('ae_msg', error.message);
+  modalCerrar(); await asiCargarEst(); asiEstudiantes();
+}
+function asiPlantilla() {
+  const csv = '﻿Documento;Tipo de documento;Nombres;Apellidos;Grado;Grupo;Jornada;Acudiente;Correo del acudiente;Telefono del acudiente\r\n1067000001;TI;Ana María;Pérez Gómez;6;A;Mañana;Rosa Gómez;rosa@correo.com;3001234567\r\n1067000002;TI;Luis Carlos;Martínez Rey;7;B;Tarde;Pedro Martínez;pedro@correo.com;3109876543\r\n';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'plantilla-estudiantes.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function asiImportar() { $('ae_file').value = ''; $('ae_file').click(); }
+/* lector de archivos: CSV / texto plano y Excel .xlsx (sin librerías externas) */
+function asiCSV(txt) {
+  txt = txt.replace(/^﻿/, '');
+  const prim = txt.split(/\r?\n/).find(l => l.trim()) || '', cand = [';', ',', '\t', '|'];
+  const d = cand.map(c => [c, prim.split(c).length]).sort((a, b) => b[1] - a[1])[0][0];
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < txt.length; i++) {
+    const ch = txt[i];
+    if (q) { if (ch === '"') { if (txt[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === d) { row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && txt[i + 1] === '\n') i++; row.push(cur); cur = ''; rows.push(row); row = []; }
+    else cur += ch;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim()));
+}
+async function asiInflar(u8) { const ds = new DecompressionStream('deflate-raw'); const w = ds.writable.getWriter(); w.write(u8); w.close(); return new Uint8Array(await new Response(ds.readable).arrayBuffer()); }
+async function asiZip(buf) {
+  const u8 = new Uint8Array(buf), dv = new DataView(buf), out = {};
+  let eocd = -1; for (let i = u8.length - 22; i >= Math.max(0, u8.length - 70000); i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  if (eocd < 0) throw new Error('El archivo no es un Excel .xlsx válido.');
+  const n = dv.getUint16(eocd + 10, true); let p = dv.getUint32(eocd + 16, true);
+  for (let k = 0; k < n; k++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const met = dv.getUint16(p + 10, true), csz = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl)); p += 46 + nl + xl + cl;
+    if (!/^xl\/(sharedStrings\.xml|workbook\.xml|_rels\/workbook\.xml\.rels|worksheets\/[^/]+\.xml)$/.test(name)) continue;
+    const lh = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true), data = u8.subarray(lh, lh + csz);
+    out[name] = new TextDecoder().decode(met === 0 ? data : await asiInflar(data));
+  }
+  return out;
+}
+async function asiXLSX(buf) {
+  const z = await asiZip(buf), P = new DOMParser(), xml = s => P.parseFromString(s, 'application/xml');
+  const ss = []; if (z['xl/sharedStrings.xml']) xml(z['xl/sharedStrings.xml']).querySelectorAll('si').forEach(si => ss.push([...si.querySelectorAll('t')].map(t => t.textContent).join('')));
+  let hoja = null;
+  try { const wb = xml(z['xl/workbook.xml']), rid = wb.querySelector('sheet').getAttribute('r:id') || wb.querySelector('sheet').getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
+    const rel = [...xml(z['xl/_rels/workbook.xml.rels']).querySelectorAll('Relationship')].find(r => r.getAttribute('Id') === rid); if (rel) hoja = 'xl/' + rel.getAttribute('Target').replace(/^\/?(xl\/)?/, ''); } catch (e) {}
+  if (!hoja || !z[hoja]) hoja = Object.keys(z).filter(k => /worksheets\//.test(k)).sort()[0];
+  if (!hoja) throw new Error('No se encontró ninguna hoja en el Excel.');
+  const rows = [];
+  xml(z[hoja]).querySelectorAll('sheetData > row').forEach(r => {
+    const row = [];
+    r.querySelectorAll('c').forEach(c => {
+      const ref = c.getAttribute('r') || '', L = ref.replace(/\d/g, ''); let col = 0; for (const ch of L) col = col * 26 + ch.charCodeAt(0) - 64; col--;
+      const t = c.getAttribute('t'), v = c.querySelector('v'); let x = '';
+      if (t === 's') x = ss[Number(v && v.textContent)] || ''; else if (t === 'inlineStr') x = [...c.querySelectorAll('t')].map(e => e.textContent).join(''); else if (v) { x = v.textContent; if (/e/i.test(x) && !isNaN(Number(x))) x = Number(x).toFixed(0); }
+      row[col < 0 ? row.length : col] = x;
+    });
+    for (let i = 0; i < row.length; i++) if (row[i] === undefined) row[i] = '';
+    rows.push(row);
+  });
+  return rows.filter(r => r.some(c => String(c).trim()));
+}
+const ASI_COL = { identificacion: ['identificacion', 'documento', 'numerodocumento', 'numerodeldocumento', 'nodocumento', 'cedula', 'nui', 'nuip', 'id', 'documentoidentidad', 'numerodeidentificacion'], tipo_doc: ['tipodocumento', 'tipodedocumento', 'tipodoc', 'tipoid'], nombres: ['nombres', 'nombre', 'nombresestudiante'], apellidos: ['apellidos', 'apellido', 'apellidosestudiante'], grado: ['grado', 'curso'], grupo: ['grupo', 'seccion'], jornada: ['jornada'], acudiente_nombre: ['acudiente', 'nombreacudiente', 'nombredelacudiente', 'padre', 'madre', 'responsable', 'nombrepadre', 'nombreresponsable'], acudiente_correo: ['correo', 'correoacudiente', 'correodelacudiente', 'email', 'emailacudiente', 'correoelectronico'], acudiente_telefono: ['telefono', 'telefonoacudiente', 'telefonodelacudiente', 'celular', 'celularacudiente', 'whatsapp', 'movil'] };
+async function asiLeerArchivo(inp) {
+  const f = inp.files[0]; if (!f) return;
+  try {
+    let rows;
+    if (/\.xlsx$/i.test(f.name)) { if (typeof DecompressionStream === 'undefined') throw new Error('Su navegador no puede leer Excel. Guarde el archivo como CSV y súbalo de nuevo.'); rows = await asiXLSX(await f.arrayBuffer()); }
+    else if (/\.xls$/i.test(f.name)) throw new Error('Los .xls antiguos no se pueden leer: en Excel use «Guardar como» y elija «Libro de Excel (.xlsx)» o «CSV».');
+    else { const b = await f.arrayBuffer(); let t = new TextDecoder('utf-8').decode(b); if (t.includes('�')) t = new TextDecoder('windows-1252').decode(b); rows = asiCSV(t); }
+    if (rows.length < 2) throw new Error('El archivo no tiene filas de estudiantes.');
+    const head = rows[0].map(asiNorm), idx = {};
+    Object.entries(ASI_COL).forEach(([k, syn]) => { const i = head.findIndex(h => syn.includes(h)); if (i >= 0) idx[k] = i; });
+    const falt = ['identificacion', 'nombres', 'apellidos', 'grado'].filter(k => idx[k] === undefined);
+    if (falt.length) throw new Error('No encontré estas columnas en la primera fila: ' + falt.map(k => ({ identificacion: 'Documento', nombres: 'Nombres', apellidos: 'Apellidos', grado: 'Grado' }[k])).join(', ') + '. Use la «Plantilla» para ver cómo deben llamarse.');
+    const filas = rows.slice(1).map(r => { const o = {}; Object.keys(idx).forEach(k => o[k] = String(r[idx[k]] ?? '').trim()); return o; });
+    const mailOk = m => !m || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m);
+    const bien = [], mal = [], vistos = new Set();
+    filas.forEach((o, i) => {
+      const id = o.identificacion.replace(/[\s.,]/g, '').toUpperCase(); let por = '';
+      if (!/^[A-Z0-9-]{3,20}$/.test(id)) por = 'documento no válido'; else if (o.nombres.length < 2 || o.apellidos.length < 2) por = 'falta nombre o apellido'; else if (!o.grado) por = 'falta el grado'; else if (!mailOk(o.acudiente_correo.toLowerCase())) por = 'correo no válido'; else if (vistos.has(id)) por = 'documento repetido en el archivo';
+      if (por) mal.push([i + 2, o.nombres + ' ' + o.apellidos, por]); else { vistos.add(id); bien.push(o); }
+    });
+    ASI.imp = bien;
+    const sinMail = bien.filter(o => !o.acudiente_correo).length;
+    modalAbrir('Cargar estudiantes: ' + f.name, `<p><b>${bien.length}</b> estudiante(s) listos para cargar${mal.length ? ` · <b style="color:#b91c1c">${mal.length}</b> fila(s) con problemas (no se cargarán)` : ''}${sinMail ? ` · <b>${sinMail}</b> sin correo del acudiente` : ''}.</p>
+      <p class="d">Si el documento ya existe, se actualizan sus datos; si no, se crea. Ejemplo de las primeras filas:</p>
+      <div class="wrap"><table><thead><tr><th>Documento</th><th>Estudiante</th><th>Grado</th><th>Acudiente</th><th>Correo</th></tr></thead><tbody>${bien.slice(0, 6).map(o => `<tr><td>${esc(o.identificacion)}</td><td>${esc(o.apellidos + ' ' + o.nombres)}</td><td>${esc(o.grado + (o.grupo ? '-' + o.grupo : ''))}</td><td>${esc(o.acudiente_nombre || '')}</td><td>${esc(o.acudiente_correo || '')}</td></tr>`).join('')}</tbody></table></div>
+      ${mal.length ? `<details style="margin:.6rem 0"><summary style="cursor:pointer;font-weight:700;color:#b91c1c">Ver las filas con problemas</summary><ul>${mal.slice(0, 40).map(m => `<li>Fila ${m[0]} (${esc(m[1])}): ${m[2]}</li>`).join('')}</ul></details>` : ''}
+      <label style="display:flex;gap:.5rem;align-items:center;font-weight:600;margin:.8rem 0"><input type="checkbox" id="ai_des" style="width:auto"> Retirar a los estudiantes que NO estén en este archivo (úselo al cargar la lista completa del nuevo año)</label>
+      <button class="btn" id="ai_btn" onclick="asiConfirmarImp()" ${bien.length ? '' : 'disabled'}>Cargar ${bien.length} estudiante(s)</button><div id="ai_msg" class="msg"></div>`);
+  } catch (e) { alert(e.message); }
+}
+async function asiConfirmarImp() {
+  const btn = $('ai_btn'); btn.disabled = true; msg('ai_msg', 'Cargando… puede tardar unos segundos.', true);
+  const { data, error } = await db.rpc('asi_estudiantes_cargar', { p_filas: ASI.imp, p_desactivar_otros: $('ai_des').checked });
+  if (error) { btn.disabled = false; return msg('ai_msg', error.message); }
+  msg('ai_msg', `Listo: ${data.nuevos} nuevo(s), ${data.actualizados} actualizado(s)${data.omitidos ? ', ' + data.omitidos + ' omitido(s)' : ''}${data.desactivados ? ', ' + data.desactivados + ' retirado(s)' : ''}.`, true);
+  await asiCargarEst(); asiEstudiantes();
+}
 
 /* ---------- INVENTARIO DEL COMEDOR (solo cantidades) ---------- */
 const INV_TABS = [['stock','Existencias'],['productos','Productos'],['entradas','Entradas'],['salidas','Salidas'],['kardex','Kardex']];

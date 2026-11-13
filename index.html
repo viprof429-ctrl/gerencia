@@ -2560,24 +2560,88 @@ function asiTab(k) {
   ({ registrar: asiRegistrar, historial: asiHistorial, reportes: asiReportes, estudiantes: asiEstudiantes })[k]();
 }
 /* --- registrar --- */
+const ASI_EXC = ['Me desperté tarde', 'No fueron a recogerme', 'Mi papá/mamá no me despertó', 'Estoy enfermo(a)', 'Problema de transporte', 'Cita médica', 'Problema familiar', 'Sin excusa'];
 function asiRegistrar() {
+  $('asi_pane').innerHTML = `<div class="fin-tabs" style="margin-bottom:.8rem"><button type="button" id="arm_lista" onclick="asiModo('lista')">📋 Llamar a lista por grado</button><button type="button" id="arm_buscar" onclick="asiModo('buscar')">🔎 Buscar un estudiante</button></div><div id="ar_cont"></div>`;
+  asiModo(ASI.modo || 'lista');
+}
+function asiModo(m) {
+  ASI.modo = m;
+  ['lista', 'buscar'].forEach(k => $('arm_' + k).classList.toggle('on', k === m));
+  m === 'lista' ? asiModoLista() : asiModoBuscar();
+}
+const asiAhora = () => new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Bogota', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+/* llamar a lista: se marca quién llegó tarde; fecha y hora las toma el sistema */
+function asiModoLista() {
+  const gs = [...new Set(ASI.est.filter(e => e.activo).map(asiGrado))].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+  $('ar_cont').innerHTML = `<div class="fin-form"><b>1. Escoja el grado</b>
+    <select id="al_g" onchange="asiListaCargar()" style="margin-top:.5rem"><option value="">Seleccione el grado…</option>${gs.map(g => `<option>${esc(g)}</option>`).join('')}</select>
+    <p class="d" style="margin:.4rem 0 0">Marque con un chulo a quien llegue tarde: GIE toma la fecha y la hora del sistema en ese momento.</p></div><div id="al_out"></div>`;
+  if (!ASI.est.length) $('al_out').innerHTML = '<p class="d">Aún no hay estudiantes. Cárguelos en la pestaña «Estudiantes» (Excel o archivo plano).</p>';
+}
+async function asiListaCargar() {
+  const g = $('al_g').value; if (!g) { $('al_out').innerHTML = ''; return; }
+  $('al_out').innerHTML = '<p class="d">Cargando…</p>';
+  const { data } = await db.from('asi_retardos_v').select('estudiante_id,hora,anulado').eq('colegio_id', me.colegio_id).eq('fecha', finHoy());
+  const ya = {}; (data || []).filter(r => !r.anulado).forEach(r => ya[r.estudiante_id] = String(r.hora).slice(0, 5));
+  ASI.lista = ASI.est.filter(e => e.activo && asiGrado(e) === g); ASI.ya = ya;
+  const op = ASI_EXC.map(x => `<option>${esc(x)}</option>`).join('');
+  $('al_out').innerHTML = `<div class="fin-form"><b>2. Llame a lista · ${esc(g)} · ${esc(finFecha(finHoy()))}</b>
+    <div class="wrap"><table><thead><tr><th>Estudiante</th><th style="text-align:center">Llegó tarde</th><th>Hora</th><th>Observación</th></tr></thead><tbody>${ASI.lista.map((e, i) => ya[e.id]
+      ? `<tr style="background:#f1f5f9"><td><b>${esc(asiNom(e))}</b></td><td colspan="3"><span class="tag t-ok">Ya registrado hoy a las ${esc(asiHora12(ya[e.id]))}</span></td></tr>`
+      : `<tr id="al_r${i}"><td><b>${esc(asiNom(e))}</b>${e.acudiente_correo ? '' : ' <span class="tag t-bad" title="Sin correo del acudiente">sin correo</span>'}</td><td style="text-align:center"><input type="checkbox" style="width:1.4rem;height:1.4rem" id="al_c${i}" onchange="asiMarcar(${i})"></td><td id="al_h${i}" style="white-space:nowrap">—</td>
+      <td><select id="al_o${i}" onchange="asiObsSel(${i})" disabled style="padding:.4rem"><option value="">— Sin observación —</option>${op}<option value="__otra">Otra (escribir)…</option></select><input id="al_t${i}" class="hidden" maxlength="300" placeholder="Escriba la observación" style="margin-top:.3rem"></td></tr>`).join('') || '<tr><td colspan="4">No hay estudiantes en este grado.</td></tr>'}</tbody></table></div>
+    <button class="btn" id="al_btn" style="margin-top:.8rem" onclick="asiListaGuardar()" disabled>Registrar y avisar a los acudientes</button><div id="al_msg" class="msg"></div></div><div id="al_res"></div>`;
+}
+function asiMarcar(i) {
+  const c = $('al_c' + i).checked;
+  $('al_h' + i).textContent = c ? asiHora12(asiAhora()) : '—'; $('al_h' + i).dataset.h = c ? asiAhora() : '';
+  $('al_o' + i).disabled = !c; if (!c) { $('al_o' + i).value = ''; $('al_t' + i).classList.add('hidden'); }
+  const n = ASI.lista.filter((e, k) => $('al_c' + k) && $('al_c' + k).checked).length;
+  $('al_btn').disabled = !n; $('al_btn').textContent = n ? `Registrar y avisar a ${n} acudiente(s)` : 'Registrar y avisar a los acudientes';
+}
+function asiObsSel(i) { const o = $('al_o' + i).value === '__otra'; $('al_t' + i).classList.toggle('hidden', !o); if (o) $('al_t' + i).focus(); }
+async function asiListaGuardar() {
+  const sel = []; ASI.lista.forEach((e, i) => { const c = $('al_c' + i); if (c && c.checked) { const o = $('al_o' + i).value; sel.push({ e, hora: $('al_h' + i).dataset.h || asiAhora(), obs: o === '__otra' ? $('al_t' + i).value.trim() : o }); } });
+  if (!sel.length) return;
+  const btn = $('al_btn'); btn.disabled = true; const fecha = finHoy(), res = [];
+  for (let k = 0; k < sel.length; k++) {
+    const x = sel[k]; msg('al_msg', `Registrando ${k + 1} de ${sel.length}…`, true);
+    const r = await db.rpc('asi_retardo_crear', { p_estudiante: x.e.id, p_fecha: fecha, p_hora: x.hora, p_obs: x.obs });
+    if (r.error) { res.push({ ...x, fecha, fallo: traducir(r.error.message) }); continue; }
+    const av = await asiAvisar(r.data.id);
+    res.push({ ...x, fecha, cons: r.data.consecutivo, acum: r.data.acumulado, av });
+  }
+  ASI.lres = res; msg('al_msg', '', true);
+  $('al_out').innerHTML = `<div class="bar" style="background:#ecfdf5;border-color:#a7f3d0;display:block"><b>✔ Proceso terminado: ${res.filter(r => !r.fallo).length} de ${res.length} registrado(s)</b>
+    <div class="wrap" style="margin-top:.6rem"><table><thead><tr><th>Estudiante</th><th>Hora</th><th>Constancia</th><th>Aviso al acudiente</th><th></th></tr></thead><tbody>${res.map((r, i) => `<tr><td><b>${esc(asiNom(r.e))}</b></td><td>${esc(asiHora12(r.hora))}</td><td>${r.fallo ? '—' : esc(r.cons) + ' · n.º ' + r.acum + ' del año'}</td><td>${r.fallo ? `<span class="tag t-bad">${esc(r.fallo)}</span>` : r.av.ok ? `<span class="tag t-ok">Correo enviado</span>` : `<span class="tag t-bad">${esc(r.av.error)}</span>`}</td><td>${!r.fallo && r.e.acudiente_telefono ? `<button class="btn sm green" onclick="asiWaRes(${i})">📱 WhatsApp</button>` : ''}</td></tr>`).join('')}</tbody></table></div>
+    <button class="btn sm" style="margin-top:.6rem" onclick="asiListaCargar()">Seguir llamando a lista</button></div>`;
+}
+function asiWaRes(i) { const r = ASI.lres[i]; asiWhatsApp(r.e.id, r.fecha, r.hora, r.obs); }
+/* buscar un estudiante suelto */
+function asiModoBuscar() {
   ASI.sel = null;
-  const ahora = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Bogota', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
-  $('asi_pane').innerHTML = `<div class="fin-form"><b>1. Busque al estudiante</b>
-    <input id="ar_q" placeholder="Escriba apellido, nombre, documento o grado…" autocomplete="off" oninput="asiBuscar()" style="margin-top:.5rem">
+  const ahora = asiAhora();
+  $('ar_cont').innerHTML = `<div class="fin-form"><b>1. Busque al estudiante</b>
+    <input id="ar_q" placeholder="Escriba desde la primera letra: nombre, apellido, documento o grado (ej.: 6A)…" autocomplete="off" oninput="asiBuscar()" style="margin-top:.5rem">
     <div id="ar_res" style="margin-top:.4rem"></div><div id="ar_sel"></div></div>
     <div class="fin-form" id="ar_form" style="opacity:.5;pointer-events:none"><b>2. Datos de la llegada</b>
       <div class="g2" style="margin-top:.5rem"><div><label>Fecha</label><input type="date" id="ar_fec" value="${finHoy()}" max="${finHoy()}"></div>
       <div><label>Hora de llegada</label><input type="time" id="ar_hor" value="${ahora}"></div></div>
-      <label style="margin-top:.6rem">Observación (opcional)</label><input id="ar_obs" maxlength="300" placeholder="Ej.: sin excusa, trae nota de la mamá, transporte…">
+      <label style="margin-top:.6rem">Observación (opcional)</label><input id="ar_obs" list="dl_exc" maxlength="300" placeholder="Elija una excusa de la lista o escriba otra"><datalist id="dl_exc">${ASI_EXC.map(x => `<option value="${esc(x)}">`).join('')}</datalist>
       <button class="btn" id="ar_btn" style="margin-top:.8rem" onclick="asiGuardar()">Registrar y avisar al acudiente</button>
       <div id="ar_msg" class="msg"></div></div><div id="ar_ok"></div>`;
   if (!ASI.est.length) $('ar_res').innerHTML = '<p class="d">Aún no hay estudiantes. Cárguelos en la pestaña «Estudiantes» (Excel o archivo plano).</p>';
 }
 function asiBuscar() {
-  const t = asiNorm($('ar_q').value); if (t.length < 2) { $('ar_res').innerHTML = ''; return; }
-  const L = ASI.est.filter(e => e.activo && asiNorm(asiNom(e) + e.nombres + ' ' + e.identificacion + asiGrado(e)).includes(t)).slice(0, 8);
-  $('ar_res').innerHTML = L.map(e => `<button type="button" class="btn sm" style="background:#fff;color:#1e293b;border:1.5px solid #c7d2fe;margin:.15rem .3rem .15rem 0" onclick="asiElegir('${e.id}')">${esc(asiNom(e))} · ${esc(asiGrado(e))}</button>`).join('') || '<span class="d">Sin coincidencias.</span>';
+  const toks = $('ar_q').value.split(/\s+/).map(asiNorm).filter(Boolean);
+  if (!toks.length) { $('ar_res').innerHTML = ''; return; }
+  const ok = (e, t) => {
+    const pal = (e.nombres + ' ' + e.apellidos).split(/\s+/).map(asiNorm);
+    return pal.some(w => w.startsWith(t)) || (t.length >= 4 && asiNorm(e.identificacion).includes(t)) || asiNorm(asiGrado(e)).startsWith(t) || asiNorm(e.grado + (e.grupo || '')).startsWith(t);
+  };
+  const L = ASI.est.filter(e => e.activo && toks.every(t => ok(e, t)));
+  $('ar_res').innerHTML = (L.length > 12 ? `<div class="d" style="margin-bottom:.3rem">${L.length} coincidencias: siga escribiendo para acotar.</div>` : '') + L.slice(0, 12).map(e => `<button type="button" class="btn sm" style="background:#fff;color:#1e293b;border:1.5px solid #c7d2fe;margin:.15rem .3rem .15rem 0" onclick="asiElegir('${e.id}')">${esc(asiNom(e))} · ${esc(asiGrado(e))}</button>`).join('') || '<span class="d">Sin coincidencias.</span>';
 }
 function asiElegir(id) {
   const e = ASI.emap[id]; ASI.sel = id; $('ar_res').innerHTML = ''; $('ar_q').value = '';

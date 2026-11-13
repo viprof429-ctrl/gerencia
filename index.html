@@ -1671,6 +1671,24 @@ function numALetras(n) {
   const s = apoc(txt(n)) + (n % 1e6 === 0 ? ' de' : '') + (n === 1 ? ' peso' : ' pesos');
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+/* dinero con puntos de miles mientras se escribe */
+const moneyNum = v => Number(String(v == null ? '' : v).replace(/\D/g, '')) || 0;
+const moneyTxt = n => { n = Math.round(Number(n) || 0); return n ? n.toLocaleString('es-CO') : ''; };
+document.addEventListener('input', e => {
+  const el = e.target; if (!el || !el.classList || !el.classList.contains('money')) return;
+  const pos = el.selectionStart, antes = el.value.slice(0, pos).replace(/\D/g, '').length;
+  const t = moneyTxt(moneyNum(el.value)); el.value = t;
+  let n = 0, i = 0; while (i < t.length && n < antes) { if (/\d/.test(t[i])) n++; i++; }
+  try { el.setSelectionRange(i, i); } catch (_) {}
+});
+/* aviso de concepto nuevo */
+function conHint(inp, hint, lista) {
+  const v = $(inp).value.trim(), h = $(hint); if (!h) return;
+  if (v.length < 3) { h.textContent = 'Elija un concepto de la lista o escriba uno nuevo: se crea solo al guardar.'; h.style.color = ''; return; }
+  const ya = lista.some(x => x.toLowerCase() === v.toLowerCase());
+  h.textContent = ya ? '✔ Concepto de la lista.' : `➕ «${v}» no está en la lista: se creará como concepto nuevo al guardar.`;
+  h.style.color = ya ? '#047857' : '#b45309';
+}
 /* ventana flotante */
 function modalAbrir(titulo, cuerpo, botones) {
   let m = $('gie_modal');
@@ -1693,18 +1711,27 @@ function tablaHTML(s) {
 }
 function repMostrar(def) {   // def: { titulo, sub, secciones:[{titulo, cols, aligns, rows, foot}], nota }
   const cuerpo = `${encabezadoDoc(colegio)}<h2 style="font-size:16px;margin:0">${esc(def.titulo)}</h2><div style="font-size:12px;color:#475569;margin:2px 0 10px">${esc(def.sub || '')} · Generado el ${esc(fLarga(finHoy()))}</div>${def.secciones.map(tablaHTML).join('')}${def.nota ? `<p style="font-size:11.5px;color:#475569;margin-top:10px">${def.nota}</p>` : ''}`;
-  DOC = { titulo: def.titulo, cuerpo, secciones: def.secciones };
-  modalAbrir(def.titulo, cuerpo, `<button class="btn sm" onclick="docImprimir()">🖨 PDF / Imprimir</button><button class="btn sm green" onclick="docExcel()">⬇ Excel</button>`);
+  DOC = { titulo: def.titulo, sub: def.sub || '', cuerpo, secciones: def.secciones, pagina: 'carta' };
+  modalAbrir(def.titulo, cuerpo, `<button class="btn sm" onclick="docImprimir()">🖨 PDF / Imprimir</button><button class="btn sm green" onclick="docExcel()">⬇ Excel</button><button class="btn sm" style="background:#0d9488" onclick="docCorreo()">✉ Enviar por correo</button>`);
 }
-function docMostrar(titulo, cuerpo, enviar) {
-  DOC = { titulo, cuerpo, secciones: null };
-  modalAbrir(titulo, cuerpo, `<button class="btn sm" onclick="docImprimir()">🖨 PDF / Imprimir</button>${enviar ? `<button class="btn sm green" onclick="finCorreo('${enviar}')">✉ Enviar por correo</button>` : ''}`);
+function docMostrar(titulo, cuerpo, enviar, pagina) {
+  DOC = { titulo, cuerpo, secciones: null, pagina: pagina || 'carta' };
+  modalAbrir(titulo, cuerpo, `<button class="btn sm" onclick="docImprimir()">🖨 PDF / Imprimir</button>${enviar ? `<button class="btn sm green" onclick="${String(enviar).startsWith('inv:') ? `invCorreo('${String(enviar).slice(4)}')` : `finCorreo('${enviar}')`}">✉ Enviar por correo</button>` : ''}`);
 }
 function docImprimir() {
   if (!DOC) return;
   const w = window.open('', '_blank'); if (!w) return alert('Permita las ventanas emergentes para imprimir o guardar el PDF.');
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(DOC.titulo)}</title><style>@page{size:letter;margin:12mm}body{font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;font-size:12.5px;max-width:900px;margin:0 auto;padding:18px}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #cbd5e1;padding:5px 6px;font-size:11.5px}th{background:#f1f5f9;text-transform:uppercase;font-size:10.5px}.tb td{font-weight:800;background:#f8fafc}.rt-h{font-size:13px;margin:14px 0 4px;color:#1e1b4b}.no-print{display:none}@media print{body{padding:0}}</style></head><body>${DOC.cuerpo}<script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>`);
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(DOC.titulo)}</title><style>${DOC.pagina === 'media' ? '@page{size:216mm 140mm;margin:6mm}body{font-family:\'Segoe UI\',Arial,sans-serif;color:#0f172a;margin:0;padding:0;width:204mm}' : '@page{size:letter;margin:12mm}body{font-family:\'Segoe UI\',Arial,sans-serif;color:#0f172a;font-size:12.5px;max-width:900px;margin:0 auto;padding:18px}'}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #cbd5e1;padding:5px 6px;font-size:11.5px}th{background:#f1f5f9;text-transform:uppercase;font-size:10.5px}.tb td{font-weight:800;background:#f8fafc}.rt-h{font-size:13px;margin:14px 0 4px;color:#1e1b4b}.no-print{display:none}@media print{body{padding:0}}</style></head><body>${DOC.cuerpo}<script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>`);
   w.document.close();
+}
+async function docCorreo() {
+  if (!DOC || !DOC.secciones) return;
+  const correo = prompt('Correo al que se enviará este reporte:', ''); if (!correo) return;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo.trim())) return alert('El correo no es válido.');
+  const sec = DOC.secciones.map(x => ({ titulo: x.titulo || '', cols: x.cols, aligns: x.aligns || [], rows: x.rows.slice(0, 400).map(r => r.map(c => String(celT(c) ?? ''))), foot: x.foot ? x.foot.map(c => String(celT(c) ?? '')) : null }));
+  const { data, error } = await db.functions.invoke('fin-enviar', { body: { tipo: 'reporte', titulo: DOC.titulo, sub: DOC.sub || '', colegio_id: me.colegio_id, secciones: sec, correo: correo.trim() } });
+  if (error || !data || !data.ok) return alert('No se pudo enviar: ' + ((data && data.error) || (error && error.message) || 'error desconocido'));
+  alert('Enviado a ' + data.enviado_a + '.');
 }
 function docExcel() {
   if (!DOC || !DOC.secciones) return;
@@ -1815,16 +1842,16 @@ function finPintar() {
     : `<span class="pill">Registros: ${vivas.length}</span><span class="pill">Total: ${pesos(suma('monto'))}</span><span class="pill">Abonado: ${pesos(suma('abonado'))}</span><span class="pill">Saldo: ${pesos(suma('saldo'))}</span>`;
   const T = r => FIN.terMap[r.tercero_id] || {};
   const head = c.pago
-    ? ['Consecutivo','Fecha','Identificación','Tercero','Teléfono','Correo','Dirección','Concepto','Monto','Saldo','Aplicado a','']
-    : ['Consecutivo','Fecha','Plazo','Vence','Identificación','Tercero','Teléfono','Correo','Dirección','Concepto','Monto','Abonado','Saldo','Estado',''];
+    ? ['Acciones','Consecutivo','Fecha','Identificación','Tercero','Teléfono','Correo','Dirección','Concepto','Monto','Saldo','Aplicado a']
+    : ['Acciones','Consecutivo','Fecha','Plazo','Vence','Identificación','Tercero','Teléfono','Correo','Dirección','Concepto','Monto','Abonado','Saldo','Estado'];
   const stCls = { Vigente:'t-info', Vencida:'t-bad', Pagada:'t-ok', Anulada:'t-no' };
   const body = rows.map(r => {
     const t = T(r), x = r.anulado ? ' style="opacity:.55;text-decoration:line-through"' : '';
-    const acc = `<button class="btn sm" onclick="finComp('${r.id}')">Comprobante</button>` + (r.anulado ? `<span class="tag t-no" title="${esc(r.anulado_motivo || '')}">Anulado</span>` : `<button class="btn sm red" onclick="finAnular('${r.id}')">Anular</button>`);
+    const acc = `<button class="btn sm" onclick="finComp('${r.id}')">Comprobante / ✉</button>` + (r.anulado ? `<span class="tag t-no" title="${esc(r.anulado_motivo || '')}">Anulado</span>` : `<button class="btn sm red" onclick="finAnular('${r.id}')">Anular</button>`);
     const base = `<td${x}><b>${esc(r.consecutivo)}</b>${r.saldo_inicial ? '<br><span class="tag t-info">Saldo inicial</span>' : ''}</td><td${x}>${finFecha(r.fecha)}</td>`;
     const ter = `<td${x}>${esc(r.identificacion)}</td><td${x}>${esc(r.tercero_nombre)}</td><td${x}>${esc(t.telefono || '')}</td><td${x}>${esc(t.correo || '')}</td><td${x}>${esc(t.direccion || '')}</td>`;
-    if (c.pago) return `<tr>${base}${ter}<td${x}>${esc(r.concepto)}</td><td${x} style="text-align:right">${pesos(r.monto)}</td><td style="text-align:right">${r.saldo == null ? '—' : pesos(r.saldo)}</td><td>${esc((r.cargo_consecutivo) || '—')}</td><td>${acc}</td></tr>`;
-    return `<tr>${base}<td${x}>${r.plazo_dias} d</td><td${x}>${finFecha(r.vence)}</td>${ter}<td${x}>${esc(r.concepto)}</td><td${x} style="text-align:right">${pesos(r.monto)}</td><td style="text-align:right">${pesos(r.abonado)}</td><td style="text-align:right"><b>${pesos(r.saldo)}</b></td><td><span class="tag ${stCls[r.estado] || ''}">${esc(r.estado)}${r.dias_vencido > 0 ? ` (${r.dias_vencido} d)` : ''}</span></td><td style="white-space:nowrap">${r.anulado || Number(r.saldo) <= 0 ? '' : `<button class="btn sm green" onclick="finAbonar('${r.id}')">${FIN.tab === 'cartera' ? 'Recibir pago' : 'Pagar'}</button>`}${acc}</td></tr>`;
+    if (c.pago) return `<tr><td style="white-space:nowrap">${acc}</td>${base}${ter}<td${x}>${esc(r.concepto)}</td><td${x} style="text-align:right">${pesos(r.monto)}</td><td style="text-align:right">${r.saldo == null ? '—' : pesos(r.saldo)}</td><td>${esc((r.cargo_consecutivo) || '—')}</td></tr>`;
+    return `<tr><td style="white-space:nowrap">${r.anulado || Number(r.saldo) <= 0 ? '' : `<button class="btn sm green" onclick="finAbonar('${r.id}')">${FIN.tab === 'cartera' ? 'Recibir pago' : 'Pagar'}</button>`}${acc}</td>${base}<td${x}>${r.plazo_dias} d</td><td${x}>${finFecha(r.vence)}</td>${ter}<td${x}>${esc(r.concepto)}</td><td${x} style="text-align:right">${pesos(r.monto)}</td><td style="text-align:right">${pesos(r.abonado)}</td><td style="text-align:right"><b>${pesos(r.saldo)}</b></td><td><span class="tag ${stCls[r.estado] || ''}">${esc(r.estado)}${r.dias_vencido > 0 ? ` (${r.dias_vencido} d)` : ''}</span></td></tr>`;
   }).join('') || `<tr><td colspan="${head.length}">Sin registros.</td></tr>`;
   $('fin_tbl').innerHTML = `<thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody>`;
 }
@@ -1856,15 +1883,15 @@ function finNuevo(cargoId) {
     <button type="button" class="link" style="margin-top:0" onclick="$('fm_tnew').classList.toggle('hidden')">➕ ¿No está? Crear tercero nuevo</button>
     <div id="fm_tnew" class="hidden fin-sub">${finTerFields('fn')}<button type="button" class="btn sm green" style="margin-top:.8rem" onclick="finGuardarTerNuevo()">Guardar tercero</button><div id="fn_msg" class="msg"></div></div>
     ${c.pago ? `<label>¿A qué ${c.cargoLbl} corresponde?</label><select id="fm_cargo" onchange="finCargoElegido()"><option value="">Sin ${c.cargoLbl} asociado (${c.kind} libre)</option>${finPuede(finModCargo()) ? `<option value="__nuevo">➕ Crear ${c.cargoLbl === 'cobro' ? 'un cobro nuevo' : 'una cuenta por pagar nueva'} para este tercero</option>` : ''}</select>
-    <div id="fm_nuevo" class="hidden fin-sub"><div class="g2"><div><label>Valor total del ${c.cargoLbl}</label><input type="number" id="fm_total" min="1" step="1" inputmode="numeric"></div><div><label>Plazo (días)</label><input type="number" id="fm_plazo2" value="30" min="0" max="3650"></div></div><p class="d" style="font-size:.8rem;margin:.3rem 0 0">Se crea el ${c.cargoLbl} en ${c.kind === 'ingreso' ? 'Cartera' : 'Proveedores'} y este pago queda como su primer abono. Lo que falte queda como saldo.</p></div>` : ''}
+    <div id="fm_nuevo" class="hidden fin-sub"><div class="g2"><div><label>Valor total del ${c.cargoLbl}</label><input type="text" class="money" id="fm_total" inputmode="numeric" autocomplete="off" placeholder="Ej: 150.000"></div><div><label>Plazo (días)</label><input type="number" id="fm_plazo2" value="30" min="0" max="3650"></div></div><p class="d" style="font-size:.8rem;margin:.3rem 0 0">Se crea el ${c.cargoLbl} en ${c.kind === 'ingreso' ? 'Cartera' : 'Proveedores'} y este pago queda como su primer abono. Lo que falte queda como saldo.</p></div>` : ''}
     <div class="g2">
       <div><label>${c.pago ? 'Fecha' : 'Fecha inicial'}</label><input type="date" id="fm_fecha" value="${finHoy()}" ${c.pago ? `max="${finHoy()}"` : ''}></div>
       ${c.pago ? '<div><label>Medio de pago</label><select id="fm_medio"><option value="banco">Banco / transferencia</option><option value="efectivo">Efectivo</option></select></div>' : '<div><label>Plazo (días)</label><input type="number" id="fm_plazo" value="30" min="0" max="3650"></div>'}
     </div>
     ${c.pago ? '' : `<label style="display:flex;gap:.5rem;align-items:center;margin-top:.6rem"><input type="checkbox" id="fm_si" style="width:auto" onchange="finSaldoIni()"> Es un saldo inicial (lo que ya se ${FIN.tab === 'cartera' ? 'les debía al colegio' : 'debía a este proveedor'} antes de usar GIE)</label>`}
-    <label>Concepto</label><input id="fm_con" maxlength="300" list="fin_dlc" placeholder="Elija uno de la lista o escriba uno nuevo" autocomplete="off">
+    <label>Concepto</label><input id="fm_con" maxlength="300" list="fin_dlc" placeholder="Elija uno de la lista o escriba uno nuevo" autocomplete="off" oninput="conHint('fm_con','fm_conh',FIN.conc[finTipoConc()])"><div id="fm_conh" class="d" style="font-size:.78rem;margin:.2rem 0 0">Elija un concepto de la lista o escriba uno nuevo: se crea solo al guardar.</div>
     <datalist id="fin_dlc">${FIN.conc[finTipoConc()].map(x => `<option value="${esc(x)}"></option>`).join('')}</datalist>
-    <label id="fm_montolbl">Monto (pesos)</label><input type="number" id="fm_monto" min="1" step="1" inputmode="numeric">
+    <label id="fm_montolbl">Monto (pesos)</label><input type="text" class="money" id="fm_monto" inputmode="numeric" autocomplete="off" placeholder="Ej: 50.000">
     <div style="margin-top:.4rem"><button class="btn green sm" id="fm_btn" onclick="finGuardar()">Guardar</button> <button class="btn sm" style="background:#64748b" onclick="$('fin_form').classList.add('hidden')">Cancelar</button></div>
     <div id="fm_msg" class="msg"></div>`;
   f.scrollIntoView({ behavior:'smooth', block:'nearest' });
@@ -1893,17 +1920,18 @@ function finCargoElegido() {
   $('fm_montolbl').textContent = nuevo ? 'Monto que paga ahora (pesos)' : 'Monto (pesos)';
   if (nuevo) return;
   const k = FIN.abiertos.find(x => x.id === $('fm_cargo').value); if (!k) return;
-  $('fm_monto').value = k.saldo;
-  if (!$('fm_con').value.trim()) $('fm_con').value = 'Abono a ' + k.consecutivo + ' — ' + k.concepto;
+  $('fm_monto').value = moneyTxt(k.saldo);
+  if (!$('fm_con').value.trim()) { $('fm_con').value = 'Abono a ' + k.consecutivo + ' — ' + k.concepto; conHint('fm_con', 'fm_conh', FIN.conc[finTipoConc()]); }
 }
 async function finGuardar() {
   const c = FIN_TABS[FIN.tab], btn = $('fm_btn'), t = finTerSel();
   if (!t) return msg('fm_msg', 'Elija un tercero de la lista o créelo primero.');
-  const monto = Number($('fm_monto').value);
+  const monto = moneyNum($('fm_monto').value);
   if (!Number.isInteger(monto) || monto <= 0) return msg('fm_msg', 'Escriba el monto en pesos enteros, mayor que cero.');
   if ($('fm_con').value.trim().length < 3) return msg('fm_msg', 'Escriba el concepto.');
-  const nuevo = c.pago && $('fm_cargo').value === '__nuevo', total = nuevo ? Number($('fm_total').value) : 0;
-  if (nuevo && (!Number.isInteger(total) || total < monto)) return msg('fm_msg', 'Escriba el valor total (en pesos enteros); no puede ser menor que lo que paga ahora.');
+  const nuevo = c.pago && $('fm_cargo').value === '__nuevo', total = nuevo ? moneyNum($('fm_total').value) : 0;
+  if (nuevo && !(total > 0)) return msg('fm_msg', 'Escriba el valor total del ' + c.cargoLbl + '.');
+  if (nuevo && total < monto) return msg('fm_msg', 'El valor total (' + pesos(total) + ') no puede ser menor que lo que paga ahora (' + pesos(monto) + ').');
   btn.disabled = true; msg('fm_msg', 'Guardando…', true);
   const r = nuevo
     ? await db.rpc('fin_pago_con_cargo', { p_tipo: c.kind, p_fecha: $('fm_fecha').value, p_plazo: Number($('fm_plazo2').value), p_tercero: t.id, p_concepto: $('fm_con').value.trim(), p_total: total, p_pago: monto, p_medio: $('fm_medio').value })
@@ -2004,34 +2032,50 @@ async function setFin(id) {
 const FIN_TIT = { ingreso:'RECIBO DE INGRESO', egreso:'COMPROBANTE DE EGRESO', cartera:'CUENTA DE COBRO', deuda:'CUENTA POR PAGAR' };
 function finReg(rows, kind) { FIN.reg = FIN.reg || {}; FIN.regTipo = FIN.regTipo || {}; rows.forEach(r => { FIN.reg[r.id] = r; FIN.regTipo[r.id] = kind; }); }
 function finTitComp(kind, r) { return r.saldo_inicial ? (kind === 'cartera' ? 'SALDO INICIAL DE CARTERA' : 'SALDO INICIAL DE PROVEEDOR') : FIN_TIT[kind]; }
+const FIN_CP_CSS = `<style>
+.cp{font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;font-size:11.5px;position:relative;border:1.5px solid #c7d2fe;border-radius:12px;padding:11px 16px 10px;overflow:hidden;background:#fff;box-sizing:border-box}
+.cp-h{display:flex;align-items:center;gap:12px;padding-bottom:8px;border-bottom:2.5px solid #4f46e5}
+.cp-h img{height:46px;width:46px;object-fit:contain}
+.cp-n{flex:1;min-width:0}.cp-n b{font-size:14px;display:block;line-height:1.2}.cp-n small{color:#475569;font-size:9.5px;line-height:1.3;display:block}
+.cp-t{text-align:right;white-space:nowrap}.cp-t .ti{display:inline-block;background:#eef2ff;color:#3730a3;font-weight:800;letter-spacing:.04em;font-size:10.5px;padding:3px 10px;border-radius:999px;border:1px solid #c7d2fe}
+.cp-t .no{font-size:16px;font-weight:800;margin-top:3px;color:#1e1b4b}.cp-t .fe{font-size:10.5px;color:#475569}
+.cp-g{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;margin:8px 0}
+.cp-i{display:flex;gap:8px;padding:2.5px 0;border-bottom:1px dotted #cbd5e1;font-size:11px}.cp-i span{color:#64748b;min-width:76px;flex:none}.cp-i b{font-weight:600;word-break:break-word}
+.cp-v{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#eef2ff;border:1.5px solid #4f46e5;border-radius:10px;padding:6px 12px}
+.cp-v .m{font-size:21px;font-weight:800;color:#1e1b4b;white-space:nowrap}.cp-v .l{font-size:10.5px;color:#334155;text-align:right;line-height:1.25}
+.cp-f{display:flex;gap:30px;margin-top:24px}.cp-f div{flex:1;border-top:1px solid #0f172a;padding-top:3px;font-size:10px;color:#334155}
+.cp-x{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:70px;font-weight:900;color:rgba(225,29,72,.16);transform:rotate(-16deg);pointer-events:none}
+.cp-a{border:1.5px solid #e11d48;color:#e11d48;font-weight:800;padding:3px 8px;margin-top:6px;border-radius:8px;font-size:10.5px}
+@media(max-width:640px){.cp-g{grid-template-columns:1fr}.cp-h{flex-wrap:wrap}}
+</style>`;
 function finCompHTML(kind, r) {
   const t = FIN.terMap[r.tercero_id] || {}, pago = kind === 'ingreso' || kind === 'egreso';
-  const fila = (a, b) => `<tr><td style="width:34%;color:#475569;font-weight:700">${esc(a)}</td><td>${b}</td></tr>`;
-  const ter = [fila('Tercero', `<b>${esc(r.tercero_nombre)}</b>`), fila('Identificación', esc(`${r.tipo_doc} ${r.identificacion}`)),
-    t.telefono ? fila('Teléfono', esc(t.telefono)) : '', t.correo ? fila('Correo', esc(t.correo)) : '', t.direccion ? fila('Dirección', esc(t.direccion)) : ''].join('');
-  let det = '';
+  const it = (a, b) => b ? `<div class="cp-i"><span>${esc(a)}</span><b>${b}</b></div>` : '';
+  const izq = it('Tercero', esc(r.tercero_nombre)) + it('Identificación', esc(`${r.tipo_doc} ${r.identificacion}`)) + it('Teléfono', esc(t.telefono || '')) + it('Correo', esc(t.correo || '')) + it('Dirección', esc(t.direccion || ''));
+  let der = it('Concepto', esc(r.concepto));
   if (pago) {
-    det = fila('Concepto', esc(r.concepto)) + fila('Medio de pago', r.medio === 'efectivo' ? 'Efectivo' : 'Banco / transferencia')
-      + (r.cargo_consecutivo ? fila(kind === 'ingreso' ? 'Abono al cobro' : 'Abono a la cuenta por pagar', esc(r.cargo_consecutivo)) + fila('Saldo pendiente después de este pago', `<b>${pesosC(r.saldo)}</b>`) : '');
+    der += it('Medio de pago', r.medio === 'efectivo' ? 'Efectivo' : 'Banco / transferencia');
+    if (r.cargo_consecutivo) der += it(kind === 'ingreso' ? 'Abono al cobro' : 'Abono a cuenta', esc(r.cargo_consecutivo)) + it('Saldo pendiente', pesosC(r.saldo));
   } else {
-    det = fila('Concepto', esc(r.concepto)) + fila('Fecha inicial', esc(finFecha(r.fecha))) + fila('Plazo', `${r.plazo_dias} días (vence el ${esc(finFecha(r.vence))})`)
-      + fila('Abonado', pesosC(r.abonado)) + fila('Saldo pendiente', `<b>${pesosC(r.saldo)}</b>`) + fila('Estado', esc(r.estado) + (r.dias_vencido > 0 ? ` (${r.dias_vencido} días de vencida)` : ''));
+    der += it('Fecha inicial', esc(finFecha(r.fecha))) + it('Vence', `${esc(finFecha(r.vence))} (${r.plazo_dias} días)`) + it('Abonado', pesosC(r.abonado)) + it('Saldo pendiente', pesosC(r.saldo)) + it('Estado', esc(r.estado) + (r.dias_vencido > 0 ? ` (${r.dias_vencido} días de vencida)` : ''));
   }
-  const valor = pago ? r.monto : r.monto;
   const rect = (colegio && colegio.rector_nombres) ? `${colegio.rector_nombres} ${colegio.rector_apellidos || ''}`.trim() : 'Rector(a)';
-  return `<div style="position:relative">
-    ${r.anulado ? `<div style="border:2px solid #e11d48;color:#e11d48;font-weight:800;padding:6px 10px;margin-bottom:10px;border-radius:8px">ANULADO${r.anulado_motivo ? ' — ' + esc(r.anulado_motivo) : ''}</div>` : ''}
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px"><h2 style="font-size:17px;margin:0">${esc(finTitComp(kind, r))}</h2><div style="text-align:right"><div style="font-size:15px;font-weight:800">No. ${esc(r.consecutivo)}</div><div style="font-size:12px;color:#475569">Fecha: ${esc(finFecha(r.fecha))}</div></div></div>
-    <table class="rt" style="margin-bottom:8px"><tbody>${ter}</tbody></table>
-    <table class="rt" style="margin-bottom:8px"><tbody>${det}</tbody></table>
-    <div style="border:1.5px solid #1e1b4b;border-radius:10px;padding:10px 14px;margin:10px 0"><div style="font-size:12px;color:#475569">VALOR</div><div style="font-size:22px;font-weight:800">${pesosC(valor)}</div><div style="font-size:12px">${esc(numALetras(valor))}</div></div>
-    <div style="display:flex;gap:40px;margin-top:46px"><div style="flex:1;border-top:1px solid #0f172a;padding-top:4px;font-size:12px">Elaboró: ${esc(r.creado_por || '')}</div><div style="flex:1;border-top:1px solid #0f172a;padding-top:4px;font-size:12px">${kind === 'egreso' ? 'Recibí conforme' : (kind === 'ingreso' ? 'Recibido por' : 'Autorizó')}: ${esc(kind === 'egreso' ? r.tercero_nombre : rect)}</div></div>
+  const c = colegio || {}, u = escudoUrl(c);
+  const sub = [c.nit ? 'NIT ' + esc(c.nit) : '', esc(c.direccion || ''), c.telefono ? 'Tel. ' + esc(c.telefono) : '', esc(c.correo || '')].filter(Boolean).join(' · ');
+  return `${FIN_CP_CSS}<div class="cp">
+    ${r.anulado ? '<div class="cp-x">ANULADO</div>' : ''}
+    <div class="cp-h">${u ? `<img src="${esc(u)}" alt="">` : ''}<div class="cp-n"><b>${esc(c.nombre || '')}</b><small>${sub}</small></div>
+      <div class="cp-t"><span class="ti">${esc(finTitComp(kind, r))}</span><div class="no">No. ${esc(r.consecutivo)}</div><div class="fe">${esc(finFecha(r.fecha))}</div></div></div>
+    ${r.anulado ? `<div class="cp-a">ANULADO${r.anulado_motivo ? ' — ' + esc(r.anulado_motivo) : ''}</div>` : ''}
+    <div class="cp-g"><div>${izq}</div><div>${der}</div></div>
+    <div class="cp-v"><div class="m">${pesosC(r.monto)}</div><div class="l">SON:<br><b>${esc(numALetras(r.monto))}</b></div></div>
+    <div class="cp-f"><div>Elaboró: ${esc(r.creado_por || '')}</div><div>${kind === 'egreso' ? 'Recibí conforme' : (kind === 'ingreso' ? 'Recibido por' : 'Autorizó')}: ${esc(kind === 'egreso' ? r.tercero_nombre : rect)}</div></div>
   </div>`;
 }
 const pesosC = v => '$' + nf(v);
 function finComp(id) {
   const r = (FIN.reg || {})[id], kind = (FIN.regTipo || {})[id]; if (!r) return;
-  docMostrar(finTitComp(kind, r) + ' ' + r.consecutivo, encabezadoDoc(colegio) + finCompHTML(kind, r), id);
+  docMostrar(finTitComp(kind, r) + ' ' + r.consecutivo, finCompHTML(kind, r), id, 'media');
 }
 async function finCorreo(id) {
   const r = FIN.reg[id], kind = FIN.regTipo[id], t = FIN.terMap[r.tercero_id] || {};
@@ -2251,18 +2295,18 @@ async function conAsientos() {
 }
 function conLinea() {
   const tr = document.createElement('tr');
-  tr.innerHTML = `<td><select class="cl_c" style="min-width:16rem"><option value="">Elija la cuenta…</option>${conOpts()}</select></td><td><input class="cl_t" list="ca_dl" style="min-width:12rem" autocomplete="off"></td><td><input class="cl_d" type="number" min="0" step="1" oninput="conTotales()" style="width:8rem"></td><td><input class="cl_h" type="number" min="0" step="1" oninput="conTotales()" style="width:8rem"></td><td><button class="btn sm red" onclick="this.closest('tr').remove();conTotales()">✕</button></td>`;
+  tr.innerHTML = `<td><select class="cl_c" style="min-width:16rem"><option value="">Elija la cuenta…</option>${conOpts()}</select></td><td><input class="cl_t" list="ca_dl" style="min-width:12rem" autocomplete="off"></td><td><input class="cl_d money" type="text" inputmode="numeric" oninput="conTotales()" style="width:8rem"></td><td><input class="cl_h money" type="text" inputmode="numeric" oninput="conTotales()" style="width:8rem"></td><td><button class="btn sm red" onclick="this.closest('tr').remove();conTotales()">✕</button></td>`;
   $('ca_lin').appendChild(tr);
 }
 function conTotales() {
-  let d = 0, c = 0; document.querySelectorAll('#ca_lin tr').forEach(r => { d += Number(r.querySelector('.cl_d').value) || 0; c += Number(r.querySelector('.cl_h').value) || 0; });
+  let d = 0, c = 0; document.querySelectorAll('#ca_lin tr').forEach(r => { d += moneyNum(r.querySelector('.cl_d').value); c += moneyNum(r.querySelector('.cl_h').value); });
   $('ca_td').textContent = pesos(d); $('ca_tc').textContent = pesos(c);
   $('ca_ok').innerHTML = d === c && d > 0 ? '<span class="tag t-ok">Cuadra</span>' : '<span class="tag t-no">No cuadra</span>';
 }
 async function conGuardarAsiento() {
   const lineas = []; let mal = '';
   document.querySelectorAll('#ca_lin tr').forEach(r => {
-    const cta = r.querySelector('.cl_c').value, d = Number(r.querySelector('.cl_d').value) || 0, h = Number(r.querySelector('.cl_h').value) || 0;
+    const cta = r.querySelector('.cl_c').value, d = moneyNum(r.querySelector('.cl_d').value), h = moneyNum(r.querySelector('.cl_h').value);
     if (!cta && !d && !h) return;
     if (!cta || (d > 0) === (h > 0)) { mal = 'Cada línea necesita una cuenta y un valor en débito o en crédito (no en ambos).'; return; }
     const tv = r.querySelector('.cl_t').value, tid = tv ? (FIN.ter.find(t => tv.startsWith(t.identificacion + ' — ')) || {}).id : null;
@@ -2478,7 +2522,7 @@ async function invCargarMovs() {
 const invMovFiltradas = () => { const t = (($('im_q') || {}).value || '').toLowerCase(); return INV.rows.filter(r => !t || (r.producto + r.concepto + r.consecutivo).toLowerCase().includes(t)); };
 function invPintarMovs() {
   const ent = INV.tab === 'entradas', L = invMovFiltradas();
-  $('im_tbl').innerHTML = `<thead><tr><th>No.</th><th>Fecha</th><th>Producto</th><th>Cantidad</th><th>Concepto</th>${ent ? '<th>Proveedor</th><th>Lote</th><th>Vence</th>' : ''}<th>Saldo</th><th></th></tr></thead><tbody>${L.map(r => { const x = r.anulado ? ' style="opacity:.55;text-decoration:line-through"' : ''; return `<tr><td${x}><b>${esc(r.consecutivo)}</b></td><td${x}>${finFecha(r.fecha)}</td><td${x}>${esc(r.producto)}</td><td${x} style="text-align:right">${cant(r.cantidad)} ${esc(r.unidad)}</td><td${x}>${esc(r.concepto)}</td>${ent ? `<td${x}>${esc(r.tercero_nombre || '')}</td><td${x}>${esc(r.lote || '')}</td><td${x}>${r.vence ? finFecha(r.vence) : ''}</td>` : ''}<td style="text-align:right">${r.saldo == null ? '—' : cant(r.saldo)}</td><td style="white-space:nowrap"><button class="btn sm" onclick="invComp('${r.id}')">Comprobante</button>${r.anulado ? `<span class="tag t-no" title="${esc(r.anulado_motivo || '')}">Anulado</span>` : `<button class="btn sm red" onclick="invAnular('${r.id}')">Anular</button>`}</td></tr>`; }).join('') || `<tr><td colspan="${ent ? 10 : 7}">Sin registros.</td></tr>`}</tbody>`;
+  $('im_tbl').innerHTML = `<thead><tr><th>No.</th><th>Fecha</th><th>Producto</th><th>Cantidad</th><th>Concepto</th>${ent ? '<th>Proveedor</th><th>Lote</th><th>Vence</th>' : ''}<th>Saldo</th><th></th></tr></thead><tbody>${L.map(r => { const x = r.anulado ? ' style="opacity:.55;text-decoration:line-through"' : ''; return `<tr><td${x}><b>${esc(r.consecutivo)}</b></td><td${x}>${finFecha(r.fecha)}</td><td${x}>${esc(r.producto)}</td><td${x} style="text-align:right">${cant(r.cantidad)} ${esc(r.unidad)}</td><td${x}>${esc(r.concepto)}</td>${ent ? `<td${x}>${esc(r.tercero_nombre || '')}</td><td${x}>${esc(r.lote || '')}</td><td${x}>${r.vence ? finFecha(r.vence) : ''}</td>` : ''}<td style="text-align:right">${r.saldo == null ? '—' : cant(r.saldo)}</td><td style="white-space:nowrap"><button class="btn sm" onclick="invComp('${r.id}')">Comprobante / ✉</button>${r.anulado ? `<span class="tag t-no" title="${esc(r.anulado_motivo || '')}">Anulado</span>` : `<button class="btn sm red" onclick="invAnular('${r.id}')">Anular</button>`}</td></tr>`; }).join('') || `<tr><td colspan="${ent ? 10 : 7}">Sin registros.</td></tr>`}</tbody>`;
 }
 function invRepMovs() {
   const ent = INV.tab === 'entradas', L = invMovFiltradas().filter(r => !r.anulado);
@@ -2492,7 +2536,7 @@ function invForm(tipo) {
     <div id="iv_new" class="hidden fin-sub"><div class="g2"><div><label>Nombre</label><input id="iq_nom" maxlength="120"></div><div><label>Categoría</label><input id="iq_cat" list="ip_cat2" maxlength="60"></div></div><datalist id="ip_cat2">${INV_CAT.map(x => `<option>${x}</option>`).join('')}</datalist><datalist id="ip_uni2">${INV_UNI.map(x => `<option>${x}</option>`).join('')}</datalist>
       <div class="g2"><div><label>Unidad</label><input id="iq_uni" list="ip_uni2" maxlength="20"></div><div><p class="d" style="margin-top:2rem;font-size:.78rem">La hoja de vida completa se llena después en «Productos».</p></div></div><button type="button" class="btn sm green" onclick="invProdRapido('${tipo}')">Guardar producto</button><div id="iq_msg" class="msg"></div></div>
     <div class="g2"><div><label>Fecha</label><input type="date" id="iv_f" value="${finHoy()}" max="${finHoy()}"></div><div><label>Cantidad <span id="iv_u"></span></label><input type="number" id="iv_c" min="0.001" step="0.001" inputmode="decimal"></div></div>
-    <label>Concepto</label><input id="iv_con" list="iv_dlc" maxlength="120" placeholder="Elija uno o escriba uno nuevo" autocomplete="off"><datalist id="iv_dlc">${INV.conc[tipo].map(x => `<option value="${esc(x)}"></option>`).join('')}</datalist>
+    <label>Concepto</label><input id="iv_con" list="iv_dlc" maxlength="120" placeholder="Elija uno o escriba uno nuevo" autocomplete="off" oninput="conHint('iv_con','iv_conh',INV.conc['${tipo}'])"><div id="iv_conh" class="d" style="font-size:.78rem;margin:.2rem 0 0">Elija un concepto de la lista o escriba uno nuevo: se crea solo al guardar.</div><datalist id="iv_dlc">${INV.conc[tipo].map(x => `<option value="${esc(x)}"></option>`).join('')}</datalist>
     ${ent ? `<div class="g2"><div><label>Proveedor (opcional)</label><input id="iv_ter" list="iv_dlt" autocomplete="off" placeholder="Identificación o nombre"></div><div><label>Lote (opcional)</label><input id="iv_lot" maxlength="40"></div></div><datalist id="iv_dlt">${FIN.ter.filter(t => t.activo).map(t => `<option value="${esc(t.identificacion)} — ${esc(t.nombre)}"></option>`).join('')}</datalist><label>Fecha de vencimiento (opcional)</label><input type="date" id="iv_ven">` : ''}
     <label>Observación (opcional)</label><input id="iv_obs" maxlength="300">
     <div style="margin-top:.6rem"><button class="btn green sm" id="iv_btn" onclick="invGuardarMov('${tipo}')">Guardar</button> <button class="btn sm" style="background:#64748b" onclick="$('im_form').classList.add('hidden')">Cancelar</button></div><div id="iv_msg" class="msg"></div>`;
@@ -2516,6 +2560,7 @@ async function invGuardarMov(tipo) {
   if (error) return msg('iv_msg', error.message);
   if (!INV.conc[tipo].some(n => n.toLowerCase() === con.toLowerCase())) { await db.from('inv_conceptos').insert({ colegio_id: me.colegio_id, tipo, nombre: con }); }
   await invCargar(); $('im_form').classList.add('hidden'); await invCargarMovs(); msg('im_msg', 'Guardado: ' + data.consecutivo, true);
+  const nr = INV.rows.find(x => x.consecutivo === data.consecutivo); if (nr) invComp(nr.id);
 }
 async function invAnular(id) {
   const motivo = prompt('Motivo de la anulación (mínimo 5 letras):'); if (!motivo) return;
@@ -2523,14 +2568,35 @@ async function invAnular(id) {
   if (error) return msg('im_msg', error.message);
   await invCargar(); await invCargarMovs(); msg('im_msg', 'Registro anulado.', true);
 }
+function invCompHTML(r) {
+  const ent = r.tipo === 'entrada', c = colegio || {}, u = escudoUrl(c);
+  const it = (a, b) => b ? `<div class="cp-i"><span>${esc(a)}</span><b>${b}</b></div>` : '';
+  const rect = (c.rector_nombres) ? `${c.rector_nombres} ${c.rector_apellidos || ''}`.trim() : 'Responsable';
+  const sub = [c.nit ? 'NIT ' + esc(c.nit) : '', esc(c.direccion || ''), c.telefono ? 'Tel. ' + esc(c.telefono) : '', esc(c.correo || '')].filter(Boolean).join(' · ');
+  const izq = it('Producto', `${esc(r.producto)} (${esc(r.codigo)})`) + it('Concepto', esc(r.concepto)) + it(ent ? 'Proveedor' : 'Destino', r.tercero_nombre ? esc(r.tercero_nombre + ' · ' + (r.tercero_identificacion || '')) : '') + it('Observación', esc(r.observacion || ''));
+  const der = it('Lote', esc(r.lote || '')) + it('Vence', r.vence ? esc(finFecha(r.vence)) : '') + it('Existencia final', r.saldo == null ? '' : `${cant(r.saldo)} ${esc(r.unidad)}`);
+  return `${FIN_CP_CSS}<div class="cp">
+    ${r.anulado ? '<div class="cp-x">ANULADO</div>' : ''}
+    <div class="cp-h">${u ? `<img src="${esc(u)}" alt="">` : ''}<div class="cp-n"><b>${esc(c.nombre || '')}</b><small>${sub}</small></div>
+      <div class="cp-t"><span class="ti">${ent ? 'ENTRADA DE MERCANCÍA' : 'SALIDA DE MERCANCÍA'}</span><div class="no">No. ${esc(r.consecutivo)}</div><div class="fe">${esc(finFecha(r.fecha))}</div></div></div>
+    ${r.anulado ? `<div class="cp-a">ANULADO${r.anulado_motivo ? ' — ' + esc(r.anulado_motivo) : ''}</div>` : ''}
+    <div class="cp-g"><div>${izq}</div><div>${der}</div></div>
+    <div class="cp-v"><div class="m">${cant(r.cantidad)} ${esc(r.unidad)}</div><div class="l">${ent ? 'INGRESA' : 'SALE'}:<br><b>${esc(r.producto)}</b></div></div>
+    <div class="cp-f"><div>Registró: ${esc(r.creado_por || '')}</div><div>${ent ? 'Recibió' : 'Autorizó'}: ${esc(rect)}</div></div>
+  </div>`;
+}
 function invComp(id) {
-  const r = INV.rows.find(x => x.id === id), ent = r.tipo === 'entrada';
-  const f = (a, b) => b ? `<tr><td style="width:34%;color:#475569;font-weight:700">${esc(a)}</td><td>${b}</td></tr>` : '';
-  const rect = (colegio && colegio.rector_nombres) ? `${colegio.rector_nombres} ${colegio.rector_apellidos || ''}`.trim() : 'Responsable';
-  docMostrar((ent ? 'Entrada de mercancía ' : 'Salida de mercancía ') + r.consecutivo, `${encabezadoDoc(colegio)}${r.anulado ? `<div style="border:2px solid #e11d48;color:#e11d48;font-weight:800;padding:6px 10px;margin-bottom:10px;border-radius:8px">ANULADO — ${esc(r.anulado_motivo || '')}</div>` : ''}
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px"><h2 style="font-size:17px;margin:0">${ent ? 'ENTRADA DE MERCANCÍA' : 'SALIDA DE MERCANCÍA'}</h2><div style="text-align:right"><div style="font-size:15px;font-weight:800">No. ${esc(r.consecutivo)}</div><div style="font-size:12px;color:#475569">Fecha: ${esc(finFecha(r.fecha))}</div></div></div>
-    <table class="rt"><tbody>${f('Producto', `<b>${esc(r.producto)}</b> (${esc(r.codigo)})`)}${f('Cantidad', `<b>${cant(r.cantidad)} ${esc(r.unidad)}</b>`)}${f('Concepto', esc(r.concepto))}${f('Proveedor', r.tercero_nombre ? esc(r.tercero_nombre + ' · ' + (r.tercero_identificacion || '')) : '')}${f('Lote', esc(r.lote || ''))}${f('Fecha de vencimiento', r.vence ? esc(finFecha(r.vence)) : '')}${f('Observación', esc(r.observacion || ''))}${f('Existencia después del movimiento', r.saldo == null ? '' : cant(r.saldo) + ' ' + esc(r.unidad))}</tbody></table>
-    <div style="display:flex;gap:40px;margin-top:46px"><div style="flex:1;border-top:1px solid #0f172a;padding-top:4px;font-size:12px">Registró: ${esc(r.creado_por || '')}</div><div style="flex:1;border-top:1px solid #0f172a;padding-top:4px;font-size:12px">${ent ? 'Recibió' : 'Autorizó'}: ${esc(rect)}</div></div>`, null);
+  const r = INV.rows.find(x => x.id === id); if (!r) return;
+  docMostrar((r.tipo === 'entrada' ? 'Entrada de mercancía ' : 'Salida de mercancía ') + r.consecutivo, invCompHTML(r), 'inv:' + id, 'media');
+}
+async function invCorreo(id) {
+  const r = INV.rows.find(x => x.id === id); if (!r) return;
+  const t = (FIN.terMap || {})[r.tercero_id] || {};
+  const correo = prompt('Correo al que se enviará el comprobante:', t.correo || ''); if (!correo) return;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo.trim())) return alert('El correo no es válido.');
+  const { data, error } = await db.functions.invoke('fin-enviar', { body: { tipo: r.tipo, id, correo: correo.trim() } });
+  if (error || !data || !data.ok) return alert('No se pudo enviar: ' + ((data && data.error) || (error && error.message) || 'error desconocido'));
+  alert('Enviado a ' + data.enviado_a + '.');
 }
 /* kardex */
 function invKardexPane() {

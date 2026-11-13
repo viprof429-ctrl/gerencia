@@ -17,6 +17,7 @@ body{background:#f1f5f9;color:#1e293b;min-height:100vh}
 h2{font-size:1.25rem;font-weight:800;color:#0f172a}
 .sub{font-size:.75rem;color:#64748b;margin-bottom:1.2rem}
 label{display:block;text-align:left;font-weight:700;font-size:.82rem;margin:.7rem 0 .3rem;color:#334155}
+input,select,textarea{width:100%;font-size:.85rem;border:1.5px solid #cbd5e1;border-radius:12px;padding:.7rem 1rem;background:#f8fafc;resize:vertical}
 input,select{width:100%;padding:.8rem 1rem;border:1.5px solid #cbd5e1;border-radius:12px;font-size:.9rem;background:#f8fafc}
 input:focus,select:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 4px rgba(79,70,229,.1)}
 .btn{background:linear-gradient(135deg,#4f46e5,#4338ca);color:#fff;border:none;padding:.9rem;font-weight:700;border-radius:12px;cursor:pointer;width:100%;margin-top:1.1rem;font-size:.95rem}
@@ -46,6 +47,22 @@ th{background:#f8fafc;color:#475569;font-size:.72rem;text-transform:uppercase}
 .bar{background:#eef2ff;border:1.5px solid #c7d2fe;border-radius:14px;padding:1rem 1.2rem;margin:1rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
 .pill{background:#fff;border:1px solid #c7d2fe;border-radius:8px;padding:.45rem .9rem;font-weight:700;font-size:.85rem}
 h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bottom:.4rem;margin:1.3rem 0 .2rem}
+.dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+.dot-verde{background:#22c55e}.dot-amarillo{background:#f59e0b}.dot-rojo{background:#e11d48}.dot-gris{background:#94a3b8}
+.accmenu{position:absolute;z-index:60;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 12px 28px -8px rgba(0,0,0,.28);min-width:200px;padding:.3rem}
+.accmenu button{display:block;width:100%;text-align:left;background:none;border:none;padding:.6rem .85rem;font-size:.85rem;font-weight:600;border-radius:8px;cursor:pointer;color:#1e293b;margin:0}
+.accmenu button:hover{background:#f1f5f9}.accmenu button.red{color:#e11d48}.accmenu hr{border:none;border-top:1px solid #e2e8f0;margin:.25rem 0}
+.thumbs{display:flex;gap:.6rem;flex-wrap:wrap;margin:.5rem 0}
+.thumbs .th{position:relative;width:96px;height:96px}
+.thumbs .th img{width:96px;height:96px;object-fit:cover;border-radius:12px;border:1px solid #e2e8f0}
+.thumbs .x{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;border:none;background:#e11d48;color:#fff;font-weight:800;cursor:pointer;line-height:1;margin:0;padding:0}
+.okbox{background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:14px;padding:.9rem 1rem;margin-top:1rem;font-size:.85rem;color:#065f46}
+.fin-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin:.6rem 0 1rem}
+.fin-tabs button{border:1.5px solid #c7d2fe;background:#fff;color:#4338ca;font-weight:700;font-size:.85rem;padding:.55rem 1rem;border-radius:99px;cursor:pointer}
+.fin-tabs button.on{background:#4f46e5;color:#fff;border-color:#4f46e5}
+.fin-form{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:1rem 1.2rem;margin:.8rem 0}
+.fin-sub{background:#fff;border:1px dashed #94a3b8;border-radius:12px;padding:.6rem 1rem;margin:.5rem 0}
+.fin-tot{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}
 @media(max-width:640px){.g2{grid-template-columns:1fr}}
 </style>
 </head>
@@ -62,7 +79,44 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       <label>Contraseña</label><input type="password" id="l_pass" required autocomplete="current-password" placeholder="••••••••">
       <button class="btn">Ingresar a GIE</button>
       <div id="l_msg" class="msg"></div>
-      <button type="button" class="link" onclick="toggle(true)">¿No tienes cuenta? Regístrate</button>
+      <button type="button" class="link" onclick="toggle(true)">¿No tienes cuenta? Regístrate</button><br>
+      <button type="button" class="link" style="margin-top:.3rem" onclick="verForm('f-forgot')">¿Olvidó su contraseña?</button>
+      <hr style="margin:1.2rem 0 .4rem;border:none;border-top:1px solid #e2e8f0">
+      <p class="sub" style="margin:.4rem 0 0">Atención al usuario (sin necesidad de cuenta)</p>
+      <button type="button" class="link" style="margin-top:.3rem" onclick="verForm('f-pqrs')">Radicar petición, queja, reclamo o sugerencia</button><br>
+      <button type="button" class="link" style="margin-top:.3rem" onclick="verForm('f-consulta')">Consultar el estado de mi solicitud</button>
+    </form>
+
+    <form id="f-pqrs" class="hidden" onsubmit="radicarPqrs(event,'q_')"></form>
+
+    <form id="f-consulta" class="hidden" onsubmit="consultaPqrs(event)">
+      <h2 style="font-size:1.05rem">Consultar solicitud</h2>
+      <p class="sub">Digite el número de radicado y el correo con el que radicó.</p>
+      <label>Institución</label><select id="k_colegio" required></select>
+      <label>Número de radicado</label><input id="k_rad" required placeholder="SAU-2026-0001">
+      <label>Correo</label><input type="email" id="k_correo" required>
+      <button class="btn">Consultar</button>
+      <div id="k_msg" class="msg"></div>
+      <div id="k_res" class="okbox hidden" style="text-align:left;background:#f8fafc;border-color:#cbd5e1;color:#1e293b"></div>
+      <button type="button" class="link" onclick="verForm('f-login')">← Volver al inicio de sesión</button>
+    </form>
+
+    <form id="f-forgot" class="hidden" onsubmit="olvido(event)">
+      <h2 style="font-size:1.05rem">Recuperar contraseña</h2>
+      <p class="sub">Escriba su correo y le enviaremos un enlace para crear una contraseña nueva.</p>
+      <label>Correo</label><input type="email" id="f_mail" required placeholder="correo@colegio.edu.co">
+      <button class="btn">Enviar enlace</button>
+      <div id="f_msg" class="msg"></div>
+      <button type="button" class="link" onclick="verForm('f-login')">← Volver al inicio de sesión</button>
+    </form>
+
+    <form id="f-newpass" class="hidden" onsubmit="nuevaClave(event)">
+      <h2 style="font-size:1.05rem">Crear contraseña nueva</h2>
+      <p class="sub">Escriba la contraseña que usará de ahora en adelante.</p>
+      <label>Contraseña nueva</label><input type="password" id="n_pass" required minlength="6" autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+      <label>Repita la contraseña</label><input type="password" id="n_pass2" required minlength="6" autocomplete="new-password">
+      <button class="btn green">Guardar contraseña</button>
+      <div id="n_msg" class="msg"></div>
     </form>
 
     <form id="f-reg" class="hidden" onsubmit="register(event)">
@@ -75,6 +129,9 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       <select id="r_tipo" onchange="tipoReg()"><option value="docente">Docente</option><option value="administrativo">Administrativo</option><option value="publico">Público (padre de familia / comunidad)</option></select>
       <div id="r_jwrap"><label>Jornada</label>
       <select id="r_jornada" required><option value="">Seleccione…</option><option>Mañana</option><option>Tarde</option></select></div>
+      <div id="r_rwrap"><label>Régimen docente</label>
+      <select id="r_regimen" required><option value="">Seleccione…</option><option value="2277">Decreto 2277 de 1979 (Estatuto antiguo)</option><option value="1278">Decreto 1278 de 2002 (Estatuto de profesionalización)</option></select>
+      <small style="display:block;text-align:left;color:#64748b;margin-top:.3rem">Si no está seguro, consúltelo en su resolución de nombramiento.</small></div>
       <label>Contraseña</label><input type="password" id="r_pass" required minlength="6" placeholder="Mínimo 6 caracteres">
       <button class="btn green">Completar registro</button>
       <div id="r_msg" class="msg"></div>
@@ -88,6 +145,10 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
     <div class="brand"><img src="/logo-gie-96.png" alt="GIE"><div><h1>GIE - Gerencia Integral Educativa</h1><p id="who"></p></div></div>
     <div><button id="btn-home" class="btn sm gold hidden" onclick="goHome()">Menú principal</button><button class="btn sm red" onclick="logout()">Salir</button></div>
   </header>
+  <div id="aud_bar" class="bar hidden" style="margin:0;border-radius:0;border-left:0;border-right:0">
+    <span>🔎 <b>Modo auditoría:</b> está viendo <b id="aud_nom"></b> como lo ve su rector. Sus acciones no reemplazan a las del rector.</span>
+    <button class="btn sm gold" onclick="salirAuditoria()">← Volver al panel Súper Admin</button>
+  </div>
   <main>
     <section id="v-home" class="hidden"><div class="card"><h2>Suite de Gerencia Integral Educativa</h2><p class="d">Seleccione el módulo al que desea ingresar.</p><div class="mods" id="mods"></div></div></section>
 
@@ -109,6 +170,7 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
               <div><label>Página web</label><input id="c_web" placeholder="https://"></div>
               <div><label>Facebook</label><input id="c_fb" placeholder="https://facebook.com/..."></div>
               <div><label>Máx. docentes ausentes por día y jornada</label><input type="number" id="c_max" min="1" max="50" value="2" required></div>
+              <div><label>Máx. permisos por docente al mes</label><input type="number" id="c_maxm" min="1" max="31" value="3" required></div>
             </div>
           </div>
           <div id="m_rect">
@@ -131,6 +193,16 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
         <div class="wrap"><table><thead><tr><th>Nombre</th><th>NIT</th><th>Rector</th><th>Usuarios</th><th>Máx./día</th><th>Acciones</th></tr></thead><tbody id="t-cole"></tbody></table></div>
       </div>
       <div class="card">
+        <h2>Marco normativo de las resoluciones</h2>
+        <p class="d">Textos que aparecen en los «considerandos» de cada resolución. Cada línea es un párrafo. Deben ser validados por un abogado antes de usarse oficialmente.</p>
+        <label>Considerandos generales (todos los solicitantes)</label><textarea id="mn_comun" rows="6"></textarea>
+        <label>Docentes del Decreto 2277 de 1979</label><textarea id="mn_2277" rows="3"></textarea>
+        <label>Docentes del Decreto 1278 de 2002</label><textarea id="mn_1278" rows="3"></textarea>
+        <label>Artículo de recursos (final de la resolución)</label><textarea id="mn_recursos" rows="3"></textarea>
+        <button class="btn green" onclick="guardarMarco()">Guardar marco normativo</button>
+        <div id="mn_msg" class="msg"></div>
+      </div>
+      <div class="card">
         <h2>Usuarios registrados</h2>
         <div class="wrap"><table><thead><tr><th>Nombre</th><th>Colegio</th><th>Teléfono</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="t-users"></tbody></table></div>
       </div>
@@ -139,7 +211,7 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
     <section id="v-permisos" class="hidden">
       <div class="card">
         <h2>Solicitud de Permiso Laboral</h2>
-        <p class="d">Máximo según la política del colegio por mes. Mínimo 3 días de anticipación.</p>
+        <p class="d">Máximo según la política del colegio por mes. Mínimo 3 días hábiles de anticipación (no cuentan sábados, domingos ni festivos).</p>
         <form onsubmit="enviarPermiso(event)">
           <div class="bar"><div><b>Fecha del permiso</b><br><small>Verifique la disponibilidad del mes y los cupos del día.</small></div>
             <div style="display:flex;gap:.8rem;align-items:center"><input type="date" id="p_fecha" required onchange="checkCupos()" style="width:170px"><span id="p_badge" class="pill">Cupos libres</span></div></div>
@@ -163,9 +235,123 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
 
     <section id="v-bandeja" class="hidden"><div class="card"><h2>Panel de solicitudes</h2>
       <p class="d">El coordinador preaprueba y el rector aprueba de forma definitiva.</p>
+      <div id="b_msg" class="msg"></div>
       <div class="wrap"><table><thead><tr><th>Radicado</th><th>Solicitante</th><th>Jornada / Fecha</th><th>Motivo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="b_body"></tbody></table></div></div></section>
 
+    <section id="v-sau" class="hidden">
+      <div class="card" id="g_card">
+        <h2>Gestión del SAU</h2>
+        <p class="d">Semáforo: <span class="dot dot-verde"></span> en plazo · <span class="dot dot-amarillo"></span> por vencer · <span class="dot dot-rojo"></span> vencida · <span class="dot dot-gris"></span> respondida. El plazo cuenta días hábiles.</p>
+        <select id="g_filtro" onchange="renderGestion()" style="width:auto">
+          <option value="abiertas">Abiertas</option><option value="sin">Sin asignar</option><option value="venc">Por vencer o vencidas</option><option value="resp">Respondidas</option><option value="todas">Todas</option>
+        </select>
+        <div id="g_msg" class="msg"></div>
+        <div class="wrap"><table><thead><tr><th>Semáforo</th><th>Radicado</th><th>Asunto / Solicitante</th><th>Estado</th><th>Responsable</th><th>Vence</th><th></th></tr></thead><tbody id="g_body"></tbody></table></div>
+      </div>
+      <div class="card hidden" id="g_det"></div>
+      <div class="card hidden" id="rp_card">
+        <h2>Reporte de eficiencia</h2>
+        <p class="d">Estadísticas de las solicitudes radicadas en el período: cumplimiento del colegio y desempeño de cada funcionario asignado.</p>
+        <div class="g2"><div><label>Desde</label><input type="date" id="rp_d"></div><div><label>Hasta</label><input type="date" id="rp_h"></div></div>
+        <button class="btn green" onclick="verReporte()">Generar reporte</button>
+        <div id="rp_msg" class="msg"></div>
+        <div id="rp_out"></div>
+        <h3 class="sec">Consultar casos por funcionario o por quejoso</h3>
+        <p class="d">Busca en todas las solicitudes del colegio, sin importar el período de arriba.</p>
+        <div class="g2">
+          <div><label>Funcionario</label><select id="bq_fun"><option value="">Todos</option></select></div>
+          <div><label>Estado</label><select id="bq_est"><option value="todas">Todos</option><option value="abiertas">Abiertas</option><option value="sin">Sin asignar</option><option value="venc">Por vencer o vencidas</option><option value="resp">Respondidas</option></select></div>
+        </div>
+        <label>Quejoso, correo, teléfono, radicado o asunto</label>
+        <input id="bq_txt" placeholder="Ej.: Pérez, 3113177475, SAU-2026-0001…" onkeydown="if(event.key==='Enter'){event.preventDefault();buscarCasos()}">
+        <button class="btn" onclick="buscarCasos()">Buscar casos</button>
+        <div id="bq_out"></div>
+      </div>
+      <div class="card" id="s_card_nueva">
+        <h2>Nueva solicitud</h2>
+        <form id="s-form" onsubmit="radicarPqrs(event,'s_')"></form>
+      </div>
+      <div class="card" id="s_card_mis">
+        <h2>Mis solicitudes</h2>
+        <div class="wrap"><table><thead><tr><th>Radicado</th><th>Asunto</th><th>Estado</th><th>Vence</th><th>Respuesta</th></tr></thead><tbody id="s_hist"></tbody></table></div>
+      </div>
+    </section>
+
+    <section id="v-mant" class="hidden">
+      <div class="card hidden" id="mg_card">
+        <h2>Gestión de mantenimiento</h2>
+        <p class="d">Semáforo: <span class="dot dot-verde"></span> en plazo · <span class="dot dot-amarillo"></span> por vencer · <span class="dot dot-rojo"></span> vencido · <span class="dot dot-gris"></span> solucionado. Los plazos cuentan días hábiles.</p>
+        <div class="g2">
+          <div><select id="mg_filtro" onchange="renderMant()"><option value="abiertos">Abiertos</option><option value="sin">Por atender</option><option value="proceso">En proceso</option><option value="venc">Por vencer o vencidos</option><option value="sol">Solucionados</option><option value="todos">Todos</option></select></div>
+          <div><select id="mg_area" onchange="renderMant()"><option value="">Todas las áreas</option></select></div>
+        </div>
+        <input id="mg_txt" placeholder="Buscar por solicitante, radicado, descripción o lugar…" oninput="renderMant()" style="margin-top:.6rem">
+        <div id="mg_msg" class="msg"></div>
+        <div class="wrap"><table><thead><tr><th>Semáforo</th><th>Radicado</th><th>Área</th><th>Solicitante</th><th>Estado</th><th>Fecha límite</th><th></th></tr></thead><tbody id="mg_body"></tbody></table></div>
+      </div>
+      <div class="card hidden" id="mg_det"></div>
+      <div class="card hidden" id="mr_card">
+        <h2>Reporte de mantenimiento</h2>
+        <p class="d">Seguimiento y estadísticas: tiempos de atención y solución, cumplimiento, áreas con más daños y costos.</p>
+        <div class="g2"><div><label>Desde</label><input type="date" id="mr_d"></div><div><label>Hasta</label><input type="date" id="mr_h"></div></div>
+        <button class="btn green" onclick="verReporteMant()">Generar reporte</button>
+        <div id="mr_msg" class="msg"></div>
+        <div id="mr_out"></div>
+      </div>
+      <div class="card hidden" id="mc_card">
+        <h2>Configuración de mantenimiento</h2>
+        <p class="d">El jefe principal y el suplente se designan en «Usuarios y accesos» (columna Mantenimiento).</p>
+        <div class="g2">
+          <div><label>Plazo máximo para atender un reporte (días hábiles)</label><input type="number" id="m_plazo" min="1" max="10"></div>
+          <div><label>Avisar cuando falten (días hábiles para la fecha de solución)</label><input type="number" id="m_alerta" min="1" max="10"></div>
+        </div>
+        <button class="btn green" onclick="guardarConfigMant()">Guardar plazos</button>
+        <div id="mc_msg" class="msg"></div>
+        <h3 class="sec">Áreas del colegio</h3>
+        <p class="d">Es la lista que ven los usuarios al reportar un daño.</p>
+        <div style="display:flex;gap:.6rem"><input id="ma_nuevo" placeholder="Nueva área…" maxlength="80"><button class="btn sm green" style="white-space:nowrap;padding:.6rem 1rem" onclick="addArea()">Agregar</button></div>
+        <div id="ma_list" class="wrap"></div>
+      </div>
+      <div class="card" id="mn_card">
+        <h2>Reportar un daño</h2>
+        <p class="d">Cuéntenos qué se dañó. El jefe de mantenimiento lo recibe y le responde con la fecha del arreglo.</p>
+        <form id="mn_form" onsubmit="reportarMant(event)"></form>
+      </div>
+      <div class="card" id="mm_card">
+        <h2>Mis reportes</h2>
+        <div class="wrap"><table><thead><tr><th>Semáforo</th><th>Radicado</th><th>Área</th><th>Estado</th><th>Fecha</th><th>Respuesta</th></tr></thead><tbody id="mm_body"></tbody></table></div>
+      </div>
+    </section>
+
+    <section id="v-fin" class="hidden">
+      <div class="card">
+        <h2>Finanzas y Contabilidad</h2>
+        <p class="d">Registre ingresos, egresos, cobros (cartera) y cuentas por pagar (proveedores). Nada se borra: los registros se anulan con un motivo y queda constancia.</p>
+        <div class="fin-tabs" id="fin_tabs"></div>
+        <div id="fin_pane"></div>
+      </div>
+    </section>
+
     <section id="v-usuarios" class="hidden">
+      <div class="card">
+        <h2>Configuración del colegio</h2>
+        <p class="d">Políticas de permisos y correo institucional. Los avisos por correo salen con «responder a» este correo.</p>
+        <div class="g2">
+          <div><label>Máx. docentes ausentes por día y jornada</label><input type="number" id="cf_max" min="1" max="50"></div>
+          <div><label>Máx. permisos por docente al mes</label><input type="number" id="cf_maxm" min="1" max="31"></div>
+          <div><label>Correo institucional</label><input type="email" id="cf_mail"></div>
+          <div><label>Teléfono</label><input type="tel" id="cf_tel"></div>
+          <div><label>SAU: plazo para responder (días hábiles)</label><input type="number" id="cf_plazo" min="1" max="60"></div>
+          <div><label>SAU: avisar al responsable, monitor y rector cuando falten (mín. 3 días hábiles)</label><input type="number" id="cf_alerta" min="3" max="30"></div>
+        </div>
+        <h3 class="sec">Escudo del colegio (membrete de las resoluciones)</h3>
+        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+          <img id="cf_escudo" alt="" style="width:80px;height:80px;object-fit:contain;border:1px solid #e2e8f0;border-radius:12px;background:#fff" class="hidden">
+          <div style="flex:1;min-width:220px"><input type="file" id="cf_file" accept="image/png,image/jpeg"><small style="color:#64748b">PNG o JPG, fondo transparente o blanco, máx. 1 MB.</small></div>
+        </div>
+        <button class="btn green" onclick="guardarConfig()">Guardar configuración</button>
+        <div id="cf_msg" class="msg"></div>
+      </div>
       <div class="card">
         <h2>Crear usuario</h2>
         <p class="d">Cree coordinadores, docentes o administrativos: ingresan con el correo y la contraseña que digite aquí. Los docentes, administrativos y el público también pueden registrarse solos desde la pantalla de inicio.</p>
@@ -177,6 +363,11 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
             <div><label>Correo (usuario de ingreso)</label><input type="email" id="u_mail" required autocomplete="off"></div>
             <div><label>Rol</label><select id="u_rol"><option value="coordinador">Coordinador</option><option value="docente">Docente</option><option value="administrativo">Administrativo</option></select></div>
             <div><label>Jornada (obligatoria para coordinadores y docentes)</label><select id="u_jor"><option value="">No aplica</option><option>Mañana</option><option>Tarde</option></select></div>
+            <div><label>Régimen (obligatorio para docentes)</label><select id="u_reg"><option value="">No aplica</option><option value="2277">Decreto 2277 de 1979</option><option value="1278">Decreto 1278 de 2002</option></select></div>
+            <div><label>Cargo</label>
+              <select id="u_cargo_sel" onchange="cargoSel()"><option value="">Sin cargo específico</option></select>
+              <input id="u_cargo" class="hidden" maxlength="60" placeholder="Escriba el nuevo cargo" style="margin-top:.5rem"></div>
+              <datalist id="dl_cargos"><option>Coordinador académico</option><option>Coordinador de convivencia</option><option>Docente</option><option>Tesorero(a)</option><option>Secretario(a)</option><option>Orientador(a)</option><option>Bibliotecario(a)</option><option>Auxiliar administrativo</option><option>Servicios generales</option></datalist>
             <div><label>Contraseña inicial</label><input id="u_pass" required minlength="6" autocomplete="off" placeholder="Mínimo 6 caracteres"></div>
           </div>
           <button class="btn" id="u_btn">Crear usuario</button>
@@ -185,8 +376,8 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       </div>
       <div class="card">
         <h2>Usuarios del colegio</h2>
-        <p class="d">Active a quienes se registraron solos y cambie su rol o jornada cuando lo necesite.</p>
-        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Rol</th><th>Jornada</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="u_body"></tbody></table></div>
+        <p class="d">Los docentes, administrativos y el público se registran solos y quedan activos de inmediato. Aquí puede cambiar su rol o jornada, o desactivar a quien no deba tener acceso.</p>
+        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Jornada</th><th>Régimen</th><th>Cargo</th><th>Monitor SAU</th><th>Mantenimiento</th><th>Finanzas</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="u_body"></tbody></table></div>
       </div>
       <div class="card">
         <h2>Accesos por rol</h2>
@@ -202,28 +393,82 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
 <script>
 const SUPABASE_URL = 'https://ftrlvaxtgrgxvxodtgfl.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_BevO5oiQAphvZeVKzIQH8Q_tj0-8hBz'; // clave pública (segura con RLS)
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { flowType: 'implicit' } });
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ROLES = { magister:'Súper Admin', rector:'Rector', coordinador:'Coordinador', docente:'Docente', administrativo:'Administrativo', publico:'Público' };
 let me = null, colegio = null;
 
-function msg(id, t, ok) { const e = $(id); e.textContent = t; e.className = 'msg' + (ok ? ' ok' : ''); }
+const ERRORES = [
+  [/fin_terceros_colegio_id_identificacion_key/i, 'Ya existe un tercero con esa identificación.'],
+  [/perfiles_fin_modulos_check/i, 'Módulo de finanzas no válido.'],
+  [/mant_jefe_unico/i, 'Ya hay un jefe de mantenimiento con ese cargo. Quíteselo primero a la otra persona.'],
+  [/already registered|already been registered/i, 'Este correo ya está registrado.'],
+  [/invalid login credentials/i, 'Correo o contraseña incorrectos.'],
+  [/password should be at least/i, 'La contraseña debe tener mínimo 6 caracteres.'],
+  [/rate limit|too many requests/i, 'Demasiados intentos. Espere unos minutos e intente de nuevo.'],
+  [/for security purposes|after \d+ seconds/i, 'Por seguridad, espere unos segundos antes de intentarlo de nuevo.'],
+  [/invalid format|unable to validate email/i, 'El formato del correo no es válido.'],
+  [/email not confirmed/i, 'Debe confirmar su correo antes de ingresar.'],
+  [/signups? (not allowed|are disabled|disabled)/i, 'El registro de nuevos usuarios está deshabilitado.'],
+  [/row-level security|permission denied/i, 'No tiene permiso para realizar esta acción.'],
+  [/duplicate key|already exists/i, 'Ese registro ya existe.'],
+  [/check constraint/i, 'Algún dato no es válido. Revíselo.'],
+  [/foreign key/i, 'No se puede completar: hay información relacionada.'],
+  [/jwt expired|invalid jwt|refresh token/i, 'Su sesión expiró. Ingrese de nuevo.'],
+  [/failed to fetch|networkerror|network request failed|load failed/i, 'Sin conexión. Revise su internet e intente de nuevo.'],
+  [/exceeded the maximum allowed size|payload too large/i, 'El archivo es demasiado pesado.'],
+  [/bucket not found/i, 'No se encontró el espacio de almacenamiento de archivos.'],
+  [/error sending (recovery|confirmation|magic link)|not authorized|smtp/i, 'No se pudo enviar el correo. Intente más tarde o contacte al rector.'],
+  [/same_password|different from the old/i, 'La contraseña nueva debe ser distinta a la anterior.'],
+  [/not found/i, 'No se encontró la información solicitada.']
+];
+function traducir(t) {
+  t = String(t || '');
+  const f = ERRORES.find(x => x[0].test(t));
+  return f ? f[1] : t;
+}
+function msg(id, t, ok) { const e = $(id); e.textContent = ok ? t : traducir(t); e.className = 'msg' + (ok ? ' ok' : ''); }
 function tipoReg() {
   const t = $('r_tipo').value;
   $('r_jwrap').classList.toggle('hidden', t === 'publico');
   $('r_jornada').required = t === 'docente';
   if (t === 'publico') $('r_jornada').value = '';
+  $('r_rwrap').classList.toggle('hidden', t !== 'docente');
+  $('r_regimen').required = t === 'docente';
+  if (t !== 'docente') $('r_regimen').value = '';
 }
-function toggle(reg) { $('f-login').classList.toggle('hidden', reg); $('f-reg').classList.toggle('hidden', !reg); }
-const VIEWS = ['home','magister','permisos','bandeja','usuarios'];
+function verForm(id) { ['f-login','f-reg','f-forgot','f-newpass','f-pqrs','f-consulta'].forEach(x => $(x).classList.toggle('hidden', x !== id)); }
+function toggle(reg) { verForm(reg ? 'f-reg' : 'f-login'); }
+
+/* ---------- RECUPERAR CONTRASEÑA ---------- */
+let RECUPERANDO = /type=recovery/.test(location.hash);
+async function olvido(e) {
+  e.preventDefault();
+  const { error } = await db.auth.resetPasswordForEmail($('f_mail').value.trim(), { redirectTo: location.origin + '/' });
+  if (error) return msg('f_msg', error.message);
+  msg('f_msg', 'Listo. Si el correo está registrado, le llegó un enlace (revise también Spam).', true);
+}
+async function nuevaClave(e) {
+  e.preventDefault();
+  if ($('n_pass').value !== $('n_pass2').value) return msg('n_msg', 'Las contraseñas no coinciden.');
+  const { error } = await db.auth.updateUser({ password: $('n_pass').value });
+  if (error) return msg('n_msg', /different from the old/i.test(error.message) ? 'La contraseña nueva debe ser distinta a la anterior.' : error.message);
+  RECUPERANDO = false;
+  history.replaceState(null, '', location.pathname);
+  await db.auth.signOut();
+  verForm('f-login');
+  msg('l_msg', 'Contraseña actualizada. Ya puede ingresar con la nueva.', true);
+}
+const VIEWS = ['home','magister','permisos','bandeja','sau','mant','fin','usuarios'];
 function showView(v) { VIEWS.forEach(x => $('v-' + x).classList.toggle('hidden', x !== v)); $('btn-home').classList.toggle('hidden', v === 'home' || v === 'magister'); }
 
 async function loadSchools() {
   const { data, error } = await db.from('colegios_publicos').select('id,nombre,nit').order('nombre');
-  const s = $('r_colegio');
-  if (error || !data || !data.length) { s.innerHTML = '<option value="">No hay instituciones creadas todavía</option>'; return; }
-  s.innerHTML = data.map(c => `<option value="${esc(c.id)}">${esc(c.nombre)} (NIT: ${esc(c.nit)})</option>`).join('');
+  const ids = ['r_colegio','q_colegio','k_colegio'].map(x => $(x)).filter(Boolean);
+  if (error || !data || !data.length) { ids.forEach(s => s.innerHTML = '<option value="">No hay instituciones creadas todavía</option>'); return; }
+  const html = data.map(c => `<option value="${esc(c.id)}">${esc(c.nombre)} (NIT: ${esc(c.nit)})</option>`).join('');
+  ids.forEach(s => s.innerHTML = html);
 }
 
 async function login(e) {
@@ -246,14 +491,15 @@ async function register(e) {
       apellidos: $('r_apellidos').value.trim(),
       telefono: $('r_tel').value.trim(),
       jornada: $('r_jornada').value || null,
-      rol: $('r_tipo').value
+      rol: $('r_tipo').value,
+      regimen: tipo === 'docente' ? ($('r_regimen').value || null) : null
     } }
   });
   if (error) return msg('r_msg', error.message);
   await db.auth.signOut();
   form.reset();
   toggle(false);
-  msg('l_msg', tipo === 'publico' ? 'Registro exitoso. Ya puede ingresar con su correo y contraseña.' : 'Registro exitoso. Su cuenta quedará lista cuando el rector la active.', true);
+  msg('l_msg', 'Registro exitoso. Ya puede ingresar con su correo y contraseña.', true);
 }
 
 async function enter() {
@@ -261,7 +507,7 @@ async function enter() {
   if (!user) return;
   const { data: p, error } = await db.from('perfiles').select('*').eq('id', user.id).single();
   if (error || !p) { await db.auth.signOut(); return msg('l_msg', 'No se encontró su perfil. Contacte al administrador.'); }
-  if (!p.activo) { await db.auth.signOut(); return msg('l_msg', 'Su cuenta está pendiente de activación por el rector.'); }
+  if (!p.activo) { await db.auth.signOut(); return msg('l_msg', 'Su cuenta está desactivada. Contacte al rector de su institución.'); }
   me = p; colegio = null;
   if (p.colegio_id) {
     const { data } = await db.from('colegios').select('*').eq('id', p.colegio_id).single();
@@ -276,8 +522,45 @@ async function enter() {
 
 async function logout() { await db.auth.signOut(); location.reload(); }
 
+/* ---------- MENÚ DE ACCIONES (lista desplegable) ---------- */
+const ACC = {};
+function menuAcc(ev, key) {
+  ev.stopPropagation();
+  const abierto = document.querySelector('.accmenu');
+  const mismo = abierto && abierto.dataset.key === key;
+  cerrarMenu(); if (mismo) return;
+  const m = document.createElement('div');
+  m.className = 'accmenu'; m.dataset.key = key;
+  m.innerHTML = (ACC[key] || []).map(([t, f, c]) => t === '-' ? '<hr>' : `<button class="${c || ''}" onclick="cerrarMenu();${f}">${t}</button>`).join('');
+  document.body.appendChild(m);
+  const r = ev.currentTarget.getBoundingClientRect();
+  m.style.top = (r.bottom + window.scrollY + 4) + 'px';
+  m.style.left = Math.max(8, r.right + window.scrollX - m.offsetWidth) + 'px';
+}
+function cerrarMenu() { document.querySelectorAll('.accmenu').forEach(x => x.remove()); }
+document.addEventListener('click', e => { if (!e.target.closest('.accmenu')) cerrarMenu(); });
+const btnAcc = key => `<button class="btn sm" onclick="menuAcc(event,'${key}')">Acciones ▾</button>`;
+
+/* ---------- MODO AUDITORÍA (Súper Admin) ---------- */
+let ME_REAL = null, AUD = false;
+async function auditar(id) {
+  const { data: c, error } = await db.from('colegios').select('*').eq('id', id).single();
+  if (error || !c) return alert('No se pudo abrir el colegio: ' + traducir(error && error.message));
+  ME_REAL = ME_REAL || me; AUD = true;
+  me = { ...ME_REAL, rol: 'rector', colegio_id: id }; colegio = c;
+  $('aud_nom').textContent = c.nombre; $('aud_bar').classList.remove('hidden');
+  await cargarAccesos(); goHome();
+}
+function salirAuditoria() {
+  if (ME_REAL) me = ME_REAL;
+  ME_REAL = null; AUD = false; colegio = null;
+  $('aud_bar').classList.add('hidden');
+  showView('magister'); loadMagister();
+}
+
 /* ---------- PANEL SÚPER ADMIN ---------- */
 async function loadMagister() {
+  loadMarco();
   const [c, u] = await Promise.all([
     db.from('colegios').select('*').order('creado_en'),
     db.from('perfiles').select('id,nombres,apellidos,telefono,rol,activo,colegio_id,colegios(nombre)').order('creado_en', { ascending: false })
@@ -287,24 +570,25 @@ async function loadMagister() {
   $('t-cole').innerHTML = COLES.map(x => {
     const rect = users.find(p => p.colegio_id === x.id && p.rol === 'rector');
     const n = users.filter(p => p.colegio_id === x.id).length;
+    ACC['c' + x.id] = [['🔎 Auditar colegio', `auditar('${x.id}')`], ['✏️ Editar', `editarColegio('${x.id}')`],
+      ...(rect ? [] : [['👤 Crear rector', `rectorColegio('${x.id}')`]]), ['-'], ['🗑️ Eliminar colegio', `borrarColegio('${x.id}')`, 'red']];
     return `<tr><td><b>${esc(x.nombre)}</b><br><small>${esc(x.telefono || '')} ${esc(x.correo || '')}</small></td><td>${esc(x.nit)}</td>
       <td>${rect ? esc(rect.nombres + ' ' + (rect.apellidos || '')) : '<span class="tag t-no">Sin rector</span>'}</td><td>${n}</td><td>${esc(x.max_diario)}</td>
-      <td><button class="btn sm" onclick="editarColegio('${x.id}')">Editar</button>${rect ? '' : `<button class="btn sm gold" onclick="rectorColegio('${x.id}')">Crear rector</button>`}<button class="btn sm red" onclick="borrarColegio('${x.id}')">Eliminar</button></td></tr>`;
+      <td>${btnAcc('c' + x.id)}</td></tr>`;
   }).join('') || '<tr><td colspan="6">Aún no hay instituciones.</td></tr>';
 
   $('t-users').innerHTML = users.map(x => {
     const own = x.id === me.id;
+    ACC['u' + x.id] = [[x.activo ? '⏸️ Desactivar' : '✅ Activar', `setPerfil('${esc(x.id)}',{activo:${!x.activo}})`],
+      ...(x.rol !== 'rector' ? [['⭐ Nombrar rector', `setPerfil('${esc(x.id)}',{rol:'rector',activo:true})`]] : []),
+      ...(x.rol !== 'coordinador' ? [['📋 Hacer coordinador', `setPerfil('${esc(x.id)}',{rol:'coordinador',activo:true})`]] : [])];
     return `<tr>
       <td>${esc(x.nombres)} ${esc(x.apellidos)}</td>
       <td>${esc(x.colegios?.nombre || '—')}</td>
       <td>${esc(x.telefono || '')}</td>
       <td>${esc(ROLES[x.rol] || x.rol)}</td>
-      <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Pendiente'}</span></td>
-      <td>${own ? '' : `
-        <button class="btn sm green" onclick="setPerfil('${esc(x.id)}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>
-        ${x.rol !== 'rector' ? `<button class="btn sm gold" onclick="setPerfil('${esc(x.id)}',{rol:'rector',activo:true})">Nombrar rector</button>` : ''}
-        ${x.rol !== 'coordinador' ? `<button class="btn sm" onclick="setPerfil('${esc(x.id)}',{rol:'coordinador',activo:true})">Coordinador</button>` : ''}`}
-      </td></tr>`;
+      <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Desactivado'}</span></td>
+      <td>${own ? '' : btnAcc('u' + x.id)}</td></tr>`;
   }).join('') || '<tr><td colspan="6">Sin usuarios.</td></tr>';
 }
 
@@ -318,9 +602,10 @@ function formModo(modo, c) {
   $('m_cole').classList.toggle('hidden', modo === 'rector');
   $('m_rect').classList.toggle('hidden', modo === 'editar');
   ['m_rn','m_ra','m_rt','m_rm','m_rp'].forEach(i => { $(i).required = modo !== 'editar'; if (modo === 'editar') $(i).value = ''; else if (modo === 'crear') $(i).value = ''; });
-  ['c_nombre','c_nit','c_max'].forEach(i => $(i).required = modo !== 'rector');
+  ['c_nombre','c_nit','c_max','c_maxm'].forEach(i => $(i).required = modo !== 'rector');
   Object.keys(CMAP).forEach(i => $(i).value = (modo === 'editar' && c) ? (c[CMAP[i]] || '') : '');
   $('c_max').value = (modo === 'editar' && c) ? c.max_diario : 2;
+  $('c_maxm').value = (modo === 'editar' && c) ? c.max_mensual : 3;
   $('m_title').textContent = modo === 'crear' ? 'Crear institución y rector' : modo === 'editar' ? 'Editar institución: ' + c.nombre : 'Crear rector para: ' + c.nombre;
   $('m_btn').textContent = modo === 'crear' ? 'Crear institución y rector' : modo === 'editar' ? 'Guardar cambios' : 'Crear rector';
   $('m_cancel').classList.toggle('hidden', modo === 'crear');
@@ -337,7 +622,7 @@ async function guardarColegio(e) {
     const datos = {
       nombre: val('c_nombre'), nit: val('c_nit'), dane: val('c_dane') || null, resolucion: val('c_res') || null,
       direccion: val('c_dir') || null, telefono: val('c_tel') || null, correo: val('c_mail') || null,
-      pagina_web: val('c_web') || null, facebook: val('c_fb') || null, max_diario: parseInt($('c_max').value) || 2
+      pagina_web: val('c_web') || null, facebook: val('c_fb') || null, max_diario: parseInt($('c_max').value) || 2, max_mensual: parseInt($('c_maxm').value) || 3
     };
     let texto = '';
     if (M.modo === 'editar') {
@@ -379,13 +664,13 @@ async function borrarColegio(id) {
   const c = COLES.find(x => x.id === id);
   if (!confirm(`¿Eliminar "${c.nombre}"?\n\nSe borrarán también sus usuarios (perfiles) y solicitudes de permisos. No se puede deshacer.`)) return;
   const { error } = await db.from('colegios').delete().eq('id', id);
-  if (error) alert('No se pudo eliminar: ' + error.message);
+  if (error) alert('No se pudo eliminar: ' + traducir(error.message));
   loadMagister();
 }
 
 async function setPerfil(id, campos) {
   const { error } = await db.from('perfiles').update(campos).eq('id', id);
-  if (error) alert('No se pudo actualizar: ' + error.message);
+  if (error) alert('No se pudo actualizar: ' + traducir(error.message));
   loadMagister();
 }
 
@@ -395,32 +680,55 @@ const MODS = [
   { k:'permisos', t:'Control de Permisos', i:'📋' },
   { k:'sau', t:'SAU (Atención al Usuario)', i:'🎧' },
   { k:'mantenimiento', t:'Gestión de Mantenimiento', i:'🛠️' },
-  { k:'contable', t:'Módulo Contable', i:'💰' }
+  { k:'fin', t:'Finanzas y Contabilidad', i:'💰', fin:true }
 ];
 async function cargarAccesos() {
   ACCESOS = {};
   const { data } = await db.from('accesos_rol').select('rol,modulo,permitido');
   (data || []).forEach(x => { ACCESOS[x.rol] = ACCESOS[x.rol] || {}; ACCESOS[x.rol][x.modulo] = x.permitido; });
 }
-function goHome() {
+async function goHome() {
   const r = me.rol;
+  showView('home');
   const puede = k => r === 'rector' || !!(ACCESOS[r] && ACCESOS[r][k]);
+  let pend = 0;
+  if (r === 'coordinador' || r === 'rector') {
+    const { count } = await db.from('permisos').select('id', { count: 'exact', head: true }).eq('estado', r === 'coordinador' ? 'Pendiente' : 'Preaprobado');
+    pend = count || 0;
+  }
+  let sau = { sin: 0, por: 0, venc: 0, mias: 0 };
+  { const { data } = await db.from('pqrs_vista').select('estado,semaforo,asignado_a');
+    (data || []).forEach(x => { if (x.estado === 'Radicada') sau.sin++; if (x.semaforo === 'amarillo') sau.por++; if (x.semaforo === 'rojo') sau.venc++; if (x.asignado_a === me.id && x.estado === 'Asignada') sau.mias++; }); }
+  let mant = { sin: 0, por: 0, venc: 0 };
+  if (esGestorMant()) { const { data } = await db.from('mant_vista').select('estado,semaforo');
+    (data || []).forEach(x => { if (x.estado === 'Reportado') mant.sin++; if (x.estado !== 'Solucionado' && x.semaforo === 'amarillo') mant.por++; if (x.estado !== 'Solucionado' && x.semaforo === 'rojo') mant.venc++; }); }
   const cards = [];
-  MODS.filter(m => puede(m.k)).forEach(m => {
+  MODS.filter(m => (m.k === 'fin' ? finAlguno() : puede(m.k)) || (m.k === 'sau' && (esGestor() || sau.mias > 0)) || (m.k === 'mantenimiento' && !!me.mant_rol)).forEach(m => {
+    if (m.k === 'mantenimiento') {
+      const al = esGestorMant() ? [mant.sin && `${mant.sin} por atender`, mant.por && `${mant.por} por vencer`, mant.venc && `${mant.venc} vencido(s)`] : [];
+      return cards.push({ t:m.t, i:m.i, go:'mant', d: esGestorMant() ? 'Atienda los reportes de daños, haga seguimiento y consulte estadísticas.' : 'Reporte un daño con fotos y siga el estado del arreglo.', x: al.filter(Boolean).map(a => `<span class="tag t-bad" style="margin:.1rem">${a}</span>`).join('') });
+    }
+    if (m.k === 'fin') return cards.push({ t:m.t, i:m.i, go:'fin', d:'Ingresos, egresos, cartera y proveedores del colegio.' });
+    if (m.k === 'sau') {
+      const alertas = esGestor() ? [sau.sin && `${sau.sin} sin asignar`, sau.por && `${sau.por} por vencer`, sau.venc && `${sau.venc} vencida(s)`] : [sau.mias && `${sau.mias} por responder`];
+      return cards.push({ t:m.t, i:m.i, go:'sau', d:'Radique y consulte solicitudes' + (esGestor() ? '; asigne y responda las del colegio.' : '.'), x: alertas.filter(Boolean).map(a => `<span class="tag t-bad" style="margin:.1rem">${a}</span>`).join('') });
+    }
     if (m.k === 'permisos') {
       const go = ['docente','administrativo'].includes(r) ? 'permisos' : (['coordinador','rector'].includes(r) ? 'bandeja' : null);
-      cards.push({ t:m.t, i:m.i, go, d: go === 'permisos' ? 'Solicite permisos y consulte su historial.' : go ? 'Revise, preapruebe y apruebe solicitudes.' : 'Próximamente.' });
+      cards.push({ t:m.t, i:m.i, go, n: go === 'bandeja' ? pend : 0, d: go === 'permisos' ? 'Solicite permisos y consulte su historial.' : go ? 'Revise, preapruebe y apruebe solicitudes.' : 'Próximamente.' });
     } else cards.push({ t:m.t, i:m.i, go:null, d:'Próximamente.' });
   });
   if (r === 'rector') cards.push({ t:'Usuarios y accesos', i:'👥', go:'usuarios', d:'Cree usuarios, asigne roles y defina a qué módulos entra cada rol.' });
-  $('mods').innerHTML = cards.map(m => `<div class="mod ${m.go ? '' : 'off'}" ${m.go ? `onclick="openMod('${m.go}')"` : ''}><div class="ico">${m.i}</div><h3>${esc(m.t)}</h3><p>${esc(m.d)}</p></div>`).join('')
+  $('mods').innerHTML = cards.map(m => `<div class="mod ${m.go ? '' : 'off'}" ${m.go ? `onclick="openMod('${m.go}')"` : ''}><div class="ico">${m.i}</div><h3>${esc(m.t)}</h3><p>${esc(m.d)}</p>${m.n ? `<p style="margin-top:.6rem"><span class="tag t-bad">${m.n} solicitud(es) por revisar</span></p>` : ''}${m.x ? `<p style="margin-top:.6rem">${m.x}</p>` : ''}</div>`).join('')
     || '<p class="d">No tiene módulos habilitados todavía. Contacte al rector de su institución.</p>';
-  showView('home');
 }
 function openMod(v) {
   showView(v);
   if (v === 'permisos') initPermisos();
   if (v === 'bandeja') loadBandeja();
+  if (v === 'sau') initSau();
+  if (v === 'mant') initMant();
+  if (v === 'fin') initFin();
   if (v === 'usuarios') loadUsuarios();
 }
 const ST = { Pendiente:'t-no', Preaprobado:'t-info', Aprobado:'t-ok', Rechazado:'t-bad' };
@@ -428,11 +736,10 @@ const badge = s => `<span class="tag ${ST[s] || ''}">${esc(s)}</span>`;
 const sb = () => db.storage.from('soportes');
 
 /* ---------- PERMISOS: DOCENTE ---------- */
-function initPermisos() {
-  const d = new Date(); d.setDate(d.getDate() + 3);
-  const f = n => String(n).padStart(2, '0');
-  $('p_fecha').min = `${d.getFullYear()}-${f(d.getMonth() + 1)}-${f(d.getDate())}`;
+async function initPermisos() {
   loadHistorial();
+  const { data } = await db.rpc('fecha_minima');   // 3 días hábiles, calculado en el servidor
+  if (data) $('p_fecha').min = data;
 }
 function toggleHoras() {
   const h = $('p_mod').value === 'Por Horas';
@@ -441,9 +748,16 @@ function toggleHoras() {
 }
 async function checkCupos() {
   const f = $('p_fecha').value, b = $('p_badge');
-  if (!f) { b.textContent = 'Cupos libres'; return null; }
+  if (!f) { b.textContent = 'Cupos libres'; b.style.color = ''; return null; }
   const { data, error } = await db.rpc('cupos_dia', { p_fecha: f });
-  if (error || !data) { b.textContent = 'No se pudo consultar los cupos'; return null; }
+  if (error || !data) {
+    console.error('cupos_dia', error);
+    b.textContent = 'Error al consultar cupos: ' + traducir(error ? error.message : 'sin respuesta');
+    b.style.color = '#e11d48';
+    return null;
+  }
+  if (!data.habil) { b.textContent = 'Esa fecha no es día hábil (fin de semana o festivo)'; b.style.color = '#e11d48'; data.bloqueado = true; return data; }
+  if (f < data.fecha_min) { b.textContent = 'Se requieren 3 días hábiles de anticipación. Primera fecha: ' + data.fecha_min; b.style.color = '#e11d48'; data.bloqueado = true; return data; }
   const libres = Math.max(data.max_diario - data.ocupados, 0);
   b.textContent = `Mes: ${data.mis_mes}/${data.max_mensual} | Día: ${libres} cupo(s) libre(s)`;
   b.style.color = (data.mis_mes < data.max_mensual && libres > 0 && !data.ya_pidio) ? '#059669' : '#e11d48';
@@ -455,8 +769,10 @@ async function enviarPermiso(e) {
   btn.disabled = true; msg('p_msg', 'Enviando…', true);
   try {
     if (!me.jornada) throw new Error('Su perfil no tiene jornada asignada. Contacte al rector.');
+    if (me.rol === 'docente' && !me.regimen) throw new Error('Su perfil no tiene régimen asignado (Decreto 2277 o 1278). Pídale al rector que lo registre.');
     const c = await checkCupos();
-    if (!c) throw new Error('No se pudo verificar los cupos. Intente de nuevo.');
+    if (!c) throw new Error($('p_badge').textContent);
+    if (c.bloqueado) throw new Error($('p_badge').textContent);
     if (c.ya_pidio) throw new Error('Ya tiene una solicitud registrada para esa fecha.');
     if (c.mis_mes >= c.max_mensual) throw new Error(`Límite mensual excedido: máximo ${c.max_mensual} permisos por mes.`);
     if (c.ocupados >= c.max_diario) throw new Error(`Límite diario excedido: ya se completó el cupo de ${c.max_diario} docente(s) para ese día.`);
@@ -473,23 +789,24 @@ async function enviarPermiso(e) {
       sb().upload(base + '-actividades.pdf', f2, { contentType: 'application/pdf' })
     ]);
     const bad = up.find(r => r.error);
-    if (bad) throw new Error('No se pudo subir el PDF: ' + bad.error.message);
-    const { error } = await db.from('permisos').insert({
+    if (bad) throw new Error('No se pudo subir el PDF: ' + traducir(bad.error.message));
+    const { data: nuevo, error } = await db.from('permisos').insert({
       colegio_id: me.colegio_id, docente_id: me.id, fecha: $('p_fecha').value, jornada: me.jornada,
       modalidad: mod, hora_inicio: mod === 'Por Horas' ? hi : null, hora_fin: mod === 'Por Horas' ? hf : null,
       motivo: `[${$('p_tipo').value}] ${$('p_det').value.trim()}`,
       soporte_path: base + '-permiso.pdf', actividades_path: base + '-actividades.pdf'
-    });
+    }).select('id').single();
     if (error) throw new Error(error.message);
     form.reset(); toggleHoras(); $('p_badge').textContent = 'Cupos libres';
-    msg('p_msg', 'Solicitud enviada correctamente.', true);
+    const r = await notificar(nuevo.id);
+    msg('p_msg', r && r.ok ? 'Solicitud enviada. ' + textoPara(r) : 'Solicitud enviada, pero el aviso por correo al coordinador falló: ' + (r ? r.error : ''), !!(r && r.ok));
     loadHistorial();
   } catch (err) { msg('p_msg', err.message); }
   finally { btn.disabled = false; }
 }
 async function loadHistorial() {
   const { data } = await db.from('permisos').select('*').eq('docente_id', me.id).order('creado_en', { ascending: false });
-  $('p_hist').innerHTML = (data || []).map(p => `<tr><td><b>${esc(p.radicado)}</b></td><td>${esc(p.fecha)}<br><small>${esc(p.modalidad)}</small></td><td>${esc(p.motivo)}</td><td>${badge(p.estado)}</td><td>${esc(p.observacion || '')}</td></tr>`).join('')
+  $('p_hist').innerHTML = (data || []).map(p => `<tr><td><b>${esc(p.radicado)}</b></td><td>${esc(p.fecha)}<br><small>${esc(p.modalidad)}</small></td><td>${esc(p.motivo)}</td><td>${badge(p.estado)}</td><td>${esc(p.observacion || '')}${p.resolucion_num ? `<br><button class="btn sm gold" style="margin-top:.4rem" onclick="verResolucion('${p.id}')">Ver resolución</button>` : ''}</td></tr>`).join('')
     || '<tr><td colspan="5">Aún no ha realizado solicitudes.</td></tr>';
 }
 
@@ -504,20 +821,48 @@ async function loadBandeja() {
     if ((me.rol === 'coordinador' && p.estado === 'Pendiente') || (me.rol === 'rector' && ['Pendiente','Preaprobado'].includes(p.estado)))
       a += `<button class="btn sm red" onclick="negar('${p.id}')">Negar</button>`;
     a += `<button class="btn sm gold" onclick="verPdf('${esc(p.soporte_path)}')">Soporte</button><button class="btn sm gold" onclick="verPdf('${esc(p.actividades_path)}')">Actividades</button>`;
+    a += `<button class="btn sm" onclick="reenviar('${p.id}')">Reenviar aviso</button>`;
+    if (p.resolucion_num) a += `<button class="btn sm green" onclick="verResolucion('${p.id}')">Resolución ${esc(p.resolucion_num)}/${esc(p.resolucion_anio)}</button>`;
     return `<tr><td><b>${esc(p.radicado)}</b></td><td>${esc(p.perfiles?.nombres)} ${esc(p.perfiles?.apellidos)}</td>
       <td>${esc(p.fecha)}<br><small>${esc(p.jornada)} · ${esc(p.modalidad)}</small></td><td>${esc(p.motivo)}</td><td>${badge(p.estado)}</td><td>${a}</td></tr>`;
   }).join('') || '<tr><td colspan="6">No hay solicitudes.</td></tr>';
 }
 async function cambiar(id, estado, obs) {
   const { error } = await db.from('permisos').update(obs ? { estado, observacion: obs } : { estado }).eq('id', id);
-  if (error) alert(error.message);
+  if (error) { alert(traducir(error.message)); return loadBandeja(); }
+  const r = await notificar(id);
   loadBandeja();
+  if (r && r.ok) msg('b_msg', 'Decisión registrada. ' + textoPara(r), true);
+  else msg('b_msg', 'La decisión quedó registrada, pero el aviso por correo no se pudo enviar: ' + (r ? r.error : ''));
+}
+function textoPara(r) {
+  if (!r) return '';
+  if (r.yaEnviado) return 'El aviso por correo ya se había enviado antes.';
+  let t = 'Aviso por correo enviado a: ' + (r.para || []).map(x => `${x.nombre} (${x.email})`).join(', ') + '.';
+  if (r.fallos && r.fallos.length) t += ' No se pudo enviar a: ' + r.fallos.join(' | ');
+  return t;
+}
+async function reenviar(id) {
+  msg('b_msg', 'Enviando aviso…', true);
+  const r = await notificar(id, true);
+  if (r && r.ok) msg('b_msg', textoPara(r), true); else msg('b_msg', 'No se pudo enviar: ' + (r ? r.error : ''));
+}
+async function notificar(id, forzar) {
+  try {
+    const { data, error } = await db.functions.invoke('notificar', { body: { permiso_id: id, forzar: !!forzar } });
+    if (error) {
+      let m = error.message;
+      try { const j = await error.context.json(); if (j && j.error) m = j.error; } catch (_) {}
+      return { ok: false, error: traducir(m) };
+    }
+    return data || { ok: false, error: 'Sin respuesta del servidor de correos.' };
+  } catch (e) { return { ok: false, error: traducir(e.message) }; }
 }
 function negar(id) { const o = prompt('Escriba el motivo de la negación:'); if (o && o.trim()) cambiar(id, 'Rechazado', o.trim()); }
 async function verPdf(path) {
   const w = window.open('', '_blank');
   const { data, error } = await sb().createSignedUrl(path, 300);
-  if (error) { if (w) w.close(); return alert('No se pudo abrir el archivo: ' + error.message); }
+  if (error) { if (w) w.close(); return alert('No se pudo abrir el archivo: ' + traducir(error.message)); }
   if (w) w.location = data.signedUrl;
 }
 
@@ -526,21 +871,38 @@ const ROLES_USR = [['docente','Docente'],['coordinador','Coordinador'],['adminis
 const JORNADAS = [['','—'],['Mañana','Mañana'],['Tarde','Tarde']];
 const opts = (list, cur) => list.map(([v, t]) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${t}</option>`).join('');
 
+const REGIMENES = [['','—'],['2277','Decreto 2277/1979'],['1278','Decreto 1278/2002']];
+const CARGOS_BASE = ['Coordinador académico', 'Coordinador de convivencia', 'Docente', 'Tesorero(a)', 'Secretario(a)', 'Orientador(a)', 'Bibliotecario(a)', 'Auxiliar administrativo', 'Servicios generales'];
+function cargoSel() { const o = $('u_cargo_sel').value === '__otro'; $('u_cargo').classList.toggle('hidden', !o); if (o) $('u_cargo').focus(); else $('u_cargo').value = ''; }
+const cargoElegido = () => $('u_cargo_sel').value === '__otro' ? val('u_cargo') : $('u_cargo_sel').value;
+function actualizarCargos(usados) {
+  const todos = [...new Set([...CARGOS_BASE, ...usados.filter(Boolean)])].sort((a, b) => a.localeCompare(b));
+  const cur = $('u_cargo_sel').value;
+  $('u_cargo_sel').innerHTML = '<option value="">Sin cargo específico</option>' + todos.map(c => `<option>${esc(c)}</option>`).join('') + '<option value="__otro">➕ Otro (escribir un cargo nuevo)…</option>';
+  $('u_cargo_sel').value = cur;
+  $('dl_cargos').innerHTML = todos.map(c => `<option>${esc(c)}</option>`).join('');
+}
 async function loadUsuarios() {
-  loadMatriz();
-  const { data } = await db.from('perfiles').select('id,nombres,apellidos,telefono,rol,jornada,activo').order('creado_en', { ascending: false });
+  loadMatriz(); cargarConfig();
+  const { data } = await db.from('perfiles').select('id,nombres,apellidos,correo,telefono,rol,jornada,regimen,cargo,es_monitor_sau,mant_rol,fin_modulos,activo').order('creado_en', { ascending: false });
+  actualizarCargos((data || []).map(x => x.cargo));
   $('u_body').innerHTML = (data || []).map(x => {
     const fijo = x.id === me.id || x.rol === 'rector';
-    return `<tr><td>${esc(x.nombres)} ${esc(x.apellidos)}</td><td>${esc(x.telefono || '')}</td>
+    return `<tr><td>${esc(x.nombres)} ${esc(x.apellidos)}</td><td style="word-break:break-all">${esc(x.correo || '—')}</td><td>${esc(x.telefono || '')}</td>
       <td>${fijo ? esc(ROLES[x.rol] || x.rol) : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{rol:this.value})">${opts(ROLES_USR, x.rol)}</select>`}</td>
       <td>${fijo ? esc(x.jornada || '—') : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{jornada:this.value||null})">${opts(JORNADAS, x.jornada || '')}</select>`}</td>
-      <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Pendiente'}</span></td>
+      <td>${x.rol !== 'docente' ? '—' : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{regimen:this.value||null})">${opts(REGIMENES, x.regimen || '')}</select>`}</td>
+      <td>${fijo ? esc(x.cargo || '—') : `<input list="dl_cargos" style="width:11rem;padding:.4rem" maxlength="60" value="${esc(x.cargo || '')}" onchange="setUsr('${x.id}',{cargo:this.value.trim()||null})">`}</td>
+      <td style="text-align:center">${x.rol === 'rector' ? '—' : `<input type="checkbox" style="width:auto" ${x.es_monitor_sau ? 'checked' : ''} onchange="setUsr('${x.id}',{es_monitor_sau:this.checked})">`}</td>
+      <td>${x.rol === 'rector' ? '—' : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{mant_rol:this.value||null})">${opts([['','—'],['principal','Jefe principal'],['suplente','Jefe suplente']], x.mant_rol || '')}</select>`}</td>
+      <td>${finUsrCelda(x)}</td>
+      <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Desactivado'}</span></td>
       <td>${fijo ? '' : `<button class="btn sm green" onclick="setUsr('${x.id}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>`}</td></tr>`;
-  }).join('') || '<tr><td colspan="6">Sin usuarios.</td></tr>';
+  }).join('') || '<tr><td colspan="11">Sin usuarios.</td></tr>';
 }
 async function setUsr(id, campos) {
   const { error } = await db.from('perfiles').update(campos).eq('id', id);
-  if (error) alert(error.message);
+  if (error) alert(traducir(error.message));
   loadUsuarios();
 }
 async function crearUsuario(e) {
@@ -550,16 +912,20 @@ async function crearUsuario(e) {
   try {
     const rol = $('u_rol').value, jor = $('u_jor').value || null;
     if (['docente','coordinador'].includes(rol) && !jor) throw new Error('Seleccione la jornada.');
+    const reg = $('u_reg').value || null;
+    if (rol === 'docente' && !reg) throw new Error('Seleccione el régimen del docente.');
+    const cargo = cargoElegido();
+    if ($('u_cargo_sel').value === '__otro' && !cargo) throw new Error('Escriba el nombre del cargo.');
     const aux = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'gie-aux' } });
     const { data, error } = await aux.auth.signUp({
       email: val('u_mail'), password: $('u_pass').value,
-      options: { data: { colegio_id: me.colegio_id, nombres: val('u_nom'), apellidos: val('u_ape'), telefono: val('u_tel'), jornada: jor, rol: rol === 'coordinador' ? 'docente' : rol } }
+      options: { data: { colegio_id: me.colegio_id, nombres: val('u_nom'), apellidos: val('u_ape'), telefono: val('u_tel'), jornada: jor, rol: rol === 'coordinador' ? 'docente' : rol, regimen: ['docente','coordinador'].includes(rol) ? reg : null } }
     });
     if (error) throw new Error(/already/i.test(error.message) ? 'Ese correo ya está registrado.' : error.message);
     if (!data.user) throw new Error('No se pudo crear el usuario.');
-    const { error: e2 } = await db.from('perfiles').update({ rol, activo: true }).eq('id', data.user.id);
+    const { error: e2 } = await db.from('perfiles').update({ rol, activo: true, cargo: cargo || null }).eq('id', data.user.id);
     if (e2) throw new Error('Usuario creado, pero no se pudo activar: ' + e2.message);
-    form.reset();
+    form.reset(); cargoSel();
     msg('u_msg', 'Usuario creado. Ya puede ingresar con su correo y contraseña.', true);
     loadUsuarios();
   } catch (err) { msg('u_msg', err.message); }
@@ -572,7 +938,7 @@ async function loadMatriz() {
   const { data } = await db.from('accesos_rol').select('rol,modulo,permitido');
   const A = {};
   (data || []).forEach(x => { A[x.rol] = A[x.rol] || {}; A[x.rol][x.modulo] = x.permitido; });
-  $('a_body').innerHTML = MODS.map(m => `<tr><td><b>${esc(m.t)}</b></td>${ROLES_ACC.map(r =>
+  $('a_body').innerHTML = MODS.filter(m => !m.fin).map(m => `<tr><td><b>${esc(m.t)}</b></td>${ROLES_ACC.map(r =>
     `<td style="text-align:center"><input type="checkbox" style="width:auto" data-rol="${r[0]}" data-mod="${m.k}" ${A[r[0]] && A[r[0]][m.k] ? 'checked' : ''}></td>`).join('')}</tr>`).join('');
 }
 async function guardarMatriz() {
@@ -581,9 +947,1012 @@ async function guardarMatriz() {
   msg('a_msg', error ? error.message : 'Accesos guardados.', !error);
 }
 
+/* ---------- CONFIGURACIÓN DEL COLEGIO (RECTOR) ---------- */
+function cargarConfig() {
+  if (!colegio) return;
+  $('cf_max').value = colegio.max_diario; $('cf_maxm').value = colegio.max_mensual;
+  $('cf_plazo').value = colegio.pqrs_plazo_dias || 15; $('cf_alerta').value = colegio.pqrs_alerta_dias || 3;
+  $('cf_mail').value = colegio.correo || ''; $('cf_tel').value = colegio.telefono || '';
+  const u = escudoUrl(colegio);
+  $('cf_escudo').classList.toggle('hidden', !u);
+  if (u) $('cf_escudo').src = u;
+}
+const escudoUrl = c => (c && c.logo_path) ? db.storage.from('escudos').getPublicUrl(c.logo_path).data.publicUrl : '';
+async function guardarConfig() {
+  const datos = { max_diario: parseInt($('cf_max').value), max_mensual: parseInt($('cf_maxm').value), correo: val('cf_mail') || null, telefono: val('cf_tel') || null,
+    pqrs_plazo_dias: parseInt($('cf_plazo').value) || 15, pqrs_alerta_dias: Math.max(3, parseInt($('cf_alerta').value) || 3) };
+  if (!datos.max_diario || !datos.max_mensual) return msg('cf_msg', 'Digite los dos límites (números mayores a 0).');
+  const f = $('cf_file').files[0];
+  if (f) {
+    if (!/^image\/(png|jpeg)$/.test(f.type)) return msg('cf_msg', 'El escudo debe ser una imagen PNG o JPG.');
+    if (f.size > 1024 * 1024) return msg('cf_msg', 'El escudo debe pesar máximo 1 MB.');
+    const path = `${me.colegio_id}/escudo-${Date.now()}.${f.type === 'image/png' ? 'png' : 'jpg'}`;
+    const up = await db.storage.from('escudos').upload(path, f, { contentType: f.type });
+    if (up.error) return msg('cf_msg', 'No se pudo subir el escudo: ' + up.error.message);
+    datos.logo_path = path;
+  }
+  const { error } = await db.from('colegios').update(datos).eq('id', me.colegio_id);
+  if (error) return msg('cf_msg', error.message);
+  Object.assign(colegio, datos);
+  $('cf_file').value = ''; cargarConfig();
+  msg('cf_msg', 'Configuración guardada.', true);
+}
+
+/* ---------- MARCO NORMATIVO (SÚPER ADMIN) ---------- */
+const CLAVES_MARCO = ['comun', '2277', '1278', 'recursos'];
+async function loadMarco() {
+  const { data } = await db.from('marco_normativo').select('clave,texto');
+  (data || []).forEach(x => { if ($('mn_' + x.clave)) $('mn_' + x.clave).value = x.texto; });
+}
+async function guardarMarco() {
+  const filas = CLAVES_MARCO.map(k => ({ clave: k, texto: $('mn_' + k).value.trim(), actualizado_en: new Date().toISOString() })).filter(f => f.texto);
+  const { error } = await db.from('marco_normativo').upsert(filas, { onConflict: 'clave' });
+  msg('mn_msg', error ? error.message : 'Marco normativo guardado.', !error);
+}
+
+/* =====================================================================
+   SAU - SISTEMA DE ATENCIÓN AL USUARIO (PQRS)
+   ===================================================================== */
+const TIPOS_PQRS = ['Petición', 'Queja', 'Reclamo', 'Sugerencia', 'Felicitación', 'Denuncia', 'Trámite', 'Otro'];
+const ESTADO_PUB = { 'Radicada': 'Recibida', 'Asignada': 'En trámite', 'En revisión': 'En trámite', 'Respondida': 'Respondida' };
+const SEM = { verde: ['En plazo', 'dot-verde'], amarillo: ['Por vencer', 'dot-amarillo'], rojo: ['Vencida', 'dot-rojo'], gris: ['Respondida', 'dot-gris'] };
+const semHTML = s => `<span class="dot ${(SEM[s] || SEM.gris)[1]}"></span> <small>${(SEM[s] || SEM.gris)[0]}</small>`;
+const esGestor = () => me && (me.rol === 'rector' || me.es_monitor_sau);
+const conBr = t => esc(t).replace(/\n/g, '<br>');
+let SAU_ROWS = [], RESP = null;
+
+function formPqrsHTML(p, conColegio, volver) {
+  return `
+  <h2 style="font-size:1.05rem;text-align:center">Radicar solicitud</h2>
+  <p class="sub" style="text-align:center">Peticiones, quejas, reclamos, sugerencias, felicitaciones y más.</p>
+  ${conColegio ? `<label>Institución</label><select id="${p}colegio" required></select>` : ''}
+  <label>Tipo de solicitud</label>
+  <select id="${p}tipo" required><option value="">Seleccione…</option>${TIPOS_PQRS.map(t => `<option>${t}</option>`).join('')}</select>
+  <label>Nombre completo</label><input id="${p}nombre" required maxlength="120">
+  <label>Correo electrónico (para responderle)</label><input type="email" id="${p}correo" required maxlength="160">
+  <label>Teléfono (opcional)</label><input type="tel" id="${p}tel" maxlength="30">
+  <label>Asunto</label><input id="${p}asunto" required minlength="5" maxlength="150">
+  <label>Descripción</label>
+  <textarea id="${p}desc" rows="5" required minlength="20" maxlength="4000" placeholder="Cuéntenos con detalle y con respeto (mínimo 20 caracteres)."></textarea>
+  <label>Adjuntos (opcional): hasta 3 archivos PDF, imagen o Word, máx. 5 MB cada uno</label>
+  <input type="file" id="${p}files" multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+  <input id="${p}hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">
+  <label style="display:flex;gap:.5rem;align-items:flex-start;font-weight:600"><input type="checkbox" id="${p}acepta" required style="width:auto;margin-top:.2rem"> <span>Autorizo el tratamiento de mis datos personales para gestionar esta solicitud (Ley 1581 de 2012).</span></label>
+  <button class="btn" id="${p}btn">Radicar solicitud</button>
+  <div id="${p}msg" class="msg"></div>
+  <div id="${p}ok" class="okbox hidden" style="text-align:left"></div>
+  ${volver ? `<button type="button" class="link" onclick="verForm('f-login')">← Volver al inicio de sesión</button>` : ''}`;
+}
+
+function iniciarSau() { $('f-pqrs').innerHTML = formPqrsHTML('q_', true, true); }
+
+function prefillSau() {
+  $('s_nombre').value = `${me.nombres || ''} ${me.apellidos || ''}`.trim();
+  $('s_correo').value = me.correo || '';
+  $('s_tel').value = me.telefono || '';
+}
+
+async function avisoSau(id, forzar) {
+  try {
+    const { data, error } = await db.functions.invoke('sau-avisos', { body: { accion: 'estado', pqrs_id: id, forzar: !!forzar } });
+    if (error) {
+      let m = error.message;
+      try { const j = await error.context.json(); if (j && j.error) m = j.error; } catch (_) {}
+      return { ok: false, error: traducir(m) };
+    }
+    return data || { ok: false, error: 'Sin respuesta del servidor de correos.' };
+  } catch (e) { return { ok: false, error: traducir(e.message) }; }
+}
+function textoSau(a) {
+  if (!a) return '';
+  if (a.yaEnviado) return 'El aviso ya se había enviado.';
+  let t = (a.para && a.para.length) ? 'Avisos por correo enviados a: ' + a.para.join(', ') + '.' : '';
+  if (a.fallos && a.fallos.length) t += ' No se pudo enviar a: ' + a.fallos.join(' | ');
+  return t;
+}
+
+/* ---------- Radicar (pantalla pública y dentro de GIE) ---------- */
+async function radicarPqrs(e, pref) {
+  e.preventDefault();
+  const form = e.target, g = k => $(pref + k), btn = g('btn');
+  if (g('hp').value) return;                                  // trampa para robots
+  btn.disabled = true; g('ok').classList.add('hidden'); msg(pref + 'msg', 'Revisando su mensaje…', true);
+  try {
+    const files = [...(g('files').files || [])];
+    if (files.length > 3) throw new Error('Puede adjuntar máximo 3 archivos.');
+    for (const f of files) if (f.size > 5 * 1024 * 1024) throw new Error(`"${f.name}" pesa más de 5 MB.`);
+
+    // Revisión de lenguaje: si hay palabras obscenas NO se permite el envío
+    const chk = await db.rpc('revisar_texto', { p_texto: [g('nombre').value, g('asunto').value, g('desc').value].join(' ') });
+    if (chk.data && chk.data.ok === false)
+      throw new Error(`Su mensaje contiene lenguaje inapropiado ("${chk.data.palabras.join('", "')}"). Por favor reescríbalo con respeto para poder radicarlo.`);
+
+    const { data, error } = await db.rpc('radicar_pqrs', {
+      p_colegio: g('colegio') ? g('colegio').value : me.colegio_id,
+      p_tipo: g('tipo').value, p_asunto: g('asunto').value.trim(), p_descripcion: g('desc').value.trim(),
+      p_nombre: g('nombre').value.trim(), p_correo: g('correo').value.trim(),
+      p_telefono: g('tel').value.trim() || null, p_acepta: g('acepta').checked
+    });
+    if (error) throw new Error(error.message);
+
+    const fallidos = []; let n = 0;
+    for (const f of files) {
+      const limpio = f.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9._-]/g, '_').slice(-60);
+      const up = await db.storage.from('pqrs-adjuntos').upload(`${data.id}/${++n}-${limpio}`, f, { contentType: f.type || undefined });
+      if (up.error) fallidos.push(f.name);
+    }
+    const r = await avisoSau(data.id);
+    const correo = g('correo').value.trim();
+    g('ok').innerHTML = `<b>Solicitud radicada.</b><br>Su número de radicado es <b style="font-size:1.1rem">${esc(data.radicado)}</b>. Guárdelo: con él y su correo puede consultar el estado.<br><small>${r && r.ok ? 'Le enviamos la confirmación a ' + esc(correo) + '.' : 'La solicitud quedó radicada, pero no se pudo enviar la confirmación por correo.'}${fallidos.length ? '<br>No se pudieron subir estos adjuntos: ' + esc(fallidos.join(', ')) : ''}</small>`;
+    g('ok').classList.remove('hidden');
+    msg(pref + 'msg', '');
+    form.reset();
+    if (pref === 's_') { prefillSau(); loadMisPqrs(); }
+  } catch (err) { msg(pref + 'msg', err.message); }
+  finally { btn.disabled = false; }
+}
+
+/* ---------- Consulta pública ---------- */
+async function consultaPqrs(e) {
+  e.preventDefault();
+  $('k_res').classList.add('hidden'); msg('k_msg', 'Consultando…', true);
+  const { data, error } = await db.rpc('consultar_pqrs', { p_colegio: $('k_colegio').value, p_radicado: $('k_rad').value, p_correo: $('k_correo').value });
+  if (error) return msg('k_msg', error.message);
+  if (!data) return msg('k_msg', 'No encontramos una solicitud con ese radicado y ese correo. Revise los datos.');
+  msg('k_msg', '');
+  $('k_res').innerHTML = `<b>${esc(data.radicado)}</b> · ${esc(data.tipo)}<br>${esc(data.asunto)}<br>
+    <b>Estado:</b> ${esc(ESTADO_PUB[data.estado] || data.estado)}<br>
+    <b>Radicada:</b> ${esc(fLarga(data.creado_en))} · <b>Fecha límite de respuesta:</b> ${esc(fLarga(data.fecha_vencimiento))}
+    ${data.respuesta_final ? `<div style="border-left:4px solid #4f46e5;background:#f8fafc;padding:.6rem .8rem;margin-top:.6rem"><b>Respuesta:</b><br>${conBr(data.respuesta_final)}</div>` : ''}`;
+  $('k_res').classList.remove('hidden');
+}
+
+/* ---------- Dentro de GIE ---------- */
+async function initSau() {
+  if (!$('s-form').dataset.listo) { $('s-form').innerHTML = formPqrsHTML('s_', false, false); $('s-form').dataset.listo = '1'; }
+  prefillSau(); RESP = null;
+  $('rp_card').classList.toggle('hidden', !esGestor());
+  ['s_card_nueva', 's_card_mis'].forEach(x => $(x).classList.toggle('hidden', me.rol === 'rector'));   // el rector administra, no radica
+  if (!$('rp_d').value) { const h = new Date(); $('rp_h').value = h.toISOString().slice(0, 10); $('rp_d').value = h.getFullYear() + '-01-01'; }
+  $('g_det').classList.add('hidden');
+  await Promise.all([loadMisPqrs(), loadGestion()]);
+}
+
+async function loadMisPqrs() {
+  const { data } = await db.from('pqrs_mias').select('*').order('creado_en', { ascending: false });
+  $('s_hist').innerHTML = (data || []).map(x => `<tr><td><b>${esc(x.radicado)}</b><br><small>${esc(x.tipo)}</small></td><td>${esc(x.asunto)}</td>
+    <td>${esc(ESTADO_PUB[x.estado] || x.estado)}</td><td>${esc(x.fecha_vencimiento)}</td>
+    <td>${x.respuesta_final ? `<details><summary>Ver respuesta</summary><div style="margin-top:.4rem">${conBr(x.respuesta_final)}</div></details>` : '—'}</td></tr>`).join('')
+    || '<tr><td colspan="5">Aún no ha radicado solicitudes con su cuenta.</td></tr>';
+}
+
+async function loadGestion() {
+  let q = db.from('pqrs_vista').select('*').order('fecha_vencimiento', { ascending: true });
+  if (!esGestor()) q = q.eq('asignado_a', me.id);
+  const { data, error } = await q;
+  if (error) msg('g_msg', error.message);
+  SAU_ROWS = data || [];
+  poblarFuncionarios();
+  $('g_card').classList.toggle('hidden', !esGestor() && !SAU_ROWS.length);
+  renderGestion();
+}
+const venceTxt = x => x.estado === 'Respondida' ? '' : (x.semaforo === 'rojo' ? 'vencida' : (x.dias_restantes === 0 ? 'vence hoy' : `${x.dias_restantes} día(s) hábil(es)`));
+const pasaFiltro = (x, f) => f === 'todas' || (f === 'abiertas' && x.estado !== 'Respondida') || (f === 'sin' && x.estado === 'Radicada')
+  || (f === 'venc' && x.estado !== 'Respondida' && ['rojo', 'amarillo'].includes(x.semaforo)) || (f === 'resp' && x.estado === 'Respondida');
+function renderGestion() {
+  const f = $('g_filtro').value;
+  const rows = SAU_ROWS.filter(x => pasaFiltro(x, f));
+  $('g_body').innerHTML = rows.map(x => `<tr><td>${semHTML(x.semaforo)}</td>
+    <td><b>${esc(x.radicado)}</b><br><small>${esc(x.tipo)}</small></td>
+    <td>${esc(x.asunto)}<br><small>${esc(x.nombre)} · ${esc(x.correo)}</small></td>
+    <td>${esc(x.estado)}</td>
+    <td>${x.asignado_nombre ? esc(x.asignado_nombre) + '<br><small>' + esc(x.asignado_cargo || '') + '</small>' : '<span class="tag t-no">Sin asignar</span>'}</td>
+    <td>${esc(x.fecha_vencimiento)}<br><small>${venceTxt(x)}</small></td>
+    <td><button class="btn sm" onclick="abrirPqrs('${x.id}')">Gestionar</button></td></tr>`).join('')
+    || '<tr><td colspan="7">No hay solicitudes en esta vista.</td></tr>';
+}
+
+async function abrirPqrs(id) {
+  const p = SAU_ROWS.find(x => x.id === id); if (!p) return;
+  const gestor = esGestor(), mio = p.asignado_a === me.id;
+  if (gestor && !RESP) { const r = await db.rpc('responsables_sau'); RESP = r.data || []; }
+  const [h, ad] = await Promise.all([
+    db.from('pqrs_historial').select('*').eq('pqrs_id', id).order('fecha'),
+    db.storage.from('pqrs-adjuntos').list(id)
+  ]);
+  const adj = (ad.data || []).filter(a => a.name && !a.name.startsWith('.'));
+  let acc = '';
+  if (gestor && p.estado !== 'Respondida') {
+    acc += `<h3 class="sec">Asignar a un responsable</h3>
+      <div class="g2"><div><label>Responsable</label><select id="d_resp"><option value="">Seleccione…</option>${(RESP || []).map(r => `<option value="${esc(r.id)}" ${r.id === p.asignado_a ? 'selected' : ''}>${esc(r.nombre)} — ${esc(r.cargo)}</option>`).join('')}</select></div>
+      <div><label>Plazo de respuesta (días hábiles)</label><input type="number" id="d_plazo" min="1" max="60" value="${esc(p.plazo_dias)}"></div></div>
+      <button class="btn sm" style="margin-top:.6rem" onclick="accionPqrs('asignar','${id}')">${p.asignado_a ? 'Reasignar' : 'Asignar'}</button>`;
+  }
+  if (mio && p.estado === 'Asignada') {
+    acc += `<h3 class="sec">Su respuesta</h3>${p.nota_monitor ? `<p class="d"><b>El monitor la devolvió:</b> ${conBr(p.nota_monitor)}</p>` : ''}
+      <textarea id="d_resp_resp" rows="5" placeholder="Escriba la respuesta que se enviará al monitor para revisión.">${esc(p.respuesta_responsable || '')}</textarea>
+      <button class="btn sm green" style="margin-top:.6rem" onclick="accionPqrs('resolver','${id}')">Enviar al monitor para revisión</button>`;
+  }
+  if (gestor && p.estado !== 'Respondida') {
+    acc += `<h3 class="sec">Respuesta al usuario</h3>
+      <textarea id="d_final" rows="5" placeholder="Texto que recibirá el usuario por correo.">${esc(p.respuesta_responsable || '')}</textarea>
+      <button class="btn sm green" style="margin-top:.6rem" onclick="accionPqrs('responder','${id}')">Enviar respuesta al usuario</button>
+      ${p.estado === 'En revisión' ? `<button class="btn sm gold" style="margin-top:.6rem" onclick="accionPqrs('devolver','${id}')">Devolver al responsable</button>` : ''}
+      <button class="btn sm" style="margin-top:.6rem" onclick="accionPqrs('reenviar','${id}')">Reenviar aviso</button>`;
+  }
+  $('g_det').innerHTML = `<h2>${semHTML(p.semaforo)} &nbsp;${esc(p.radicado)} · ${esc(p.tipo)}</h2>
+    <p class="d">Estado: <b>${esc(p.estado)}</b> · Vence: <b>${esc(p.fecha_vencimiento)}</b> ${venceTxt(p) ? '(' + venceTxt(p) + ')' : ''}</p>
+    <p><b>Solicitante:</b> ${esc(p.nombre)} · ${esc(p.correo)} ${p.telefono ? '· ' + esc(p.telefono) : ''}</p>
+    <p><b>Asunto:</b> ${esc(p.asunto)}</p>
+    <p style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:.8rem 1rem;margin:.6rem 0">${conBr(p.descripcion)}</p>
+    ${adj.length ? `<p><b>Adjuntos:</b> ${adj.map(a => `<button class="btn sm gold" onclick="verAdjunto('${esc(id)}/${esc(a.name)}')">${esc(a.name.replace(/^\d+-/, ''))}</button>`).join('')}</p>` : ''}
+    ${p.respuesta_responsable && p.estado !== 'Respondida' ? `<p><b>Respuesta del responsable:</b><br>${conBr(p.respuesta_responsable)}</p>` : ''}
+    ${p.estado === 'Respondida' ? `<p><b>Respuesta enviada al usuario</b> (${esc(p.respondida_por || '')}):<br>${conBr(p.respuesta_final)}</p>` : ''}
+    ${acc}
+    <h3 class="sec">Historial</h3>
+    <div class="wrap"><table><tbody>${(h.data || []).map(x => `<tr><td style="white-space:nowrap">${esc(new Date(x.fecha).toLocaleString('es-CO', { timeZone: 'America/Bogota' }))}</td><td><b>${esc(x.accion)}</b><br><small>${esc(x.actor || '')} — ${esc(x.detalle || '')}</small></td></tr>`).join('')}</tbody></table></div>
+    <button class="link" onclick="$('g_det').classList.add('hidden')">Cerrar</button>`;
+  $('g_det').classList.remove('hidden');
+  $('g_det').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function verAdjunto(path) {
+  const w = window.open('', '_blank');
+  const { data, error } = await db.storage.from('pqrs-adjuntos').createSignedUrl(path, 300);
+  if (error) { if (w) w.close(); return alert('No se pudo abrir el archivo: ' + traducir(error.message)); }
+  if (w) w.location = data.signedUrl;
+}
+
+async function accionPqrs(acc, id) {
+  try {
+    let r;
+    if (acc === 'asignar') {
+      if (!$('d_resp').value) throw new Error('Seleccione el responsable.');
+      r = await db.rpc('asignar_pqrs', { p_id: id, p_resp: $('d_resp').value, p_plazo: parseInt($('d_plazo').value) || null });
+    } else if (acc === 'resolver') {
+      r = await db.rpc('resolver_pqrs', { p_id: id, p_respuesta: $('d_resp_resp').value });
+    } else if (acc === 'responder') {
+      r = await db.rpc('responder_pqrs', { p_id: id, p_respuesta: $('d_final').value });
+    } else if (acc === 'devolver') {
+      const nota = prompt('Escriba qué debe corregir el responsable:');
+      if (!nota || !nota.trim()) return;
+      r = await db.rpc('devolver_pqrs', { p_id: id, p_nota: nota });
+    } else if (acc === 'reenviar') {
+      const a = await avisoSau(id, true);
+      return msg('g_msg', a.ok ? textoSau(a) : 'No se pudo enviar: ' + a.error, a.ok);
+    }
+    if (r.error) throw new Error(r.error.message);
+    const a = await avisoSau(id);
+    $('g_det').classList.add('hidden');
+    await loadGestion();
+    msg('g_msg', 'Listo. ' + (a.ok ? textoSau(a) : 'El aviso por correo no se pudo enviar: ' + a.error), true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) { msg('g_msg', e.message); }
+}
+
+
+/* ---------- Reporte de eficiencia (rector) ---------- */
+const pct = (a, b) => b ? Math.round(100 * a / b) + '%' : '—';
+const barra = v => { const n = parseInt(v); return isNaN(n) ? '' : `<div style="background:#e2e8f0;border-radius:6px;height:8px;min-width:70px"><div style="width:${n}%;height:8px;border-radius:6px;background:${n >= 85 ? '#22c55e' : n >= 60 ? '#f59e0b' : '#e11d48'}"></div></div>`; };
+let REP_HTML = '';
+async function verReporte() {
+  msg('rp_msg', 'Generando…', true);
+  const d = $('rp_d').value, h = $('rp_h').value;
+  if (!d || !h || d > h) return msg('rp_msg', 'Revise las fechas del período.');
+  const { data, error } = await db.rpc('reporte_sau', { p_desde: d, p_hasta: h, p_colegio: me.colegio_id });
+  if (error) return msg('rp_msg', error.message);
+  msg('rp_msg', '');
+  const r = data.resumen, cumpl = pct(r.a_tiempo, r.respondidas);
+  const kpi = (t, v) => `<div style="flex:1;min-width:130px;border:1px solid #e2e8f0;border-radius:14px;padding:.8rem;text-align:center"><div style="font-size:1.5rem;font-weight:800">${v}</div><small>${t}</small></div>`;
+  REP_HTML = `<h3 class="sec">Resumen ${esc(fLarga(d))} – ${esc(fLarga(h))}</h3>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
+      ${kpi('Radicadas', r.total)}${kpi('Respondidas', r.respondidas)}${kpi('Abiertas', r.abiertas)}${kpi('Sin asignar', r.sin_asignar)}
+      ${kpi('Vencidas sin responder', r.vencidas_abiertas)}${kpi('Respondidas a tiempo', cumpl)}${kpi('Promedio de respuesta (días hábiles)', r.prom_dias ?? '—')}
+    </div>
+    <p class="d" style="margin-top:.6rem">Respondidas a tiempo: ${r.a_tiempo} · fuera de plazo: ${r.tardias}.</p>
+    <h3 class="sec">Por tipo de solicitud</h3>
+    <div class="wrap"><table><thead><tr><th>Tipo</th><th>Radicadas</th><th>Respondidas</th></tr></thead><tbody>
+      ${data.por_tipo.map(t => `<tr><td>${esc(t.tipo)}</td><td>${t.total}</td><td>${t.respondidas}</td></tr>`).join('') || '<tr><td colspan="3">Sin datos.</td></tr>'}</tbody></table></div>
+    <h3 class="sec">Eficiencia por funcionario</h3>
+    <div class="wrap"><table><thead><tr><th>Funcionario</th><th>Asignadas</th><th>Resueltas</th><th>A tiempo</th><th>Tardías</th><th>Pendientes</th><th>Vencidas</th><th>Prom. días hábiles</th><th>Cumplimiento</th></tr></thead><tbody>
+      ${data.por_funcionario.map(f => { const c = pct(f.a_tiempo, f.resueltas); return `<tr><td>${f.id ? `<a href="#" style="color:#4f46e5;font-weight:700" onclick="verFuncionario('${esc(f.id)}');return false">${esc(f.nombre)}</a>` : `<b>${esc(f.nombre)}</b>`}<br><small>${esc(f.cargo || '')}</small></td><td>${f.asignadas}</td><td>${f.resueltas}</td><td>${f.a_tiempo}</td><td>${f.tardias}</td><td>${f.pendientes}</td><td>${f.vencidas}</td><td>${f.prom_dias ?? '—'}</td><td>${c}${barra(c)}</td></tr>`; }).join('') || '<tr><td colspan="9">Sin solicitudes asignadas en el período.</td></tr>'}</tbody></table></div>
+    <p class="d" style="margin-top:.6rem"><small>Cumplimiento = solicitudes resueltas dentro del plazo / solicitudes resueltas. Pendientes y vencidas aún no cuentan en el cumplimiento.</small></p>
+    <button class="btn sm gold" onclick="imprimirReporte()">Imprimir / guardar PDF</button>`;
+  $('rp_out').innerHTML = REP_HTML;
+}
+
+/* ---------- Consultar casos por funcionario / quejoso ---------- */
+const plano = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+let BQ_HTML = '';
+function poblarFuncionarios() {
+  const m = new Map();
+  SAU_ROWS.forEach(x => { if (x.asignado_a) m.set(x.asignado_a, x.asignado_nombre + (x.asignado_cargo ? ' — ' + x.asignado_cargo : '')); });
+  const cur = $('bq_fun').value;
+  $('bq_fun').innerHTML = '<option value="">Todos</option>' + [...m].sort((a, b) => a[1].localeCompare(b[1])).map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('');
+  $('bq_fun').value = cur;
+}
+function buscarCasos() {
+  const fun = $('bq_fun').value, est = $('bq_est').value, q = plano($('bq_txt').value.trim());
+  const rows = SAU_ROWS.filter(x => (!fun || x.asignado_a === fun) && pasaFiltro(x, est)
+    && (!q || plano([x.nombre, x.correo, x.telefono, x.radicado, x.asunto].join(' ')).includes(q)));
+  const ab = rows.filter(x => x.estado !== 'Respondida').length, ve = rows.filter(x => x.estado !== 'Respondida' && x.semaforo === 'rojo').length;
+  BQ_HTML = `<p class="d" style="margin-top:1rem"><b>${rows.length}</b> caso(s) · ${ab} abierto(s) · ${ve} vencido(s)</p>
+    <div class="wrap"><table><thead><tr><th>Semáforo</th><th>Radicado</th><th>Asunto</th><th>Quejoso</th><th>Funcionario</th><th>Estado</th><th>Vence</th><th></th></tr></thead><tbody>
+    ${rows.map(x => `<tr><td>${semHTML(x.semaforo)}</td><td><b>${esc(x.radicado)}</b><br><small>${esc(x.tipo)}</small></td><td>${esc(x.asunto)}</td>
+      <td>${esc(x.nombre)}<br><small>${esc(x.correo)}${x.telefono ? ' · ' + esc(x.telefono) : ''}</small></td>
+      <td>${x.asignado_nombre ? esc(x.asignado_nombre) : '<span class="tag t-no">Sin asignar</span>'}</td><td>${esc(x.estado)}</td>
+      <td>${esc(x.fecha_vencimiento)}<br><small>${venceTxt(x)}</small></td>
+      <td><button class="btn sm" onclick="abrirPqrs('${x.id}')">Ver</button></td></tr>`).join('') || '<tr><td colspan="8">No se encontraron casos con esos criterios.</td></tr>'}
+    </tbody></table></div>
+    ${rows.length ? `<button class="btn sm gold" style="margin-top:.8rem" onclick="imprimirBusqueda()">Imprimir / guardar PDF</button>` : ''}`;
+  $('bq_out').innerHTML = BQ_HTML;
+}
+function verFuncionario(id) {
+  $('bq_fun').value = id; $('bq_est').value = 'todas'; $('bq_txt').value = '';
+  buscarCasos(); $('bq_out').scrollIntoView({ behavior: 'smooth' });
+}
+function imprimirBusqueda() {
+  const w = window.open('', '_blank');
+  const f = $('bq_fun').selectedOptions[0].textContent, q = $('bq_txt').value.trim();
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Casos SAU</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:24px;font-size:12px}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;padding:5px;text-align:left}button{display:none}.dot{display:inline-block;width:10px;height:10px;border-radius:50%}.dot-verde{background:#22c55e}.dot-amarillo{background:#f59e0b}.dot-rojo{background:#e11d48}.dot-gris{background:#94a3b8}</style></head><body><h2>${esc(colegio ? colegio.nombre : '')} — Consulta de casos del SAU</h2><p>Funcionario: <b>${esc(f)}</b> · Búsqueda: <b>${esc(q || '—')}</b></p>${BQ_HTML}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 400);
+}
+function imprimirReporte() {
+  const w = window.open('', '_blank');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Reporte SAU</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:24px;font-size:13px}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;padding:6px;text-align:left}h3{margin-top:18px}button{display:none}</style></head><body><h2>${esc(colegio ? colegio.nombre : '')} — Reporte de eficiencia del SAU</h2>${REP_HTML}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 400);
+}
+
+/* =====================================================================
+   GESTIÓN DE MANTENIMIENTO
+   ===================================================================== */
+const CATS_MANT = ['Eléctrico', 'Hidráulico', 'Locativo', 'Mobiliario', 'Tecnológico', 'Seguridad', 'Zonas verdes', 'Otro'];
+const ESTADO_MANT = { 'Reportado': 'Por atender', 'En proceso': 'En proceso', 'Solucionado': 'Solucionado' };
+const esGestorMant = () => me && (me.rol === 'rector' || !!me.mant_rol);
+const semMant = s => `<span class="dot ${(SEM[s] || SEM.gris)[1]}"></span> <small>${s === 'gris' ? 'Solucionado' : (SEM[s] || SEM.gris)[0]}</small>`;
+const miles = n => (n === null || n === undefined || n === '') ? '' : String(Math.round(Number(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const fmtMoneda = el => { el.value = el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+const numMoneda = id => { const v = $(id).value.replace(/\./g, ''); return v === '' ? null : Number(v); };
+const pesos = n => (n === null || n === undefined || n === '') ? '—' : '$' + Number(n).toLocaleString('es-CO');
+const limTxt = x => x.estado === 'Solucionado' ? '' : (x.semaforo === 'rojo' ? 'vencido' : (x.dias_restantes === 0 ? 'vence hoy' : `${x.dias_restantes} día(s) hábil(es)`));
+const limEtq = e => e === 'Reportado' ? 'Atender antes del' : 'Solución prevista';
+const urgTag = x => x.urgente ? ' <span class="tag t-bad">⚠ Urgente</span>' : '';
+let MANT_ROWS = [], MANT_AREAS = [];
+const FOTOS = { m_fotos: [], s_fotos: [] };
+
+async function comprimir(file) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.8));
+    return blob ? new File([blob], 'foto.jpg', { type: 'image/jpeg' }) : file;
+  } catch (_) { return file; }
+}
+function pintarFotos(box) {
+  $(box).innerHTML = FOTOS[box].map((f, i) => `<div class="th"><img src="${f.url}" alt="foto ${i + 1}"><button type="button" class="x" onclick="quitarFoto('${box}',${i})">×</button></div>`).join('');
+}
+function quitarFoto(box, i) { FOTOS[box].splice(i, 1); pintarFotos(box); }
+async function addFotos(inp, box) {
+  const lista = [...inp.files]; inp.value = '';
+  for (const f of lista) {
+    if (FOTOS[box].length >= 3) { alert('Máximo 3 fotos.'); break; }
+    const c = await comprimir(f);
+    if (!/^image\/(jpeg|png|webp)$/.test(c.type)) { alert('Formato de imagen no admitido. Use JPG o PNG.'); continue; }
+    if (c.size > 5 * 1024 * 1024) { alert('La foto pesa más de 5 MB.'); continue; }
+    FOTOS[box].push({ file: c, url: URL.createObjectURL(c) });
+  }
+  pintarFotos(box);
+}
+const botonesFoto = (box, pref) => `
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.3rem">
+    <button type="button" class="btn sm" style="padding:.6rem 1rem;font-size:.85rem" onclick="$('${pref}cam').click()">📷 Tomar foto</button>
+    <button type="button" class="btn sm gold" style="padding:.6rem 1rem;font-size:.85rem" onclick="$('${pref}gal').click()">🖼️ Elegir de la galería</button>
+  </div>
+  <input type="file" id="${pref}cam" accept="image/*" capture="environment" class="hidden" onchange="addFotos(this,'${box}')">
+  <input type="file" id="${pref}gal" accept="image/*" multiple class="hidden" onchange="addFotos(this,'${box}')">
+  <div class="thumbs" id="${box}"></div>`;
+
+function formMantHTML() {
+  return `
+  <label>Área donde ocurre</label><select id="m_area" required></select>
+  <label>Lugar exacto (opcional)</label><input id="m_ubic" maxlength="150" placeholder="Ej.: Salón 6-1, junto a la ventana">
+  <label>Tipo de daño</label><select id="m_cat" required><option value="">Seleccione…</option>${CATS_MANT.map(c => `<option>${c}</option>`).join('')}</select>
+  <label style="display:flex;gap:.5rem;align-items:flex-start;font-weight:600"><input type="checkbox" id="m_urg" style="width:auto;margin-top:.2rem"> <span>Hay riesgo para las personas (marcar como <b>urgente</b>)</span></label>
+  <label>Descripción de lo sucedido</label>
+  <textarea id="m_desc" rows="4" required minlength="10" maxlength="2000" placeholder="Qué se dañó y qué pasó (mínimo 10 caracteres)."></textarea>
+  <label>Fotos (hasta 3)</label>${botonesFoto('m_fotos', 'm_')}
+  <button class="btn" id="mn_btn">Enviar reporte</button>
+  <div id="m_msg" class="msg"></div>
+  <div id="m_ok" class="okbox hidden" style="text-align:left"></div>`;
+}
+
+async function avisoMant(id, forzar) {
+  try {
+    const { data, error } = await db.functions.invoke('mant-avisos', { body: { accion: 'estado', reporte_id: id, forzar: !!forzar } });
+    if (error) {
+      let m = error.message;
+      try { const j = await error.context.json(); if (j && j.error) m = j.error; } catch (_) {}
+      return { ok: false, error: traducir(m) };
+    }
+    return data || { ok: false, error: 'Sin respuesta del servidor de correos.' };
+  } catch (e) { return { ok: false, error: traducir(e.message) }; }
+}
+
+async function initMant() {
+  const gest = esGestorMant(), rector = me.rol === 'rector', reporta = !rector;
+  $('mg_card').classList.toggle('hidden', !gest);
+  $('mr_card').classList.toggle('hidden', !gest);
+  $('mc_card').classList.toggle('hidden', !rector);
+  $('mn_card').classList.toggle('hidden', !reporta);
+  $('mm_card').classList.toggle('hidden', !reporta);
+  $('mg_det').classList.add('hidden');
+  if (!$('mn_form').dataset.listo) { $('mn_form').innerHTML = formMantHTML(); $('mn_form').dataset.listo = '1'; }
+  if (!$('mr_d').value) { const h = new Date(); $('mr_h').value = h.toISOString().slice(0, 10); $('mr_d').value = h.getFullYear() + '-01-01'; }
+  FOTOS.m_fotos = []; pintarFotos('m_fotos');
+  await cargarAreas();
+  await Promise.all([gest ? loadMantGestion() : 0, reporta ? loadMisMant() : 0, rector ? cargarConfigMant() : 0]);
+}
+
+async function cargarAreas() {
+  const { data } = await db.from('mant_areas').select('id,nombre,activo').eq('colegio_id', me.colegio_id).order('nombre');
+  MANT_AREAS = data || [];
+  $('m_area').innerHTML = '<option value="">Seleccione…</option>' + MANT_AREAS.filter(a => a.activo).map(a => `<option value="${esc(a.id)}">${esc(a.nombre)}</option>`).join('');
+  const cur = $('mg_area').value;
+  $('mg_area').innerHTML = '<option value="">Todas las áreas</option>' + MANT_AREAS.map(a => `<option>${esc(a.nombre)}</option>`).join('');
+  $('mg_area').value = cur;
+}
+
+/* ---------- Reportar ---------- */
+async function reportarMant(e) {
+  e.preventDefault();
+  const btn = $('mn_btn'); btn.disabled = true; $('m_ok').classList.add('hidden'); msg('m_msg', 'Enviando…', true);
+  try {
+    const texto = $('m_ubic').value + ' ' + $('m_desc').value;
+    const chk = await db.rpc('revisar_texto', { p_texto: texto });
+    if (chk.data && chk.data.ok === false)
+      throw new Error(`Su mensaje contiene lenguaje inapropiado ("${chk.data.palabras.join('", "')}"). Reescríbalo con respeto.`);
+    const { data, error } = await db.rpc('reportar_mant', {
+      p_area: $('m_area').value, p_ubicacion: $('m_ubic').value.trim() || null, p_categoria: $('m_cat').value,
+      p_urgente: $('m_urg').checked, p_descripcion: $('m_desc').value.trim()
+    });
+    if (error) throw new Error(error.message);
+    const fallidas = []; let n = 0;
+    for (const f of FOTOS.m_fotos) {
+      const up = await db.storage.from('mant-fotos').upload(`${data.id}/${++n}-foto.jpg`, f.file, { contentType: f.file.type });
+      if (up.error) fallidas.push(n);
+    }
+    const r = await avisoMant(data.id);
+    $('m_ok').innerHTML = `<b>Reporte enviado.</b><br>Su número es <b style="font-size:1.1rem">${esc(data.radicado)}</b>. El jefe de mantenimiento lo atenderá y le avisaremos por correo.<br><small>${r.ok ? esc(textoSau(r)) : 'El reporte quedó registrado, pero el aviso por correo no se pudo enviar: ' + esc(r.error || '')}${fallidas.length ? ' No se pudieron subir ' + fallidas.length + ' foto(s).' : ''}</small>`;
+    $('m_ok').classList.remove('hidden'); msg('m_msg', '');
+    $('mn_form').reset(); FOTOS.m_fotos = []; pintarFotos('m_fotos');
+    loadMisMant();
+  } catch (err) { msg('m_msg', err.message); }
+  finally { btn.disabled = false; }
+}
+
+async function loadMisMant() {
+  const { data } = await db.from('mant_mias').select('*').order('creado_en', { ascending: false });
+  $('mm_body').innerHTML = (data || []).map(x => `<tr><td>${semMant(x.semaforo)}</td>
+    <td><b>${esc(x.radicado)}</b>${urgTag(x)}<br><small>${esc(fLarga(x.creado_en))}</small></td>
+    <td>${esc(x.area_nombre)}${x.ubicacion ? '<br><small>' + esc(x.ubicacion) + '</small>' : ''}</td>
+    <td>${esc(ESTADO_MANT[x.estado])}</td>
+    <td>${x.estado === 'Solucionado' ? esc(fLarga(x.solucionado_en)) : `<small>${limEtq(x.estado)}</small><br>${esc(fLarga(x.fecha_limite))}`}</td>
+    <td>${x.respuesta_jefe ? `<details><summary>Ver respuesta</summary><div style="margin-top:.4rem"><b>Jefe de mantenimiento:</b><br>${conBr(x.respuesta_jefe)}${x.solucion_nota ? '<br><b>Solución:</b><br>' + conBr(x.solucion_nota) : ''}</div></details>` : '<small>Esperando respuesta</small>'}</td></tr>`).join('')
+    || '<tr><td colspan="6">Aún no ha enviado reportes.</td></tr>';
+}
+
+/* ---------- Gestión (rector y jefes) ---------- */
+async function loadMantGestion() {
+  const { data, error } = await db.from('mant_vista').select('*');
+  if (error) msg('mg_msg', error.message);
+  MANT_ROWS = (data || []).sort((a, b) => (a.estado === 'Solucionado') - (b.estado === 'Solucionado')
+    || (a.estado === 'Solucionado' ? String(b.solucionado_en).localeCompare(String(a.solucionado_en)) : String(a.fecha_limite).localeCompare(String(b.fecha_limite))));
+  renderMant();
+}
+function renderMant() {
+  const f = $('mg_filtro').value, ar = $('mg_area').value, q = plano($('mg_txt').value.trim());
+  const rows = MANT_ROWS.filter(x =>
+    (f === 'todos' || (f === 'abiertos' && x.estado !== 'Solucionado') || (f === 'sin' && x.estado === 'Reportado')
+      || (f === 'proceso' && x.estado === 'En proceso') || (f === 'venc' && x.estado !== 'Solucionado' && ['rojo', 'amarillo'].includes(x.semaforo))
+      || (f === 'sol' && x.estado === 'Solucionado'))
+    && (!ar || x.area_nombre === ar)
+    && (!q || plano([x.reportante_nombre, x.radicado, x.descripcion, x.ubicacion, x.categoria].join(' ')).includes(q)));
+  $('mg_body').innerHTML = rows.map(x => `<tr><td>${semMant(x.semaforo)}</td>
+    <td><b>${esc(x.radicado)}</b>${urgTag(x)}<br><small>${esc(fLarga(x.creado_en))}</small></td>
+    <td>${esc(x.area_nombre)}<br><small>${esc(x.categoria)}${x.ubicacion ? ' · ' + esc(x.ubicacion) : ''}</small></td>
+    <td>${esc(x.reportante_nombre)}</td><td>${esc(ESTADO_MANT[x.estado])}</td>
+    <td>${x.estado === 'Solucionado' ? '—' : `<small>${limEtq(x.estado)}</small><br>${esc(x.fecha_limite)}<br><small>${limTxt(x)}</small>`}</td>
+    <td><button class="btn sm" onclick="abrirMant('${x.id}')">Gestionar</button></td></tr>`).join('')
+    || '<tr><td colspan="7">No hay reportes en esta vista.</td></tr>';
+}
+
+async function abrirMant(id) {
+  const x = MANT_ROWS.find(r => r.id === id); if (!x) return;
+  FOTOS.s_fotos = [];
+  const [h, ls] = await Promise.all([
+    db.from('mant_historial').select('*').eq('reporte_id', id).order('fecha'),
+    db.storage.from('mant-fotos').list(id)
+  ]);
+  const nombres = (ls.data || []).filter(a => a.name && !a.name.startsWith('.')).map(a => `${id}/${a.name}`);
+  let urls = [];
+  if (nombres.length) { const s = await db.storage.from('mant-fotos').createSignedUrls(nombres, 900); urls = (s.data || []).filter(u => u.signedUrl); }
+  const galeria = lista => lista.length ? `<div class="thumbs">${lista.map(u => `<a href="${esc(u.signedUrl)}" target="_blank" rel="noopener"><img src="${esc(u.signedUrl)}" alt="foto" style="width:110px;height:110px;object-fit:cover;border-radius:12px;border:1px solid #e2e8f0"></a>`).join('')}</div>` : '<small>Sin fotos.</small>';
+  const fReporte = urls.filter(u => !/\/sol-/.test(u.path)), fSol = urls.filter(u => /\/sol-/.test(u.path));
+  let acc = '';
+  if (x.estado !== 'Solucionado') {
+    acc += `<h3 class="sec">${x.estado === 'Reportado' ? 'Responder: iniciar el arreglo' : 'Actualizar el plan'}</h3>
+      <label>Respuesta para el solicitante (qué se hará)</label>
+      <textarea id="dm_resp" rows="3" placeholder="Ej.: Se programó al electricista para revisar el tablero.">${esc(x.respuesta_jefe || '')}</textarea>
+      <div class="g2"><div><label>Fecha en que quedará solucionado</label><input type="date" id="dm_fecha" min="${new Date().toISOString().slice(0, 10)}" value="${esc(x.fecha_compromiso || '')}"></div>
+      <div><label>Costo estimado (opcional, en pesos)</label><input id="dm_costo" inputmode="numeric" autocomplete="off" placeholder="Ej.: 180.000" oninput="fmtMoneda(this)" value="${miles(x.costo_estimado)}"></div></div>
+      <button class="btn sm green" style="margin-top:.6rem" onclick="accionMant('atender','${id}')">${x.estado === 'Reportado' ? 'Registrar: en proceso' : 'Guardar plan'}</button>`;
+  }
+  if (x.estado === 'En proceso') {
+    acc += `<h3 class="sec">Cerrar el caso</h3>
+      <label>Qué se hizo</label><textarea id="dm_nota" rows="3" placeholder="Describa brevemente la solución."></textarea>
+      <label>Costo real (opcional, en pesos)</label><input id="dm_costor" inputmode="numeric" autocomplete="off" placeholder="Ej.: 180.000" oninput="fmtMoneda(this)" value="${miles(x.costo_estimado)}">
+      <label>Fotos del arreglo terminado (opcional, hasta 3)</label>${botonesFoto('s_fotos', 's_')}
+      <button class="btn sm green" style="margin-top:.6rem" onclick="accionMant('solucionar','${id}')">Marcar como solucionado</button>`;
+  }
+  acc += `<div style="margin-top:.8rem"><button class="btn sm gold" onclick="accionMant('reenviar','${id}')">Reenviar aviso por correo</button></div>`;
+  $('mg_det').innerHTML = `<h2>${semMant(x.semaforo)} &nbsp;${esc(x.radicado)}${urgTag(x)}</h2>
+    <p class="d">Estado: <b>${esc(ESTADO_MANT[x.estado])}</b> ${x.estado !== 'Solucionado' ? '· ' + limEtq(x.estado).toLowerCase() + ': <b>' + esc(x.fecha_limite) + '</b> (' + limTxt(x) + ')' : ''}</p>
+    <p><b>Reportó:</b> ${esc(x.reportante_nombre)}${x.reportante_correo ? ' · ' + esc(x.reportante_correo) : ''}</p>
+    <p><b>Área:</b> ${esc(x.area_nombre)}${x.ubicacion ? ' · ' + esc(x.ubicacion) : ''} &nbsp; <b>Tipo:</b> ${esc(x.categoria)}</p>
+    <p style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:.8rem 1rem;margin:.6rem 0">${conBr(x.descripcion)}</p>
+    <p><b>Fotos del reporte</b></p>${galeria(fReporte)}
+    ${x.respuesta_jefe ? `<p style="margin-top:.8rem"><b>Respuesta del jefe${x.atendido_por ? ' (' + esc(x.atendido_por) + ')' : ''}:</b><br>${conBr(x.respuesta_jefe)}<br><b>Solución prevista:</b> ${esc(fLarga(x.fecha_compromiso))} · <b>Costo estimado:</b> ${pesos(x.costo_estimado)}</p>` : ''}
+    ${x.estado === 'Solucionado' ? `<p style="margin-top:.8rem"><b>Solucionado</b> el ${esc(fLarga(x.solucionado_en))} (${esc(x.solucionado_por || '')}):<br>${conBr(x.solucion_nota)}<br><b>Costo real:</b> ${pesos(x.costo_real)}</p><p><b>Fotos de la solución</b></p>${galeria(fSol)}` : ''}
+    ${acc}
+    <h3 class="sec">Historial</h3>
+    <div class="wrap"><table><tbody>${(h.data || []).map(r => `<tr><td style="white-space:nowrap">${esc(new Date(r.fecha).toLocaleString('es-CO', { timeZone: 'America/Bogota' }))}</td><td><b>${esc(r.accion)}</b><br><small>${esc(r.actor || '')} — ${esc(r.detalle || '')}</small></td></tr>`).join('')}</tbody></table></div>
+    <button class="link" onclick="$('mg_det').classList.add('hidden')">Cerrar</button>`;
+  pintarFotos && $('s_fotos') && pintarFotos('s_fotos');
+  $('mg_det').classList.remove('hidden');
+  $('mg_det').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function accionMant(acc, id) {
+  try {
+    if (acc === 'reenviar') {
+      const a = await avisoMant(id, true);
+      return msg('mg_msg', a.ok ? textoSau(a) : 'No se pudo enviar: ' + a.error, a.ok);
+    }
+    let r;
+    if (acc === 'atender') {
+      r = await db.rpc('atender_mant', { p_id: id, p_respuesta: $('dm_resp').value, p_fecha: $('dm_fecha').value || null, p_costo: numMoneda('dm_costo') });
+    } else {
+      r = await db.rpc('solucionar_mant', { p_id: id, p_nota: $('dm_nota').value, p_costo_real: numMoneda('dm_costor') });
+    }
+    if (r.error) throw new Error(r.error.message);
+    let fallidas = 0;
+    if (acc === 'solucionar') {
+      let n = 0;
+      for (const f of FOTOS.s_fotos) {
+        const up = await db.storage.from('mant-fotos').upload(`${id}/sol-${++n}-foto.jpg`, f.file, { contentType: f.file.type });
+        if (up.error) fallidas++;
+      }
+      FOTOS.s_fotos = [];
+    }
+    const a = await avisoMant(id);
+    $('mg_det').classList.add('hidden');
+    await loadMantGestion();
+    msg('mg_msg', 'Listo. ' + (a.ok ? textoSau(a) : 'El aviso por correo no se pudo enviar: ' + a.error) + (fallidas ? ` No se pudieron subir ${fallidas} foto(s).` : ''), true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) { msg('mg_msg', e.message); }
+}
+
+/* ---------- Reporte de eficiencia ---------- */
+let REPM_HTML = '';
+async function verReporteMant() {
+  msg('mr_msg', 'Generando…', true);
+  const d = $('mr_d').value, h = $('mr_h').value;
+  if (!d || !h || d > h) return msg('mr_msg', 'Revise las fechas del período.');
+  const { data, error } = await db.rpc('reporte_mant', { p_desde: d, p_hasta: h, p_colegio: me.colegio_id });
+  if (error) return msg('mr_msg', error.message);
+  msg('mr_msg', '');
+  const r = data.resumen;
+  const kpi = (t, v) => `<div style="flex:1;min-width:130px;border:1px solid #e2e8f0;border-radius:14px;padding:.8rem;text-align:center"><div style="font-size:1.4rem;font-weight:800">${v}</div><small>${t}</small></div>`;
+  const tabla = (tit, filas) => `<h3 class="sec">${tit}</h3><div class="wrap"><table><thead><tr><th>${tit.replace('Por ', '')}</th><th>Reportes</th><th>Abiertos</th><th>Costo real</th></tr></thead><tbody>
+    ${filas.map(f => `<tr><td>${esc(f.nombre)}</td><td>${f.total}</td><td>${f.abiertos}</td><td>${pesos(f.costo)}</td></tr>`).join('') || '<tr><td colspan="4">Sin datos.</td></tr>'}</tbody></table></div>`;
+  REPM_HTML = `<h3 class="sec">Resumen ${esc(fLarga(d))} – ${esc(fLarga(h))}</h3>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
+      ${kpi('Reportes', r.total)}${kpi('Por atender', r.reportados)}${kpi('En proceso', r.en_proceso)}${kpi('Solucionados', r.solucionados)}
+      ${kpi('Urgentes', r.urgentes)}${kpi('Vencidos', r.vencidos)}
+    </div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
+      ${kpi('Atendidos a tiempo', pct(r.atendidos_a_tiempo, r.atendidos_a_tiempo + r.atendidos_tarde))}
+      ${kpi('Solucionados a tiempo', pct(r.sol_a_tiempo, r.sol_a_tiempo + r.sol_tarde))}
+      ${kpi('Promedio para atender (días háb.)', r.prom_atencion ?? '—')}${kpi('Promedio para solucionar (días háb.)', r.prom_solucion ?? '—')}
+      ${kpi('Costo estimado', pesos(r.costo_estimado))}${kpi('Costo real', pesos(r.costo_real))}
+    </div>
+    ${tabla('Por área', data.por_area)}${tabla('Por categoría', data.por_categoria)}
+    <h3 class="sec">Por responsable</h3>
+    <div class="wrap"><table><thead><tr><th>Responsable</th><th>Atendidos</th><th>Solucionados</th><th>A tiempo</th><th>Tardíos</th><th>En proceso</th><th>Vencidos</th><th>Prom. días háb.</th><th>Cumplimiento</th></tr></thead><tbody>
+    ${data.por_responsable.map(f => { const c = pct(f.a_tiempo, f.solucionados); return `<tr><td><b>${esc(f.nombre)}</b></td><td>${f.atendidos}</td><td>${f.solucionados}</td><td>${f.a_tiempo}</td><td>${f.tardios}</td><td>${f.en_proceso}</td><td>${f.vencidos}</td><td>${f.prom_dias ?? '—'}</td><td>${c}${barra(c)}</td></tr>`; }).join('') || '<tr><td colspan="9">Sin reportes atendidos en el período.</td></tr>'}</tbody></table></div>
+    <p class="d" style="margin-top:.6rem"><small>Cumplimiento = solucionados dentro de la fecha prometida / solucionados. Los tiempos se cuentan en días hábiles desde que se reportó.</small></p>
+    <button class="btn sm gold" onclick="imprimirReporteMant()">Imprimir / guardar PDF</button>`;
+  $('mr_out').innerHTML = REPM_HTML;
+}
+function imprimirReporteMant() {
+  const w = window.open('', '_blank');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Reporte de mantenimiento</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:24px;font-size:13px}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;padding:6px;text-align:left}h3{margin-top:18px}button{display:none}</style></head><body><h2>${esc(colegio ? colegio.nombre : '')} — Reporte de mantenimiento</h2>${REPM_HTML}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 400);
+}
+
+/* ---------- Configuración (rector) ---------- */
+function cargarConfigMant() {
+  if (!colegio) return;
+  $('m_plazo').value = colegio.mant_plazo_atencion || 3; $('m_alerta').value = colegio.mant_alerta_dias || 2;
+  $('ma_list').innerHTML = `<table><tbody>${MANT_AREAS.map(a => `<tr><td>${esc(a.nombre)}</td><td><span class="tag ${a.activo ? 't-ok' : 't-no'}">${a.activo ? 'Activa' : 'Inactiva'}</span></td>
+    <td><button class="btn sm" onclick="toggleArea('${a.id}',${!a.activo})">${a.activo ? 'Desactivar' : 'Activar'}</button></td></tr>`).join('')}</tbody></table>`;
+}
+async function guardarConfigMant() {
+  const datos = { mant_plazo_atencion: parseInt($('m_plazo').value), mant_alerta_dias: parseInt($('m_alerta').value) };
+  if (!datos.mant_plazo_atencion || !datos.mant_alerta_dias) return msg('mc_msg', 'Digite los dos plazos (de 1 a 10 días hábiles).');
+  const { error } = await db.from('colegios').update(datos).eq('id', me.colegio_id);
+  if (error) return msg('mc_msg', error.message);
+  Object.assign(colegio, datos); msg('mc_msg', 'Guardado. Los reportes nuevos usarán este plazo.', true);
+}
+async function addArea() {
+  const nombre = $('ma_nuevo').value.trim();
+  if (nombre.length < 2) return msg('mc_msg', 'Escriba el nombre del área.');
+  const { error } = await db.from('mant_areas').insert({ colegio_id: me.colegio_id, nombre });
+  if (error) return msg('mc_msg', error.message);
+  $('ma_nuevo').value = ''; msg('mc_msg', 'Área agregada.', true); await cargarAreas(); cargarConfigMant();
+}
+async function toggleArea(id, activo) {
+  const { error } = await db.from('mant_areas').update({ activo }).eq('id', id);
+  if (error) return msg('mc_msg', error.message);
+  await cargarAreas(); cargarConfigMant();
+}
+
+/* ---------- FINANZAS (fase 1: terceros, ingresos, egresos, cartera, proveedores) ---------- */
+const FIN_TABS = {
+  ingresos:    { t:'Ingresos',    vista:'fin_ingresos_v', kind:'ingreso', pago:true,  cargoVista:'fin_cartera_v', cargoLbl:'cobro',  nuevo:'Nuevo ingreso' },
+  egresos:     { t:'Egresos',     vista:'fin_egresos_v',  kind:'egreso',  pago:true,  cargoVista:'fin_deudas_v',  cargoLbl:'cuenta por pagar', nuevo:'Nuevo egreso' },
+  cartera:     { t:'Cartera',     vista:'fin_cartera_v',  kind:'cartera', pago:false, nuevo:'Nuevo cobro' },
+  proveedores: { t:'Proveedores', vista:'fin_deudas_v',   kind:'deuda',   pago:false, nuevo:'Nueva cuenta por pagar' },
+  terceros:    { t:'Terceros' }
+};
+let FIN = { tab:null, ter:[], terMap:{}, rows:[], abiertos:[], editTer:null };
+const finPuede = m => me.rol === 'rector' || (me.fin_modulos || []).includes(m);
+const finAlguno = () => me.rol === 'rector' || (me.fin_modulos || []).length > 0;
+const finHoy = () => new Intl.DateTimeFormat('en-CA', { timeZone:'America/Bogota' }).format(new Date());
+const finFecha = s => { if (!s) return ''; const [y,m,d] = String(s).slice(0,10).split('-'); return `${d}/${m}/${y}`; };
+
+async function initFin() {
+  const tabs = Object.keys(FIN_TABS).filter(k => k === 'terceros' ? finAlguno() : finPuede(k));
+  $('fin_tabs').innerHTML = tabs.map(k => `<button type="button" id="fint_${k}" onclick="finTab('${k}')">${FIN_TABS[k].t}</button>`).join('');
+  await finCargarTer();
+  if (tabs.length) finTab(FIN.tab && tabs.includes(FIN.tab) ? FIN.tab : tabs[0]);
+  else $('fin_pane').innerHTML = '<p class="d">No tiene módulos de finanzas asignados. Pídale al rector que se los asigne en «Usuarios y accesos».</p>';
+}
+async function finCargarTer() {
+  const { data } = await db.from('fin_terceros').select('*').eq('colegio_id', me.colegio_id).order('nombre');
+  FIN.ter = data || []; FIN.terMap = {}; FIN.ter.forEach(t => FIN.terMap[t.id] = t);
+}
+function finTab(k) {
+  FIN.tab = k;
+  document.querySelectorAll('#fin_tabs button').forEach(b => b.classList.toggle('on', b.id === 'fint_' + k));
+  if (k === 'terceros') return finPaneTerceros();
+  const c = FIN_TABS[k], y = finHoy().slice(0, 4);
+  $('fin_pane').innerHTML = `
+    <div class="bar"><b>${c.t}</b><button class="btn sm green" onclick="finNuevo()">➕ ${c.nuevo}</button></div>
+    <div id="fin_form" class="hidden fin-form"></div>
+    <div class="g2">
+      <div><label>Desde</label><input type="date" id="ff_d" value="${y}-01-01" onchange="finCargar()"></div>
+      <div><label>Hasta</label><input type="date" id="ff_h" onchange="finCargar()"></div>
+    </div>
+    <div class="g2">
+      <div><input id="ff_q" placeholder="Buscar por tercero, identificación, concepto o consecutivo…" oninput="finPintar()" style="margin-top:.6rem"></div>
+      <div>${c.pago ? '' : `<select id="ff_e" onchange="finPintar()" style="margin-top:.6rem"><option value="">Todos los estados</option><option value="pend">Pendientes (con saldo)</option><option value="Vencida">Vencidas</option><option value="Pagada">Pagadas</option><option value="Anulada">Anuladas</option></select>`}</div>
+    </div>
+    <div id="fin_msg" class="msg"></div>
+    <div id="fin_tot" class="fin-tot"></div>
+    <div class="wrap"><table id="fin_tbl"></table></div>
+    <button class="btn sm" style="margin-top:.8rem" onclick="finCSV()">⬇ Descargar para Excel</button>`;
+  finCargar();
+}
+async function finCargar() {
+  const c = FIN_TABS[FIN.tab]; if (!c) return;
+  const tab = FIN.tab;
+  let q = db.from(c.vista).select('*').eq('colegio_id', me.colegio_id).order('fecha', { ascending:false }).order('creado_en', { ascending:false }).limit(1000);
+  if ($('ff_d') && $('ff_d').value) q = q.gte('fecha', $('ff_d').value);
+  if ($('ff_h') && $('ff_h').value) q = q.lte('fecha', $('ff_h').value);
+  const { data, error } = await q;
+  if (tab !== FIN.tab) return;
+  if (error) { msg('fin_msg', error.message); return; }
+  msg('fin_msg', '', true);
+  FIN.rows = data || [];
+  finPintar();
+}
+function finFiltradas() {
+  const t = (($('ff_q') && $('ff_q').value) || '').trim().toLowerCase(), e = $('ff_e') ? $('ff_e').value : '';
+  return FIN.rows.filter(r => {
+    if (t && !(`${r.tercero_nombre} ${r.identificacion} ${r.concepto} ${r.consecutivo}`.toLowerCase().includes(t))) return false;
+    if (e === 'pend') return !r.anulado && Number(r.saldo) > 0;
+    if (e) return r.estado === e;
+    return true;
+  });
+}
+function finPintar() {
+  const c = FIN_TABS[FIN.tab]; if (!c || !c.vista) return;
+  const rows = finFiltradas(), vivas = rows.filter(r => !r.anulado);
+  const suma = k => vivas.reduce((a, r) => a + Number(r[k] || 0), 0);
+  $('fin_tot').innerHTML = c.pago
+    ? `<span class="pill">Registros: ${vivas.length}</span><span class="pill">Total: ${pesos(suma('monto'))}</span>`
+    : `<span class="pill">Registros: ${vivas.length}</span><span class="pill">Total: ${pesos(suma('monto'))}</span><span class="pill">Abonado: ${pesos(suma('abonado'))}</span><span class="pill">Saldo: ${pesos(suma('saldo'))}</span>`;
+  const T = r => FIN.terMap[r.tercero_id] || {};
+  const head = c.pago
+    ? ['Consecutivo','Fecha','Identificación','Tercero','Teléfono','Correo','Dirección','Concepto','Monto','Saldo','Aplicado a','']
+    : ['Consecutivo','Fecha','Plazo','Vence','Identificación','Tercero','Teléfono','Correo','Dirección','Concepto','Monto','Abonado','Saldo','Estado',''];
+  const stCls = { Vigente:'t-info', Vencida:'t-bad', Pagada:'t-ok', Anulada:'t-no' };
+  const body = rows.map(r => {
+    const t = T(r), x = r.anulado ? ' style="opacity:.55;text-decoration:line-through"' : '';
+    const acc = r.anulado ? `<span class="tag t-no" title="${esc(r.anulado_motivo || '')}">Anulado</span>` : `<button class="btn sm red" onclick="finAnular('${r.id}')">Anular</button>`;
+    const base = `<td${x}><b>${esc(r.consecutivo)}</b></td><td${x}>${finFecha(r.fecha)}</td>`;
+    const ter = `<td${x}>${esc(r.identificacion)}</td><td${x}>${esc(r.tercero_nombre)}</td><td${x}>${esc(t.telefono || '')}</td><td${x}>${esc(t.correo || '')}</td><td${x}>${esc(t.direccion || '')}</td>`;
+    if (c.pago) return `<tr>${base}${ter}<td${x}>${esc(r.concepto)}</td><td${x} style="text-align:right">${pesos(r.monto)}</td><td style="text-align:right">${r.saldo == null ? '—' : pesos(r.saldo)}</td><td>${esc((r.cargo_consecutivo) || '—')}</td><td>${acc}</td></tr>`;
+    return `<tr>${base}<td${x}>${r.plazo_dias} d</td><td${x}>${finFecha(r.vence)}</td>${ter}<td${x}>${esc(r.concepto)}</td><td${x} style="text-align:right">${pesos(r.monto)}</td><td style="text-align:right">${pesos(r.abonado)}</td><td style="text-align:right"><b>${pesos(r.saldo)}</b></td><td><span class="tag ${stCls[r.estado] || ''}">${esc(r.estado)}${r.dias_vencido > 0 ? ` (${r.dias_vencido} d)` : ''}</span></td><td style="white-space:nowrap">${r.anulado || Number(r.saldo) <= 0 ? '' : `<button class="btn sm green" onclick="finAbonar('${r.id}')">${FIN.tab === 'cartera' ? 'Recibir pago' : 'Pagar'}</button>`}${acc}</td></tr>`;
+  }).join('') || `<tr><td colspan="${head.length}">Sin registros.</td></tr>`;
+  $('fin_tbl').innerHTML = `<thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody>`;
+}
+async function finAnular(id) {
+  const c = FIN_TABS[FIN.tab];
+  const motivo = prompt('Escriba el motivo de la anulación (mínimo 5 letras):');
+  if (!motivo) return;
+  const { error } = await db.rpc('fin_anular', { p_tipo: c.kind, p_id: id, p_motivo: motivo });
+  if (error) return msg('fin_msg', error.message);
+  msg('fin_msg', 'Registro anulado.', true);
+  finCargar();
+}
+function finCSV() {
+  const c = FIN_TABS[FIN.tab], rows = finFiltradas(); if (!c || !c.vista) return;
+  const T = r => FIN.terMap[r.tercero_id] || {};
+  const cols = c.pago
+    ? [['Consecutivo',r=>r.consecutivo],['Fecha',r=>r.fecha],['Identificación',r=>r.identificacion],['Tercero',r=>r.tercero_nombre],['Teléfono',r=>T(r).telefono],['Correo',r=>T(r).correo],['Dirección',r=>T(r).direccion],['Concepto',r=>r.concepto],['Monto',r=>r.monto],['Saldo',r=>r.saldo],['Aplicado a',r=>r.cargo_consecutivo],['Anulado',r=>r.anulado ? 'Sí: ' + (r.anulado_motivo || '') : '']]
+    : [['Consecutivo',r=>r.consecutivo],['Fecha inicial',r=>r.fecha],['Plazo (días)',r=>r.plazo_dias],['Vence',r=>r.vence],['Identificación',r=>r.identificacion],['Tercero',r=>r.tercero_nombre],['Teléfono',r=>T(r).telefono],['Correo',r=>T(r).correo],['Dirección',r=>T(r).direccion],['Concepto',r=>r.concepto],['Monto',r=>r.monto],['Abonado',r=>r.abonado],['Saldo',r=>r.saldo],['Estado',r=>r.estado]];
+  const cel = v => { v = v == null ? '' : String(v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+  const txt = '﻿' + [cols.map(x => cel(x[0])).join(';')].concat(rows.map(r => cols.map(x => cel(x[1](r))).join(';'))).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([txt], { type:'text/csv;charset=utf-8' }));
+  a.download = `${c.t.toLowerCase()}-${finHoy()}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+/* --- formulario de un movimiento --- */
+function finTerFields(p) {
+  return `<div class="g2"><div><label>Tipo de documento</label><select id="${p}_td">${['CC','NIT','CE','TI','PAS','OTRO'].map(x => `<option>${x}</option>`).join('')}</select></div>
+    <div><label>Identificación</label><input id="${p}_id" maxlength="20" inputmode="numeric"></div></div>
+    <label>Nombre o razón social</label><input id="${p}_nom" maxlength="120">
+    <div class="g2"><div><label>Teléfono</label><input id="${p}_tel" maxlength="20" inputmode="tel"></div><div><label>Correo electrónico</label><input id="${p}_cor" type="email" maxlength="120"></div></div>
+    <label>Dirección</label><input id="${p}_dir" maxlength="200">`;
+}
+function finNuevo(cargoId) {
+  const c = FIN_TABS[FIN.tab], f = $('fin_form');
+  f.classList.remove('hidden');
+  f.innerHTML = `<h3 class="sec">${c.nuevo}</h3>
+    <label>Tercero</label>
+    <input id="fm_ter" list="fin_dl" placeholder="Escriba la identificación o el nombre y elija de la lista" oninput="finTerElegido()" autocomplete="off">
+    <datalist id="fin_dl">${FIN.ter.filter(t => t.activo).map(t => `<option value="${esc(t.identificacion)} — ${esc(t.nombre)}"></option>`).join('')}</datalist>
+    <div id="fm_info" class="d" style="font-size:.8rem;margin:.3rem 0"></div>
+    <button type="button" class="link" style="margin-top:0" onclick="$('fm_tnew').classList.toggle('hidden')">➕ ¿No está? Crear tercero nuevo</button>
+    <div id="fm_tnew" class="hidden fin-sub">${finTerFields('fn')}<button type="button" class="btn sm green" style="margin-top:.8rem" onclick="finGuardarTerNuevo()">Guardar tercero</button><div id="fn_msg" class="msg"></div></div>
+    ${c.pago ? `<label>¿A qué ${c.cargoLbl} corresponde?</label><select id="fm_cargo" onchange="finCargoElegido()"><option value="">Sin ${c.cargoLbl} asociado (${c.kind} libre)</option></select>` : ''}
+    <div class="g2">
+      <div><label>${c.pago ? 'Fecha' : 'Fecha inicial'}</label><input type="date" id="fm_fecha" value="${finHoy()}" ${c.pago ? `max="${finHoy()}"` : ''}></div>
+      ${c.pago ? '' : '<div><label>Plazo (días)</label><input type="number" id="fm_plazo" value="30" min="0" max="3650"></div>'}
+    </div>
+    <label>Concepto</label><input id="fm_con" maxlength="300">
+    <label>Monto (pesos)</label><input type="number" id="fm_monto" min="1" step="1" inputmode="numeric">
+    <div style="margin-top:.4rem"><button class="btn green sm" id="fm_btn" onclick="finGuardar()">Guardar</button> <button class="btn sm" style="background:#64748b" onclick="$('fin_form').classList.add('hidden')">Cancelar</button></div>
+    <div id="fm_msg" class="msg"></div>`;
+  f.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function finTerSel() {
+  const v = ($('fm_ter') || {}).value || '';
+  const idn = v.split(' — ')[0].trim().replace(/[\s.]/g, '');
+  return FIN.ter.find(t => t.activo && t.identificacion === idn && v.includes(' — ')) || null;
+}
+async function finTerElegido() {
+  const t = finTerSel();
+  $('fm_info').textContent = t ? [t.telefono, t.correo, t.direccion].filter(Boolean).join(' · ') || 'Sin más datos de contacto.' : '';
+  const c = FIN_TABS[FIN.tab]; if (!c.pago || !$('fm_cargo')) return;
+  const sel = $('fm_cargo'); sel.innerHTML = `<option value="">Sin ${c.cargoLbl} asociado (${c.kind} libre)</option>`; FIN.abiertos = [];
+  if (!t) return;
+  const { data } = await db.from(c.cargoVista).select('id,consecutivo,concepto,saldo,vence,estado').eq('colegio_id', me.colegio_id).eq('tercero_id', t.id).eq('anulado', false).gt('saldo', 0).order('fecha');
+  FIN.abiertos = data || [];
+  sel.innerHTML += FIN.abiertos.map(k => `<option value="${k.id}">${esc(k.consecutivo)} · ${esc(k.concepto)} · debe ${pesos(k.saldo)}${k.estado === 'Vencida' ? ' (vencido)' : ''}</option>`).join('');
+}
+function finCargoElegido() {
+  const k = FIN.abiertos.find(x => x.id === $('fm_cargo').value); if (!k) return;
+  $('fm_monto').value = k.saldo;
+  if (!$('fm_con').value.trim()) $('fm_con').value = 'Abono a ' + k.consecutivo + ' — ' + k.concepto;
+}
+async function finGuardar() {
+  const c = FIN_TABS[FIN.tab], btn = $('fm_btn'), t = finTerSel();
+  if (!t) return msg('fm_msg', 'Elija un tercero de la lista o créelo primero.');
+  const monto = Number($('fm_monto').value);
+  if (!Number.isInteger(monto) || monto <= 0) return msg('fm_msg', 'Escriba el monto en pesos enteros, mayor que cero.');
+  if ($('fm_con').value.trim().length < 3) return msg('fm_msg', 'Escriba el concepto.');
+  btn.disabled = true; msg('fm_msg', 'Guardando…', true);
+  const r = c.pago
+    ? await db.rpc('fin_pago_crear', { p_tipo: c.kind, p_fecha: $('fm_fecha').value, p_tercero: t.id, p_concepto: $('fm_con').value.trim(), p_monto: monto, p_cargo: $('fm_cargo').value || null })
+    : await db.rpc('fin_cargo_crear', { p_tipo: c.kind, p_fecha: $('fm_fecha').value, p_plazo: Number($('fm_plazo').value), p_tercero: t.id, p_concepto: $('fm_con').value.trim(), p_monto: monto });
+  btn.disabled = false;
+  if (r.error) return msg('fm_msg', r.error.message);
+  $('fin_form').classList.add('hidden');
+  msg('fin_msg', `Guardado: ${r.data.consecutivo}.`, true);
+  finCargar();
+}
+async function finAbonar(id) {   // desde Cartera/Proveedores: abre el pago ya apuntando a ese cargo
+  const c = FIN_TABS[FIN.tab], k = FIN.rows.find(x => x.id === id); if (!k) return;
+  const dest = c.kind === 'cartera' ? 'ingresos' : 'egresos';
+  if (!finPuede(dest)) return msg('fin_msg', `Para registrar este pago necesita el módulo de ${dest}. Pídaselo al rector.`);
+  finTab(dest); finNuevo();
+  $('fm_ter').value = `${k.identificacion} — ${k.tercero_nombre}`;
+  await finTerElegido();
+  $('fm_cargo').value = id; finCargoElegido();
+}
+
+/* --- terceros --- */
+async function finGuardarTerNuevo() {
+  const r = await finGuardarTerDe('fn', null, 'fn_msg');
+  if (!r) return;
+  await finCargarTer();
+  $('fin_dl').innerHTML = FIN.ter.filter(t => t.activo).map(t => `<option value="${esc(t.identificacion)} — ${esc(t.nombre)}"></option>`).join('');
+  $('fm_ter').value = `${r.identificacion} — ${r.nombre}`; finTerElegido();
+  $('fm_tnew').classList.add('hidden');
+}
+async function finGuardarTerDe(p, id, msgId) {
+  const reg = { tipo_doc: $(p + '_td').value, identificacion: $(p + '_id').value, nombre: $(p + '_nom').value,
+    telefono: $(p + '_tel').value, correo: $(p + '_cor').value, direccion: $(p + '_dir').value };
+  if (reg.identificacion.replace(/[\s.]/g, '').length < 3) { msg(msgId, 'Escriba la identificación.'); return null; }
+  if (reg.nombre.trim().length < 2) { msg(msgId, 'Escriba el nombre.'); return null; }
+  msg(msgId, 'Guardando…', true);
+  const { data, error } = id ? await db.from('fin_terceros').update(reg).eq('id', id).select().single()
+    : await db.from('fin_terceros').insert({ ...reg, colegio_id: me.colegio_id }).select().single();
+  if (error) { msg(msgId, error.message); return null; }
+  msg(msgId, 'Tercero guardado.', true);
+  return data;
+}
+function finPaneTerceros() {
+  FIN.editTer = null;
+  $('fin_pane').innerHTML = `
+    <div class="bar"><b>Terceros</b><span class="d" style="margin:0">Clientes, padres de familia, proveedores y demás personas con quienes se mueve dinero.</span></div>
+    <div class="fin-form"><h3 class="sec" id="ft_tit">Nuevo tercero</h3>${finTerFields('ft')}
+      <button class="btn sm green" style="margin-top:.8rem" onclick="finGuardarTer()">Guardar</button>
+      <button class="btn sm" style="background:#64748b" onclick="finEditarTer(null)">Limpiar</button><div id="ft_msg" class="msg"></div></div>
+    <input id="ft_q" placeholder="Buscar tercero por nombre o identificación…" oninput="finPintarTer()" style="margin-top:1rem">
+    <div class="wrap"><table id="ft_tbl"></table></div>`;
+  finPintarTer();
+}
+function finPintarTer() {
+  const t = (($('ft_q') || {}).value || '').trim().toLowerCase();
+  const rows = FIN.ter.filter(x => !t || `${x.nombre} ${x.identificacion}`.toLowerCase().includes(t));
+  $('ft_tbl').innerHTML = `<thead><tr><th>Identificación</th><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Dirección</th><th>Estado</th><th></th></tr></thead><tbody>${rows.map(x =>
+    `<tr><td>${esc(x.tipo_doc)} ${esc(x.identificacion)}</td><td>${esc(x.nombre)}</td><td>${esc(x.telefono || '')}</td><td>${esc(x.correo || '')}</td><td>${esc(x.direccion || '')}</td>
+     <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Inactivo'}</span></td>
+     <td style="white-space:nowrap"><button class="btn sm" onclick="finEditarTer('${x.id}')">Editar</button><button class="btn sm ${x.activo ? 'red' : 'green'}" onclick="finActivarTer('${x.id}',${!x.activo})">${x.activo ? 'Desactivar' : 'Activar'}</button></td></tr>`).join('') || '<tr><td colspan="7">Sin terceros.</td></tr>'}</tbody>`;
+}
+function finEditarTer(id) {
+  const x = id ? FIN.terMap[id] : null; FIN.editTer = id;
+  $('ft_tit').textContent = x ? 'Editar tercero' : 'Nuevo tercero';
+  $('ft_td').value = x ? x.tipo_doc : 'CC'; $('ft_id').value = x ? x.identificacion : ''; $('ft_nom').value = x ? x.nombre : '';
+  $('ft_tel').value = x ? x.telefono || '' : ''; $('ft_cor').value = x ? x.correo || '' : ''; $('ft_dir').value = x ? x.direccion || '' : '';
+  msg('ft_msg', '', true);
+  if (x) $('ft_tit').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+async function finGuardarTer() {
+  const r = await finGuardarTerDe('ft', FIN.editTer, 'ft_msg'); if (!r) return;
+  await finCargarTer(); finPintarTer(); FIN.editTer = null;
+  ['id','nom','tel','cor','dir'].forEach(k => $('ft_' + k).value = ''); $('ft_tit').textContent = 'Nuevo tercero';
+}
+async function finActivarTer(id, activo) {
+  const { error } = await db.from('fin_terceros').update({ activo }).eq('id', id);
+  if (error) return msg('ft_msg', error.message);
+  await finCargarTer(); finPintarTer();
+}
+/* quién ve Finanzas (columna del rector en Usuarios) */
+const FIN_MODS_USR = [['ingresos','Ingresos'],['egresos','Egresos'],['cartera','Cartera'],['proveedores','Proveedores']];
+function finUsrCelda(x) {
+  if (x.rol === 'rector') return '—';
+  const m = x.fin_modulos || [];
+  return `<details><summary style="cursor:pointer;font-size:.8rem;font-weight:700">${m.length ? m.length + ' módulo(s)' : 'Sin acceso'}</summary>${FIN_MODS_USR.map(f =>
+    `<label style="display:flex;gap:.4rem;align-items:center;margin:.2rem 0;font-weight:600"><input type="checkbox" style="width:auto" data-fu="${x.id}" value="${f[0]}" ${m.includes(f[0]) ? 'checked' : ''} onchange="setFin('${x.id}')">${f[1]}</label>`).join('')}</details>`;
+}
+async function setFin(id) {
+  const m = [...document.querySelectorAll(`input[data-fu="${id}"]:checked`)].map(i => i.value);
+  const { error } = await db.from('perfiles').update({ fin_modulos: m }).eq('id', id);
+  if (error) alert(traducir(error.message));
+  loadUsuarios();
+}
+
+/* ---------- RESOLUCIÓN (imprimible / PDF) ---------- */
+const fLarga = s => {
+  if (!s) return '';
+  const solo = /^\d{4}-\d{2}-\d{2}$/.test(s);
+  return new Date(solo ? s + 'T12:00:00Z' : s).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric', timeZone: solo ? 'UTC' : 'America/Bogota' });
+};
+async function verResolucion(id) {
+  const w = window.open('', '_blank');
+  if (!w) return alert('Permita las ventanas emergentes para ver la resolución.');
+  w.document.write('<p style="font-family:sans-serif">Cargando resolución…</p>');
+  try {
+    const [pr, mr] = await Promise.all([
+      db.from('permisos').select('*,perfiles(nombres,apellidos,regimen,rol)').eq('id', id).single(),
+      db.from('marco_normativo').select('clave,texto')
+    ]);
+    if (pr.error) throw new Error(pr.error.message);
+    const M = {}; (mr.data || []).forEach(x => M[x.clave] = x.texto);
+    const html = resolucionHTML(pr.data, colegio || {}, M);
+    w.document.open(); w.document.write(html); w.document.close();
+  } catch (e) {
+    w.document.body.innerHTML = '<p style="font-family:sans-serif;color:#b91c1c">No se pudo cargar la resolución: ' + esc(traducir(e.message)) + '</p>';
+  }
+}
+function resolucionHTML(p, c, M) {
+  const ok = p.estado === 'Aprobado';
+  const d = p.perfiles || {};
+  const nom = `${d.nombres || ''} ${d.apellidos || ''}`.trim();
+  const REG = { '2277': 'Decreto Ley 2277 de 1979 (Estatuto Docente)', '1278': 'Decreto Ley 1278 de 2002 (Estatuto de Profesionalización Docente)' };
+  const cargo = d.rol === 'docente' ? 'docente' + (REG[d.regimen] ? ', vinculado(a) bajo el régimen del ' + REG[d.regimen] + ',' : '') : 'servidor(a) administrativo(a)';
+  const parr = t => String(t || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+  const horas = p.modalidad === 'Por Horas' ? ` de ${String(p.hora_inicio).slice(0, 5)} a ${String(p.hora_fin).slice(0, 5)}` : '';
+  const cuando = `el día ${fLarga(p.fecha)}, jornada ${String(p.jornada).toLowerCase()}, modalidad ${String(p.modalidad).toLowerCase()}${horas}`;
+  const cons = [
+    `Que ${nom}, ${cargo} de esta institución, radicó la solicitud ${p.radicado} para obtener permiso remunerado ${cuando}, por el siguiente motivo: ${p.motivo}.`,
+    ...parr(M.comun),
+    ...(d.rol === 'docente' ? parr(M[d.regimen]) : []),
+    'Que el solicitante anexó el soporte del permiso y el material de actividades para garantizar la continuidad del servicio educativo durante su ausencia.',
+    p.preaprobado_nombre ? `Que la solicitud fue revisada y preaprobada por ${p.preaprobado_nombre}, coordinador(a) de la jornada, el ${fLarga(p.preaprobado_en)}.` : null,
+    ok ? 'Que, verificado el cumplimiento de los requisitos y la disponibilidad de personal para atender el servicio, resulta procedente conceder el permiso solicitado.'
+       : `Que, revisada la solicitud, no resulta procedente concederla por la siguiente razón: ${p.observacion || 'sin observación registrada'}.`
+  ].filter(Boolean);
+  const arts = ok
+    ? [`Conceder permiso remunerado a ${nom} ${cuando}.`, `Parágrafo. El beneficiario deberá dejar las actividades programadas y reintegrarse a sus labores al término del permiso.`]
+    : [`Negar el permiso solicitado por ${nom} ${cuando}, por las razones expuestas en la parte considerativa.`];
+  arts.push('Notificar la presente resolución al interesado.');
+  if (M.recursos) arts.push(M.recursos);
+  const ORD = ['PRIMERO', 'SEGUNDO', 'TERCERO', 'CUARTO'];
+  let n = 0;
+  const articulos = arts.map(a => /^Parágrafo/.test(a) ? `<p><b>PARÁGRAFO.</b>${esc(a.replace(/^Parágrafo\.?/, ''))}</p>` : `<p><b>ARTÍCULO ${ORD[n++]}.</b> ${esc(a)}</p>`).join('');
+  const firmante = p.decidido_nombre || [c.rector_nombres, c.rector_apellidos].filter(Boolean).join(' ');
+  const datosCol = [c.nit ? 'NIT ' + c.nit : '', c.dane ? 'DANE ' + c.dane : '', c.resolucion ? 'Resolución de funcionamiento: ' + c.resolucion : ''].filter(Boolean).join(' · ');
+  const contacto = [c.direccion, c.telefono, c.correo].filter(Boolean).join(' · ');
+  const logo = escudoUrl(c);
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Resolución ${esc(p.resolucion_num)} de ${esc(p.resolucion_anio)}</title>
+<style>@page{size:letter;margin:0}body{box-sizing:border-box;font-family:'Times New Roman',serif;color:#000;max-width:800px;margin:0 auto;padding:28px 40px;line-height:1.35;font-size:12.5px}
+h1{font-size:17px;text-align:center;margin:18px 0 4px}h2{font-size:14px;text-align:center;margin:18px 0 8px}
+.enc{display:flex;align-items:center;justify-content:center;gap:18px;text-align:center;border-bottom:2px solid #000;padding-bottom:10px}.enc img{height:80px;max-width:96px;object-fit:contain}.enc b{font-size:16px;text-transform:uppercase}.enc small{display:block;color:#333}
+p{text-align:justify;margin:6px 0}.por{text-align:center;font-style:italic}.firma{margin-top:34px;text-align:center;page-break-inside:avoid}.firma div{border-top:1px solid #000;display:inline-block;padding-top:4px;min-width:260px}
+.pie{margin-top:20px;font-size:11px;color:#444;text-align:center}.no-print{text-align:right;margin-bottom:10px}
+button{padding:8px 16px;font-size:13px;cursor:pointer}@media print{.no-print{display:none}body{max-width:none;padding:11mm 18mm}}</style></head><body>
+<div class="no-print"><button onclick="window.print()">Imprimir / Guardar como PDF</button></div>
+<div class="enc">${logo ? `<img src="${esc(logo)}" alt="Escudo">` : ''}<div><b>${esc(c.nombre || '')}</b><small>${esc(datosCol)}</small><small>${esc(contacto)}</small></div></div>
+<h1>RESOLUCIÓN N.° ${esc(p.resolucion_num)} DE ${esc(p.resolucion_anio)}</h1>
+<p class="por" style="text-align:center">(${esc(fLarga(p.resolucion_en))})</p>
+<p class="por">Por la cual se ${ok ? 'concede' : 'niega'} un permiso remunerado por justa causa</p>
+<p>EL RECTOR DE ${esc((c.nombre || 'LA INSTITUCIÓN').toUpperCase())}, en uso de sus facultades legales y en especial de las conferidas por el artículo 10 de la Ley 715 de 2001, y</p>
+<h2>CONSIDERANDO</h2>
+${cons.map((t, i) => `<p>${i + 1}. ${esc(t)}</p>`).join('')}
+<h2>RESUELVE</h2>
+${articulos}
+<p style="text-align:center;margin-top:22px"><b>COMUNÍQUESE Y CÚMPLASE</b></p>
+<p style="text-align:center">Dada el ${esc(fLarga(p.resolucion_en))}.</p>
+<div class="firma"><div><b>${esc(firmante)}</b><br>Rector(a)</div></div>
+<p class="pie">Documento generado por GIE · Gerencia Integral Educativa · Radicado ${esc(p.radicado)}</p>
+</body></html>`;
+}
+
 /* ---------- INICIO ---------- */
+iniciarSau();
 loadSchools();
-db.auth.getSession().then(({ data }) => { if (data.session) enter(); });
+if (RECUPERANDO) verForm('f-newpass');
+db.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') { RECUPERANDO = true; verForm('f-newpass'); } });
+db.auth.getSession().then(({ data }) => { if (data.session && !RECUPERANDO) enter(); });
 </script>
 </body>
 </html>

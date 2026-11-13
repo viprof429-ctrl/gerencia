@@ -63,6 +63,19 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
 .fin-form{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:1rem 1.2rem;margin:.8rem 0}
 .fin-sub{background:#fff;border:1px dashed #94a3b8;border-radius:12px;padding:.6rem 1rem;margin:.5rem 0}
 .fin-tot{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}
+.ay-bar{display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0}
+.ay-chip{border:1.5px solid #c7d2fe;background:#fff;color:#3730a3;border-radius:999px;padding:.35rem .9rem;font-weight:700;font-size:.82rem;cursor:pointer}
+.ay-chip.on{background:#4f46e5;color:#fff;border-color:#4f46e5}
+.ay-t{border:1.5px solid #e2e8f0;border-radius:14px;margin:.55rem 0;background:#fff}
+.ay-t>summary{cursor:pointer;padding:.8rem 1rem;font-weight:800;list-style:none;display:flex;justify-content:space-between;gap:.6rem;align-items:center}
+.ay-t>summary::-webkit-details-marker{display:none}
+.ay-t[open]{border-color:#818cf8;box-shadow:0 4px 14px rgba(79,70,229,.1)}
+.ay-b{padding:0 1.1rem 1.1rem}
+.ay-b ol{padding-left:1.2rem;margin:.6rem 0}.ay-b li{margin:.45rem 0;line-height:1.5}
+.ay-fig{margin:.9rem 0;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#f8fafc}
+.ay-fig img{display:block;width:100%;height:auto;cursor:zoom-in}
+.ay-fig figcaption{padding:.5rem .8rem;font-size:.82rem;color:#475569}
+.ay-ojo{background:#fffbeb;border:1.5px solid #fcd34d;color:#78350f;border-radius:10px;padding:.55rem .8rem;margin:.7rem 0;font-size:.88rem}
 .gmodal{position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow:auto}
 .gmodal-box{background:#fff;border-radius:16px;max-width:1100px;width:100%;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);margin:auto}
 .gmodal-bar{display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.8rem 1.1rem;border-bottom:1px solid #e2e8f0;position:sticky;top:0;background:#fff;border-radius:16px 16px 0 0;z-index:2}
@@ -149,7 +162,7 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
 <div id="app" class="hidden">
   <header>
     <div class="brand"><img src="/logo-gie-96.png" alt="GIE"><div><h1>GIE - Gerencia Integral Educativa</h1><p id="who"></p></div></div>
-    <div><button id="btn-home" class="btn sm gold hidden" onclick="goHome()">Menú principal</button><button class="btn sm red" onclick="logout()">Salir</button></div>
+    <div><button id="btn-ayuda" class="btn sm hidden" style="background:#4f46e5" onclick="openMod('ayuda')">❓ Ayuda</button> <button id="btn-home" class="btn sm gold hidden" onclick="goHome()">Menú principal</button><button class="btn sm red" onclick="logout()">Salir</button></div>
   </header>
   <div id="aud_bar" class="bar hidden" style="margin:0;border-radius:0;border-left:0;border-right:0">
     <span>🔎 <b>Modo auditoría:</b> está viendo <b id="aud_nom"></b> como lo ve su rector. Sus acciones no reemplazan a las del rector.</span>
@@ -356,6 +369,16 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       </div>
     </section>
 
+    <section id="v-ayuda" class="hidden">
+      <div class="card">
+        <div class="bar"><h2 style="margin:0">❓ Ayuda y manual de usuario</h2><button class="btn sm" onclick="ayImprimir()">🖨 Manual completo (PDF)</button></div>
+        <p class="d">Escriba su duda (por ejemplo: «recibo», «anular», «correo», «balance») y encuentre la respuesta paso a paso, con imágenes.</p>
+        <input id="ay_q" placeholder="¿Qué necesita hacer? Escriba una palabra…" oninput="ayRender()" autocomplete="off">
+        <div class="ay-bar" id="ay_chips"></div>
+        <div id="ay_out"><p class="d">Cargando ayuda…</p></div>
+      </div>
+    </section>
+
     <section id="v-usuarios" class="hidden">
       <div class="card">
         <h2>Configuración del colegio</h2>
@@ -385,7 +408,7 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
             <div><label>Apellidos</label><input id="u_ape" required></div>
             <div><label>Teléfono / WhatsApp</label><input type="tel" id="u_tel" required></div>
             <div><label>Correo (usuario de ingreso)</label><input type="email" id="u_mail" required autocomplete="off"></div>
-            <div><label>Rol</label><select id="u_rol"><option value="coordinador">Coordinador</option><option value="docente">Docente</option><option value="administrativo">Administrativo</option></select></div>
+            <div><label>Rol</label><select id="u_rol" onchange="uModsPintar()"><option value="coordinador">Coordinador</option><option value="docente">Docente</option><option value="administrativo">Administrativo</option></select></div>
             <div><label>Jornada (obligatoria para coordinadores y docentes)</label><select id="u_jor"><option value="">No aplica</option><option>Mañana</option><option>Tarde</option></select></div>
             <div><label>Régimen (obligatorio para docentes)</label><select id="u_reg"><option value="">No aplica</option><option value="2277">Decreto 2277 de 1979</option><option value="1278">Decreto 1278 de 2002</option></select></div>
             <div><label>Cargo</label>
@@ -394,6 +417,9 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
               <datalist id="dl_cargos"><option>Coordinador académico</option><option>Coordinador de convivencia</option><option>Docente</option><option>Tesorero(a)</option><option>Secretario(a)</option><option>Orientador(a)</option><option>Bibliotecario(a)</option><option>Auxiliar administrativo</option><option>Servicios generales</option></datalist>
             <div><label>Contraseña inicial</label><input id="u_pass" required minlength="6" autocomplete="off" placeholder="Mínimo 6 caracteres"></div>
           </div>
+          <label style="margin-top:.8rem">Módulos que podrá ver</label>
+          <p class="d" style="margin:.1rem 0 .4rem">Vienen marcados los de su rol; agregue o quite los que necesite. Después podrá cambiarlos con el botón «Módulos» de la lista.</p>
+          <div id="u_mods" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:.2rem .8rem;margin-bottom:.8rem"></div>
           <button class="btn" id="u_btn">Crear usuario</button>
           <div id="u_msg" class="msg"></div>
         </form>
@@ -401,11 +427,11 @@ h3.sec{font-size:.95rem;color:#1e1b4b;border-bottom:1px solid #e2e8f0;padding-bo
       <div class="card">
         <h2>Usuarios del colegio</h2>
         <p class="d">Los docentes, administrativos y el público se registran solos y quedan activos de inmediato. Aquí puede cambiar su rol o jornada, o desactivar a quien no deba tener acceso.</p>
-        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Jornada</th><th>Régimen</th><th>Cargo</th><th>Monitor SAU</th><th>Mantenimiento</th><th>Finanzas</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="u_body"></tbody></table></div>
+        <div class="wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Jornada</th><th>Régimen</th><th>Cargo</th><th>Monitor SAU</th><th>Mantenimiento</th><th>Módulos</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="u_body"></tbody></table></div>
       </div>
       <div class="card">
         <h2>Accesos por rol</h2>
-        <p class="d">Marque a qué módulos puede entrar cada tipo de usuario. El rector siempre tiene acceso a todo.</p>
+        <p class="d">Estos son los módulos que cada tipo de usuario tiene <b>por defecto</b>. Para una persona en particular, use el botón <b>«Módulos»</b> de la lista de usuarios y póngale o quítele chulos. El Público solo puede entrar a SAU. El rector siempre tiene acceso a todo.</p>
         <div class="wrap"><table><thead><tr><th>Módulo</th><th>Docente</th><th>Coordinador</th><th>Administrativo</th><th>Público</th></tr></thead><tbody id="a_body"></tbody></table></div>
         <button class="btn green" onclick="guardarMatriz()">Guardar accesos</button>
         <div id="a_msg" class="msg"></div>
@@ -484,8 +510,8 @@ async function nuevaClave(e) {
   verForm('f-login');
   msg('l_msg', 'Contraseña actualizada. Ya puede ingresar con la nueva.', true);
 }
-const VIEWS = ['home','magister','permisos','bandeja','sau','mant','fin','con','inv','usuarios'];
-function showView(v) { VIEWS.forEach(x => $('v-' + x).classList.toggle('hidden', x !== v)); $('btn-home').classList.toggle('hidden', v === 'home' || v === 'magister'); }
+const VIEWS = ['home','magister','permisos','bandeja','sau','mant','fin','con','inv','ayuda','usuarios'];
+function showView(v) { VIEWS.forEach(x => $('v-' + x).classList.toggle('hidden', x !== v)); $('btn-home').classList.toggle('hidden', v === 'home' || v === 'magister'); $('btn-ayuda').classList.toggle('hidden', v === 'ayuda'); }
 
 async function loadSchools() {
   const { data, error } = await db.from('colegios_publicos').select('id,nombre,nit').order('nombre');
@@ -708,15 +734,23 @@ const MODS = [
   { k:'con', t:'Contabilidad', i:'📒', fin:true },
   { k:'inv', t:'Inventario del Comedor', i:'🥦', fin:true }
 ];
+let MIS = [];
+const MOD_ACC = [['permisos','Control de Permisos','Atención y gestión'],['sau','SAU (Atención al Usuario)','Atención y gestión'],['mantenimiento','Gestión de Mantenimiento','Atención y gestión'],
+  ['ingresos','Finanzas · Ingresos','Finanzas y comedor'],['egresos','Finanzas · Egresos','Finanzas y comedor'],['cartera','Finanzas · Cartera','Finanzas y comedor'],['proveedores','Finanzas · Proveedores','Finanzas y comedor'],
+  ['contable','Contabilidad','Finanzas y comedor'],['inventario','Inventario del comedor','Finanzas y comedor']];
 async function cargarAccesos() {
   ACCESOS = {};
   const { data } = await db.from('accesos_rol').select('rol,modulo,permitido');
   (data || []).forEach(x => { ACCESOS[x.rol] = ACCESOS[x.rol] || {}; ACCESOS[x.rol][x.modulo] = x.permitido; });
+  /* módulos reales de esta persona (su rol + los ajustes que le hizo el rector) */
+  const r = await db.rpc('mis_modulos');
+  if (!r.error && Array.isArray(r.data)) MIS = r.data;
+  else MIS = MOD_ACC.map(m => m[0]).filter(m => (ACCESOS[me.rol] && ACCESOS[me.rol][m]) || (me.fin_modulos || []).includes(m));
 }
 async function goHome() {
   const r = me.rol;
   showView('home');
-  const puede = k => r === 'rector' || !!(ACCESOS[r] && ACCESOS[r][k]);
+  const puede = k => r === 'rector' || MIS.includes(k);
   let pend = 0;
   if (r === 'coordinador' || r === 'rector') {
     const { count } = await db.from('permisos').select('id', { count: 'exact', head: true }).eq('estado', r === 'coordinador' ? 'Pendiente' : 'Preaprobado');
@@ -746,6 +780,7 @@ async function goHome() {
       cards.push({ t:m.t, i:m.i, go, n: go === 'bandeja' ? pend : 0, d: go === 'permisos' ? 'Solicite permisos y consulte su historial.' : go ? 'Revise, preapruebe y apruebe solicitudes.' : 'Próximamente.' });
     } else cards.push({ t:m.t, i:m.i, go:null, d:'Próximamente.' });
   });
+  cards.push({ t:'Ayuda y manual', i:'❓', go:'ayuda', d:'Encuentre cómo se hace cada cosa, paso a paso y con imágenes.' });
   if (r === 'rector') cards.push({ t:'Usuarios y accesos', i:'👥', go:'usuarios', d:'Cree usuarios, asigne roles y defina a qué módulos entra cada rol.' });
   $('mods').innerHTML = cards.map(m => `<div class="mod ${m.go ? '' : 'off'}" ${m.go ? `onclick="openMod('${m.go}')"` : ''}><div class="ico">${m.i}</div><h3>${esc(m.t)}</h3><p>${esc(m.d)}</p>${m.n ? `<p style="margin-top:.6rem"><span class="tag t-bad">${m.n} solicitud(es) por revisar</span></p>` : ''}${m.x ? `<p style="margin-top:.6rem">${m.x}</p>` : ''}</div>`).join('')
     || '<p class="d">No tiene módulos habilitados todavía. Contacte al rector de su institución.</p>';
@@ -759,6 +794,7 @@ function openMod(v) {
   if (v === 'fin') initFin();
   if (v === 'con') initCon();
   if (v === 'inv') initInv();
+  if (v === 'ayuda') initAyuda();
   if (v === 'usuarios') loadUsuarios();
 }
 const ST = { Pendiente:'t-no', Preaprobado:'t-info', Aprobado:'t-ok', Rechazado:'t-bad' };
@@ -903,6 +939,10 @@ const opts = (list, cur) => list.map(([v, t]) => `<option value="${v}" ${v === c
 
 const REGIMENES = [['','—'],['2277','Decreto 2277/1979'],['1278','Decreto 1278/2002']];
 const CARGOS_BASE = ['Coordinador académico', 'Coordinador de convivencia', 'Docente', 'Tesorero(a)', 'Secretario(a)', 'Orientador(a)', 'Bibliotecario(a)', 'Auxiliar administrativo', 'Servicios generales'];
+function uModsPintar() {
+  const r = $('u_rol').value, d = ROL_DEF[r] || {};
+  $('u_mods').innerHTML = MOD_ACC.map(m => `<label style="display:flex;gap:.45rem;align-items:center;font-weight:600;margin:0"><input type="checkbox" style="width:auto" data-nm="${m[0]}" ${d[m[0]] ? 'checked' : ''}>${esc(m[1])}</label>`).join('');
+}
 function cargoSel() { const o = $('u_cargo_sel').value === '__otro'; $('u_cargo').classList.toggle('hidden', !o); if (o) $('u_cargo').focus(); else $('u_cargo').value = ''; }
 const cargoElegido = () => $('u_cargo_sel').value === '__otro' ? val('u_cargo') : $('u_cargo_sel').value;
 function actualizarCargos(usados) {
@@ -914,7 +954,12 @@ function actualizarCargos(usados) {
 }
 async function loadUsuarios() {
   loadMatriz(); cargarConfig();
-  const { data } = await db.from('perfiles').select('id,nombres,apellidos,correo,telefono,rol,jornada,regimen,cargo,es_monitor_sau,mant_rol,fin_modulos,activo').order('creado_en', { ascending: false });
+  const [{ data }, { data: ov }, { data: ar }] = await Promise.all([
+    db.from('perfiles').select('id,nombres,apellidos,correo,telefono,rol,jornada,regimen,cargo,es_monitor_sau,mant_rol,activo').order('creado_en', { ascending: false }),
+    db.from('accesos_usuario').select('usuario_id,modulo,permitido'), db.from('accesos_rol').select('rol,modulo,permitido')]);
+  ROL_DEF = {}; (ar || []).forEach(x => { ROL_DEF[x.rol] = ROL_DEF[x.rol] || {}; ROL_DEF[x.rol][x.modulo] = x.permitido; });
+  USR_OV = {}; (ov || []).forEach(x => { USR_OV[x.usuario_id] = USR_OV[x.usuario_id] || {}; USR_OV[x.usuario_id][x.modulo] = x.permitido; });
+  USR_LIST = Object.fromEntries((data || []).map(x => [x.id, x])); uModsPintar();
   actualizarCargos((data || []).map(x => x.cargo));
   $('u_body').innerHTML = (data || []).map(x => {
     const fijo = x.id === me.id || x.rol === 'rector';
@@ -925,7 +970,7 @@ async function loadUsuarios() {
       <td>${fijo ? esc(x.cargo || '—') : `<input list="dl_cargos" style="width:11rem;padding:.4rem" maxlength="60" value="${esc(x.cargo || '')}" onchange="setUsr('${x.id}',{cargo:this.value.trim()||null})">`}</td>
       <td style="text-align:center">${x.rol === 'rector' ? '—' : `<input type="checkbox" style="width:auto" ${x.es_monitor_sau ? 'checked' : ''} onchange="setUsr('${x.id}',{es_monitor_sau:this.checked})">`}</td>
       <td>${x.rol === 'rector' ? '—' : `<select style="width:auto;padding:.4rem" onchange="setUsr('${x.id}',{mant_rol:this.value||null})">${opts([['','—'],['principal','Jefe principal'],['suplente','Jefe suplente']], x.mant_rol || '')}</select>`}</td>
-      <td>${finUsrCelda(x)}</td>
+      <td>${usrModsCelda(x)}</td>
       <td><span class="tag ${x.activo ? 't-ok' : 't-no'}">${x.activo ? 'Activo' : 'Desactivado'}</span></td>
       <td>${fijo ? '' : `<button class="btn sm green" onclick="setUsr('${x.id}',{activo:${!x.activo}})">${x.activo ? 'Desactivar' : 'Activar'}</button>`}</td></tr>`;
   }).join('') || '<tr><td colspan="11">Sin usuarios.</td></tr>';
@@ -955,8 +1000,10 @@ async function crearUsuario(e) {
     if (!data.user) throw new Error('No se pudo crear el usuario.');
     const { error: e2 } = await db.from('perfiles').update({ rol, activo: true, cargo: cargo || null }).eq('id', data.user.id);
     if (e2) throw new Error('Usuario creado, pero no se pudo activar: ' + e2.message);
-    form.reset(); cargoSel();
-    msg('u_msg', 'Usuario creado. Ya puede ingresar con su correo y contraseña.', true);
+    const mods = {}; document.querySelectorAll('#u_mods input[data-nm]').forEach(i => { mods[i.dataset.nm] = i.checked; });
+    const rm = await db.rpc('acceso_usuario_guardar', { p_usuario: data.user.id, p_mods: mods });
+    form.reset(); cargoSel(); uModsPintar();
+    msg('u_msg', rm.error ? 'Usuario creado, pero no se pudieron guardar sus módulos (hágalo con el botón «Módulos»): ' + traducir(rm.error.message) : 'Usuario creado. Ya puede ingresar con su correo y contraseña.', !rm.error);
     loadUsuarios();
   } catch (err) { msg('u_msg', err.message); }
   finally { btn.disabled = false; }
@@ -964,17 +1011,51 @@ async function crearUsuario(e) {
 
 /* ---------- ACCESOS POR ROL ---------- */
 const ROLES_ACC = [['docente','Docente'],['coordinador','Coordinador'],['administrativo','Administrativo'],['publico','Público']];
+let ROL_DEF = {}, USR_OV = {}, USR_LIST = {};
 async function loadMatriz() {
   const { data } = await db.from('accesos_rol').select('rol,modulo,permitido');
   const A = {};
   (data || []).forEach(x => { A[x.rol] = A[x.rol] || {}; A[x.rol][x.modulo] = x.permitido; });
-  $('a_body').innerHTML = MODS.filter(m => !m.fin).map(m => `<tr><td><b>${esc(m.t)}</b></td>${ROLES_ACC.map(r =>
-    `<td style="text-align:center"><input type="checkbox" style="width:auto" data-rol="${r[0]}" data-mod="${m.k}" ${A[r[0]] && A[r[0]][m.k] ? 'checked' : ''}></td>`).join('')}</tr>`).join('');
+  ROL_DEF = A;
+  $('a_body').innerHTML = MOD_ACC.map(m => `<tr><td><b>${esc(m[1])}</b></td>${ROLES_ACC.map(r => {
+    const off = r[0] === 'publico' && m[0] !== 'sau';
+    return `<td style="text-align:center"><input type="checkbox" style="width:auto" data-rol="${r[0]}" data-mod="${m[0]}" ${!off && A[r[0]] && A[r[0]][m[0]] ? 'checked' : ''} ${off ? 'disabled title="El público solo puede entrar a SAU"' : ''}></td>`; }).join('')}</tr>`).join('');
 }
 async function guardarMatriz() {
-  const filas = [...document.querySelectorAll('#a_body input')].map(i => ({ colegio_id: me.colegio_id, rol: i.dataset.rol, modulo: i.dataset.mod, permitido: i.checked }));
+  const filas = [...document.querySelectorAll('#a_body input:not([disabled])')].map(i => ({ colegio_id: me.colegio_id, rol: i.dataset.rol, modulo: i.dataset.mod, permitido: i.checked }));
   const { error } = await db.from('accesos_rol').upsert(filas, { onConflict: 'colegio_id,rol,modulo' });
-  msg('a_msg', error ? error.message : 'Accesos guardados.', !error);
+  msg('a_msg', error ? traducir(error.message) : 'Accesos guardados.', !error);
+  if (!error) loadUsuarios();
+}
+/* módulos de cada persona (ajustes sobre lo de su rol) */
+const usrEff = (u, m) => { const o = USR_OV[u.id]; if (o && m in o) return o[m]; return !!(ROL_DEF[u.rol] && ROL_DEF[u.rol][m]); };
+const usrDef = (u, m) => !!(ROL_DEF[u.rol] && ROL_DEF[u.rol][m]);
+function usrModsCelda(x) {
+  if (x.rol === 'rector') return 'Todos';
+  if (x.rol === 'publico') return 'Solo SAU';
+  const n = MOD_ACC.filter(m => usrEff(x, m[0])).length, aj = Object.keys(USR_OV[x.id] || {}).length;
+  return `<button class="btn sm" onclick="usrMods('${x.id}')">Módulos (${n})${aj ? ' ✎' : ''}</button>`;
+}
+function usrMods(id) {
+  const u = USR_LIST[id]; if (!u) return;
+  const ov = USR_OV[id] || {}, grupos = [...new Set(MOD_ACC.map(m => m[2]))];
+  const tag = aj => `<span class="tag ${aj ? 't-warn' : 't-info'}" style="${aj ? 'background:#fef3c7;color:#92400e' : ''}">${aj ? 'Ajustado' : 'Por su rol'}</span>`;
+  const cuerpo = `<p class="d" style="margin:.1rem 0 .7rem"><b>${esc(u.nombres)} ${esc(u.apellidos)}</b> · ${esc(ROLES[u.rol] || u.rol)}.<br>Marque los módulos que esta persona puede ver. <b>Por su rol</b> = viene de la tabla «Accesos por rol». <b>Ajustado</b> = cambio hecho solo para esta persona.</p>`
+    + grupos.map(g => `<div style="font-weight:800;margin:.7rem 0 .2rem;color:#3730a3">${esc(g)}</div>` + MOD_ACC.filter(m => m[2] === g).map(m =>
+      `<label style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.35rem .2rem;border-bottom:1px dotted #cbd5e1;font-weight:600"><span style="display:flex;gap:.5rem;align-items:center"><input type="checkbox" style="width:auto" data-um="${m[0]}" data-def="${usrDef(u, m[0]) ? 1 : 0}" ${usrEff(u, m[0]) ? 'checked' : ''} onchange="usrModChg(this)">${esc(m[1])}</span><span id="umt_${m[0]}">${tag(m[0] in ov)}</span></label>`).join('')).join('')
+    + `<div class="bar" style="margin-top:.9rem"><button class="btn green" onclick="usrModsGuardar('${id}')">Guardar</button><button class="btn sm" style="background:#64748b" onclick="usrModsRol()">Volver a lo de su rol</button></div><div id="um_msg" class="msg"></div>`;
+  modalAbrir('Módulos de ' + u.nombres + ' ' + u.apellidos, cuerpo);
+}
+function usrModChg(el) {
+  const aj = (el.checked ? 1 : 0) !== Number(el.dataset.def), t = $('umt_' + el.dataset.um);
+  t.innerHTML = `<span class="tag ${aj ? 't-warn' : 't-info'}" style="${aj ? 'background:#fef3c7;color:#92400e' : ''}">${aj ? 'Ajustado' : 'Por su rol'}</span>`;
+}
+function usrModsRol() { document.querySelectorAll('input[data-um]').forEach(i => { i.checked = i.dataset.def === '1'; usrModChg(i); }); }
+async function usrModsGuardar(id) {
+  const mods = {}; document.querySelectorAll('input[data-um]').forEach(i => { mods[i.dataset.um] = i.checked; });
+  const { error } = await db.rpc('acceso_usuario_guardar', { p_usuario: id, p_mods: mods });
+  if (error) return msg('um_msg', traducir(error.message));
+  modalCerrar(); loadUsuarios();
 }
 
 /* ---------- CONFIGURACIÓN DEL COLEGIO (RECTOR) ---------- */
@@ -1759,9 +1840,9 @@ const FIN_BASE = {   // lista básica; cada colegio agrega los suyos al escribir
   egreso:  ['Servicios públicos','Mantenimiento y reparaciones','Material didáctico','Papelería y útiles de oficina','Aseo y cafetería','Compra de alimentos (comedor escolar)','Honorarios','Dotación','Transporte','Impuestos y retenciones','Seguros','Capacitación','Otros gastos']
 };
 const finTipoConc = () => (['ingreso','cartera'].includes(FIN_TABS[FIN.tab].kind) ? 'ingreso' : 'egreso');
-const finPuede = m => me.rol === 'rector' || (me.fin_modulos || []).includes(m);
-const finTes = () => me.rol === 'rector' || ['ingresos','egresos','cartera','proveedores'].some(m => (me.fin_modulos || []).includes(m));
-const finAlguno = () => me.rol === 'rector' || (me.fin_modulos || []).length > 0;
+const finPuede = m => me.rol === 'rector' || MIS.includes(m);
+const finTes = () => me.rol === 'rector' || ['ingresos','egresos','cartera','proveedores'].some(m => MIS.includes(m));
+const finAlguno = () => me.rol === 'rector' || ['ingresos','egresos','cartera','proveedores','contable','inventario'].some(m => MIS.includes(m));
 const finHoy = () => new Intl.DateTimeFormat('en-CA', { timeZone:'America/Bogota' }).format(new Date());
 const finFecha = s => { if (!s) return ''; const [y,m,d] = String(s).slice(0,10).split('-'); return `${d}/${m}/${y}`; };
 
@@ -2013,19 +2094,42 @@ async function finActivarTer(id, activo) {
   if (error) return msg('ft_msg', error.message);
   await finCargarTer(); finPintarTer();
 }
-/* quién ve Finanzas (columna del rector en Usuarios) */
-const FIN_MODS_USR = [['ingresos','Ingresos'],['egresos','Egresos'],['cartera','Cartera'],['proveedores','Proveedores'],['contable','Contabilidad'],['inventario','Inventario']];
-function finUsrCelda(x) {
-  if (x.rol === 'rector') return '—';
-  const m = x.fin_modulos || [];
-  return `<details><summary style="cursor:pointer;font-size:.8rem;font-weight:700">${m.length ? m.length + ' módulo(s)' : 'Sin acceso'}</summary>${FIN_MODS_USR.map(f =>
-    `<label style="display:flex;gap:.4rem;align-items:center;margin:.2rem 0;font-weight:600"><input type="checkbox" style="width:auto" data-fu="${x.id}" value="${f[0]}" ${m.includes(f[0]) ? 'checked' : ''} onchange="setFin('${x.id}')">${f[1]}</label>`).join('')}</details>`;
+/* ---------- AYUDA ---------- */
+const ayNorm = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+let AY = { grupo: '' };
+async function initAyuda() {
+  $('ay_q').value = '';
+  if (!window.AYUDA) {
+    await new Promise(res => { const sc = document.createElement('script'); sc.src = '/ayuda.js?v=' + Date.now(); sc.onload = res; sc.onerror = res; document.head.appendChild(sc); });
+  }
+  if (!window.AYUDA) { $('ay_out').innerHTML = '<p class="msg">No se pudo cargar la ayuda. Revise su conexión e intente de nuevo.</p>'; return; }
+  AY.grupo = ''; ayRender();
 }
-async function setFin(id) {
-  const m = [...document.querySelectorAll(`input[data-fu="${id}"]:checked`)].map(i => i.value);
-  const { error } = await db.from('perfiles').update({ fin_modulos: m }).eq('id', id);
-  if (error) alert(traducir(error.message));
-  loadUsuarios();
+function ayGrupo(g) { AY.grupo = g; ayRender(); }
+function ayTexto(t) { return ayNorm([t.t, t.q, t.intro, t.g, (t.pasos || []).map(p => p[0] + ' ' + p[1]).join(' '), t.ojo].join(' ')); }
+function ayTemaHTML(t, abierto) {
+  const img = (t.img || []).map(k => AYUDA.img[k[0]] ? `<figure class="ay-fig"><img src="${AYUDA.img[k[0]]}" alt="${esc(k[1])}" onclick="ayZoom('${k[0]}')" loading="lazy"><figcaption>📷 ${esc(k[1])}</figcaption></figure>` : '').join('');
+  return `<details class="ay-t" ${abierto ? 'open' : ''}><summary><span>${esc(t.t)}</span><span class="tag t-info">${esc(t.g)}</span></summary><div class="ay-b">
+    ${t.intro ? `<p>${t.intro}</p>` : ''}
+    ${(t.pasos || []).length ? `<ol>${t.pasos.map(p => `<li><b>${p[0]}</b>${p[1] ? ' — ' + p[1] : ''}</li>`).join('')}</ol>` : ''}
+    ${img}${t.ojo ? `<div class="ay-ojo">⚠️ <b>¡Ojo!</b> ${t.ojo}</div>` : ''}</div></details>`;
+}
+function ayRender() {
+  if (!window.AYUDA) return;
+  const q = ayNorm($('ay_q').value).trim(), ws = q.split(/\s+/).filter(w => w.length > 1);
+  $('ay_chips').innerHTML = ['', ...AYUDA.grupos].map(g => `<button type="button" class="ay-chip ${AY.grupo === g ? 'on' : ''}" onclick="ayGrupo('${g.replace(/'/g, "\\'")}')">${g || 'Todos los temas'}</button>`).join('');
+  let L = AYUDA.temas.filter(t => !AY.grupo || t.g === AY.grupo);
+  if (ws.length) L = L.map(t => { const x = ayTexto(t), tt = ayNorm(t.t); return { t, n: ws.reduce((a, w) => a + (x.includes(w) ? 1 : 0) + (tt.includes(w) ? 2 : 0), 0), all: ws.every(w => x.includes(w)) }; }).filter(o => o.n > 0).sort((a, b) => (b.all - a.all) || (b.n - a.n)).map(o => o.t);
+  $('ay_out').innerHTML = L.length
+    ? `<p class="d" style="font-size:.82rem">${L.length} tema(s)${ws.length ? ' encontrados' : ''}. Toque un tema para abrirlo; toque una imagen para verla grande.</p>` + L.map((t, i) => ayTemaHTML(t, ws.length > 0 && L.length <= 2)).join('')
+    : `<div class="okbox" style="background:#fffbeb;border-color:#fcd34d;color:#78350f">No encontramos ese tema. Pruebe con otra palabra (por ejemplo «recibo», «correo», «anular», «producto»). Si sigue sin resolverlo, consulte al rector de su institución.</div>`;
+}
+function ayZoom(k) { modalAbrir('Imagen', `<img src="${AYUDA.img[k]}" style="max-width:100%;display:block;margin:auto" alt="">`); }
+function ayImprimir() {
+  if (!window.AYUDA) return;
+  const cuerpo = `<h1 style="font-size:24px;margin:0 0 4px">Manual de usuario — GIE</h1><p style="color:#475569;margin:0 0 14px">Gerencia Integral Educativa</p>` + AYUDA.grupos.map(g => `<h2 style="font-size:18px;color:#3730a3;border-bottom:2px solid #4f46e5;padding-bottom:3px;margin-top:22px;page-break-before:always">${esc(g)}</h2>` + AYUDA.temas.filter(t => t.g === g).map(t => `<div style="page-break-inside:avoid"><h3 style="font-size:14.5px;margin:14px 0 4px">${esc(t.t)}</h3>${t.intro ? `<p style="margin:2px 0">${t.intro}</p>` : ''}${(t.pasos || []).length ? `<ol style="margin:4px 0;padding-left:20px">${t.pasos.map(p => `<li><b>${p[0]}</b>${p[1] ? ' — ' + p[1] : ''}</li>`).join('')}</ol>` : ''}${(t.img || []).map(k => AYUDA.img[k[0]] ? `<figure style="margin:8px 0"><img src="${AYUDA.img[k[0]]}" style="width:100%;border:1px solid #cbd5e1;border-radius:6px"><figcaption style="font-size:11px;color:#475569">${esc(k[1])}</figcaption></figure>` : '').join('')}${t.ojo ? `<p style="border:1px solid #fcd34d;background:#fffbeb;padding:5px 8px;border-radius:6px;font-size:11.5px">⚠️ <b>¡Ojo!</b> ${t.ojo}</p>` : ''}</div>`).join('')).join('');
+  DOC = { titulo: 'Manual de usuario GIE', cuerpo, secciones: null, pagina: 'carta' };
+  docImprimir();
 }
 
 /* ---------- FINANZAS: comprobantes, consulta por identificación y reportes ---------- */
